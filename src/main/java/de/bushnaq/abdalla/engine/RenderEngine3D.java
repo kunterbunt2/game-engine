@@ -867,7 +867,7 @@ public class RenderEngine3D<T> {
             setCurrentDayTime(getFixedDayTime());
         }
         updateEnvironment(getCurrentDayTime());
-        float depth = Math.max(sceneBox.getWidth(), Math.max(sceneBox.getHeight(), sceneBox.getDepth()));
+//        float depth = Math.max(sceneBox.getWidth(), Math.max(sceneBox.getHeight(), sceneBox.getDepth()));
 //		csm.setCascades(camera, shadowLight, depth, 4f);
         renderableProviders.clear();
         updateDynamicModelInstanceCache();
@@ -898,8 +898,8 @@ public class RenderEngine3D<T> {
 
             // waterReflectionFbo
             gameShaderProvider.setClippingPlane(reflectionClippingPlane);
-            final float cameraYDistance = 2 * (camera.position.y - .2f);
-            final float lookatYDistance = 2 * (camera.lookat.y - .2f);
+            final float cameraYDistance = 2 * (camera.position.y - context.getWaterLevel());
+            final float lookatYDistance = 2 * (camera.lookat.y - context.getWaterLevel());
             camera.position.y -= cameraYDistance;
             camera.lookat.y -= lookatYDistance;
             camera.up.set(0, 1, 0);
@@ -924,8 +924,8 @@ public class RenderEngine3D<T> {
             // waterReflectionFbo
             context.enableClipping();
             gameShaderProvider.setClippingPlane(reflectionClippingPlane);
-            final float cameraYDistance = 2 * (camera.position.y - 0.1f);
-            final float lookatYDistance = 2 * (camera.lookat.y - 0.1f);
+            final float cameraYDistance = 2 * (camera.position.y - context.getWaterLevel());
+            final float lookatYDistance = 2 * (camera.lookat.y - context.getWaterLevel());
             camera.position.y -= cameraYDistance;
             camera.lookat.y -= lookatYDistance;
             camera.up.set(0, 1, 0);
