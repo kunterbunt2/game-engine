@@ -103,7 +103,7 @@ public class RenderEngine3D<T> {
     private final        PointLightsAttribute        pointLights                      = new PointLightsAttribute();
     private final        Vector3                     position                         = new Vector3();
     private final        Array<ModelInstance>        renderableProviders              = new Array<>();
-    private final        Vector3                     shadowLightDirection             = new Vector3();
+    //    private final        Vector3                     shadowLightDirection             = new Vector3();
     private final        int                         speed                            = 5;                                                                    // speed of time
     private final        SpotLightsAttribute         spotLights                       = new SpotLightsAttribute();
     private final        ModelCache                  staticCache                      = new ModelCache();
@@ -133,12 +133,12 @@ public class RenderEngine3D<T> {
     private              AtlasRegion                 atlasRegion;
     private              ModelBatch                  batch;
     private              MovingCamera                camera;
-    private              GameObject                  cameraCube;
+    //    private              GameObject                  cameraCube;
     private              float                       currentDayTime;
     private              SceneSkybox                 daySkyBox;
     private              boolean                     debugMode                        = false;
     private              ModelBatch                  depthBatch;
-    private              GameObject                  depthOfFieldMeter;
+    //    private              GameObject                  depthOfFieldMeter;
     private              boolean                     dynamicDayTime                   = false;
     private              Set<ObjectRenderer<T>>      dynamicText3DList                = new HashSet<>();
     // GaussianBlurEffect effect1;
@@ -149,11 +149,11 @@ public class RenderEngine3D<T> {
     private              BitmapFont                  font;
     private              T                           gameEngine;
     private              Matrix4                     identityMatrix                   = new Matrix4();
-    private              InputProcessor              inputProcessor;
+    //    private              InputProcessor              inputProcessor;
     private              Logger                      logger                           = LoggerFactory.getLogger(this.getClass());
-    private              GameObject                  lookatCube;
+    //    private              GameObject                  lookatCube;
     private              Mirror                      mirror                           = new Mirror();
-    private              float                       northDirectionDegree             = 90;
+    //    private              float                       northDirectionDegree             = 90;
     private              boolean                     pbr;
     // private final Ray ray = new Ray(new Vector3(), new Vector3());
     private              Plane                       reflectionClippingPlane          = new Plane(new Vector3(0f, 1f, 0f), 0.1f);                                // render everything above the
@@ -189,13 +189,13 @@ public class RenderEngine3D<T> {
 //			}
 //		}
         logger.info(String.format("width = %d height = %d", Gdx.graphics.getWidth(), Gdx.graphics.getHeight()));
-        this.context        = context;
-        this.gameEngine     = gameEngine;
-        this.inputProcessor = inputProcessor;
-        this.camera         = camera;
-        this.camera2D       = camera2D;
-        this.font           = font;
-        this.atlasRegion    = atlasRegion;
+        this.context    = context;
+        this.gameEngine = gameEngine;
+//        this.inputProcessor = inputProcessor;
+        this.camera      = camera;
+        this.camera2D    = camera2D;
+        this.font        = font;
+        this.atlasRegion = atlasRegion;
         create();
     }
 
@@ -360,8 +360,7 @@ public class RenderEngine3D<T> {
     }
 
     private GameObject createRay(final Ray ray, Float length) {
-        if (length == null)
-            length = 10000f;
+        if (length == null) length = 10000f;
 //		final float			length		= 10000f;
         final Vector3    direction = new Vector3(ray.direction.x, ray.direction.y, ray.direction.z);
         final Vector3    position  = ray.origin.cpy();
@@ -607,8 +606,7 @@ public class RenderEngine3D<T> {
                 instance.instance.transform.getTranslation(position);
                 position.add(instance.center);
                 final float dist2 = ray.origin.dst2(position);
-                if (distance >= 0f && dist2 > distance)
-                    continue;
+                if (distance >= 0f && dist2 > distance) continue;
                 if (Intersector.intersectRayBoundsFast(ray, instance.transformedBoundingBox)) {
                     result   = instance;
                     distance = dist2;
@@ -621,8 +619,7 @@ public class RenderEngine3D<T> {
                 instance.instance.transform.getTranslation(position);
                 position.add(instance.center);
                 final float dist2 = ray.origin.dst2(position);
-                if (distance >= 0f && dist2 > distance)
-                    continue;
+                if (distance >= 0f && dist2 > distance) continue;
                 if (Intersector.intersectRayBoundsFast(ray, instance.transformedBoundingBox)) {
                     result   = instance;
                     distance = dist2;
@@ -998,14 +995,12 @@ public class RenderEngine3D<T> {
 
         for (GameObject gameObject : staticModelInstances) {
             if (isVisible(gameObject)) {
-                if (gameObject.objectRenderer != null)
-                    gameObject.objectRenderer.renderText(this, 0, false);
+                if (gameObject.objectRenderer != null) gameObject.objectRenderer.renderText(this, 0, false);
             }
         }
         for (GameObject gameObject : dynamicModelInstances) {
             if (isVisible(gameObject)) {
-                if (gameObject.objectRenderer != null)
-                    gameObject.objectRenderer.renderText(this, 0, false);
+                if (gameObject.objectRenderer != null) gameObject.objectRenderer.renderText(this, 0, false);
             }
         }
 
@@ -1020,26 +1015,21 @@ public class RenderEngine3D<T> {
     }
 
     /**
-     * Render colors only. You should call {@link #renderShadows()} before. (useful when you're using your own frame buffer to render scenes)
+     * Render colors only. You should call {@link #renderShadows(boolean takeScreenShot)} before. (useful when you're using your own frame buffer to render scenes)
      */
     private void renderColors(final boolean takeScreenShot) {
         clearViewport();
 
         batch.begin(camera);
-        if (useStaticCache)
-            batch.render(staticCache, computedEnvironement);
+        if (useStaticCache) batch.render(staticCache, computedEnvironement);
 //         else
 //         batch.render(visibleStaticModelInstances, computedEnvironement);
-        if (useDynamicCache)
-            batch.render(dynamicCache, computedEnvironement);
-        else
-            batch.render(visibleDynamicModelInstances, computedEnvironement);
+        if (useDynamicCache) batch.render(dynamicCache, computedEnvironement);
+        else batch.render(visibleDynamicModelInstances, computedEnvironement);
 //         batch.render(ocean.instance, oceanShader);
         if (isSkyBox()) {
-            if (daySkyBox != null && isDay())
-                batch.render(daySkyBox);
-            else if (nightSkyBox != null && isNight())
-                batch.render(nightSkyBox);
+            if (daySkyBox != null && isDay()) batch.render(daySkyBox);
+            else if (nightSkyBox != null && isNight()) batch.render(nightSkyBox);
         }
         batch.end();
     }
@@ -1052,14 +1042,11 @@ public class RenderEngine3D<T> {
     // }
     private void renderDepth(final Camera camera) {
         depthBatch.begin(camera);
-        if (useStaticCache)
-            depthBatch.render(staticCache);
+        if (useStaticCache) depthBatch.render(staticCache);
         // else
         // depthBatch.render(visibleStaticModelInstances);
-        if (useDynamicCache)
-            depthBatch.render(dynamicCache);
-        else
-            depthBatch.render(visibleDynamicModelInstances);
+        if (useDynamicCache) depthBatch.render(dynamicCache);
+        else depthBatch.render(visibleDynamicModelInstances);
         depthBatch.end();
     }
 
@@ -1278,10 +1265,8 @@ public class RenderEngine3D<T> {
                     ((Updatable) r).update(camera, delta);
                 }
             }
-            if (daySkyBox != null && isDay())
-                daySkyBox.update(camera, delta);
-            else if (nightSkyBox != null && isNight())
-                nightSkyBox.update(camera, delta);
+            if (daySkyBox != null && isDay()) daySkyBox.update(camera, delta);
+            else if (nightSkyBox != null && isNight()) nightSkyBox.update(camera, delta);
         }
     }
 
