@@ -1,3 +1,19 @@
+/*
+ * Copyright (C) 2024 Abdalla Bushnaq
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package de.bushnaq.abdalla.engine;
 
 import com.badlogic.gdx.graphics.Color;
@@ -5,47 +21,35 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
-import com.badlogic.gdx.graphics.g3d.ModelBatch;
-import com.badlogic.gdx.graphics.g3d.utils.DepthShaderProvider;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
-import com.scottlogic.util.GL32CMacIssueHandler;
-import com.scottlogic.util.ShaderCompatibilityHelper;
-import net.mgsx.gltf.scene3d.scene.SceneRenderableSorter;
-import net.mgsx.gltf.scene3d.shaders.PBRShaderProvider;
 
 public class RenderEngine2D<T> {
     public CustomizedSpriteBatch batch;
-    public OrthographicCamera camera;
-    public float centerX;
-    public float centerY;
-    public int height;
+    public OrthographicCamera    camera;
+    public float                 centerX;
+    public float                 centerY;
+    public int                   height;
+    public int                   width;
+    T           gameEngine;
     GlyphLayout layout = new GlyphLayout();
-    public int width;
-    T gameEngine;
 
     public RenderEngine2D(T gameEngine, OrthographicCamera camera) {
         this.gameEngine = gameEngine;
-        this.camera = camera;
+        this.camera     = camera;
         create();
-    }
-    public void create() {
-        createShader();
-    }
-    private void createShader() {
-        batch = new CustomizedSpriteBatch(5460);
     }
 
     public void bar(final TextureRegion image, final float aX1, final float aY1, final float aX2, final float aY2, final Color color) {
-        final float x1 = transformX(aX1);
-        final float y1 = transformY(aY1);
-        final float x2 = transformX(aX2);
-        final float y2 = transformY(aY2);
-        final float width = x2 - x1 + 1;
-        final float height = y2 - y1 - 1;
-        final Vector3 p1 = new Vector3(x1, y1, 0);
-        final Vector3 p2 = new Vector3(x2, y2, 0);
-        final BoundingBox bb = new BoundingBox(p2, p1);
+        final float       x1     = transformX(aX1);
+        final float       y1     = transformY(aY1);
+        final float       x2     = transformX(aX2);
+        final float       y2     = transformY(aY2);
+        final float       width  = x2 - x1 + 1;
+        final float       height = y2 - y1 - 1;
+        final Vector3     p1     = new Vector3(x1, y1, 0);
+        final Vector3     p2     = new Vector3(x2, y2, 0);
+        final BoundingBox bb     = new BoundingBox(p2, p1);
         // Vector3[] v3 = camera.frustum.planePoints;
         if (camera.frustum.boundsInFrustum(bb)) {
             batch.setColor(color);
@@ -54,15 +58,15 @@ public class RenderEngine2D<T> {
     }
 
     public void bar(final TextureRegion image, final float aX1, final float aY1, final float aX2, final float aY2, final float aZ, final Color color) {
-        final float x1 = transformX(aX1, aZ);
-        final float y1 = transformY(aY1, aZ);
-        final float x2 = transformX(aX2, aZ);
-        final float y2 = transformY(aY2, aZ);
-        final float width = x2 - x1 + 1;
-        final float height = y2 - y1 - 1;
-        final Vector3 p1 = new Vector3(x1, y1, 0);
-        final Vector3 p2 = new Vector3(x2, y2, 0);
-        final BoundingBox bb = new BoundingBox(p2, p1);
+        final float       x1     = transformX(aX1, aZ);
+        final float       y1     = transformY(aY1, aZ);
+        final float       x2     = transformX(aX2, aZ);
+        final float       y2     = transformY(aY2, aZ);
+        final float       width  = x2 - x1 + 1;
+        final float       height = y2 - y1 - 1;
+        final Vector3     p1     = new Vector3(x1, y1, 0);
+        final Vector3     p2     = new Vector3(x2, y2, 0);
+        final BoundingBox bb     = new BoundingBox(p2, p1);
         // Vector3[] v3 = camera.frustum.planePoints;
         if (camera.frustum.boundsInFrustum(bb)) {
             batch.setColor(color);
@@ -77,6 +81,14 @@ public class RenderEngine2D<T> {
             batch.setColor(color);
             batch.circle(image, x1, y1, radius, width, edges);
         }
+    }
+
+    public void create() {
+        createShader();
+    }
+
+    private void createShader() {
+        batch = new CustomizedSpriteBatch(5460);
     }
 
     public void dispose() {
@@ -117,14 +129,17 @@ public class RenderEngine2D<T> {
         }
     }
 
+    public T getGameEngine() {
+        return gameEngine;
+    }
 
     public void lable(final TextureRegion textureRegion, final float x, final float y, float width, float height, final float start, final float end, final BitmapFont font, final Color lableColor, final String name, final Color nameColor, final String value, final Color valueColor) {
-        final float angle = (float) (Math.PI / 6.0);
-        final float x1 = (float) (x + width / 2 + start * Math.sin(angle));
-        final float y1 = (float) (y + height / 2 - start * Math.cos(angle));
-        final float x2 = (float) (x + width / 2 + end * Math.sin(angle));
-        final float y2 = (float) (y + height / 2 - end * Math.cos(angle));
-        final float x3 = x2 + width * 3 * camera.zoom;
+        final float angle    = (float) (Math.PI / 6.0);
+        final float x1       = (float) (x + width / 2 + start * Math.sin(angle));
+        final float y1       = (float) (y + height / 2 - start * Math.cos(angle));
+        final float x2       = (float) (x + width / 2 + end * Math.sin(angle));
+        final float y2       = (float) (y + height / 2 - end * Math.cos(angle));
+        final float x3       = x2 + width * 3 * camera.zoom;
         final float thicknes = 2.0f * camera.zoom;
         line(textureRegion, x1, y1, x2, y2, lableColor, thicknes);
         line(textureRegion, x2, y2, x3, y2, lableColor, thicknes);
@@ -243,9 +258,5 @@ public class RenderEngine2D<T> {
 
     public float untransformY(final float aY) {
         return (aY - height / 2) * camera.zoom + height / 2;
-    }
-
-    public T getGameEngine() {
-        return gameEngine;
     }
 }

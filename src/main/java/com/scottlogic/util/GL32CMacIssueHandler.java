@@ -1,22 +1,6 @@
 package com.scottlogic.util;
 
 import com.badlogic.gdx.Gdx;
-
-/*
- * Copyright 2020 eskalon
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at:
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 
 /**
@@ -29,74 +13,78 @@ import com.badlogic.gdx.graphics.glutils.ShaderProgram;
  */
 public final class GL32CMacIssueHandler {
 
-	// TODO https://github.com/libgdx/libgdx/pull/5960
+    // TODO https://github.com/libgdx/libgdx/pull/5960
 
-	/**
-	 * Returns a new instance of the default shader used by SpriteBatch for GL2 when no shader is specified.
-	 */
-	public static ShaderProgram createImmediateModeRenderer20DefaultShader(boolean hasNormals, boolean hasColors, int numTexCoords) {
-		String			vertexShader	= createImmediateModeRenderer20VertexShader(hasNormals, hasColors, numTexCoords);
-		String			fragmentShader	= createImmediateModeRenderer20FragmentShader(hasNormals, hasColors, numTexCoords);
-		ShaderProgram	program			= new ShaderProgram(vertexShader, fragmentShader);
-		return program;
-	}
+    private GL32CMacIssueHandler() {
+        throw new UnsupportedOperationException();
+    }
 
-	private static String createImmediateModeRenderer20FragmentShader(boolean hasNormals, boolean hasColors, int numTexCoords) {
-		String shader = "#ifdef GL_ES\n" + "precision mediump float;\n" + "#endif\n";
+    /**
+     * Returns a new instance of the default shader used by SpriteBatch for GL2 when no shader is specified.
+     */
+    public static ShaderProgram createImmediateModeRenderer20DefaultShader(boolean hasNormals, boolean hasColors, int numTexCoords) {
+        String        vertexShader   = createImmediateModeRenderer20VertexShader(hasNormals, hasColors, numTexCoords);
+        String        fragmentShader = createImmediateModeRenderer20FragmentShader(hasNormals, hasColors, numTexCoords);
+        ShaderProgram program        = new ShaderProgram(vertexShader, fragmentShader);
+        return program;
+    }
 
-		if (hasColors)
-			shader += "in vec4 v_col;\n";
-		for (int i = 0; i < numTexCoords; i++) {
-			shader += "in vec2 v_tex" + i + ";\n";
-			shader += "uniform sampler2D u_sampler" + i + ";\n";
-		}
+    private static String createImmediateModeRenderer20FragmentShader(boolean hasNormals, boolean hasColors, int numTexCoords) {
+        String shader = "#ifdef GL_ES\n" + "precision mediump float;\n" + "#endif\n";
 
-		shader += "out vec4 fragColor;\n";
+        if (hasColors)
+            shader += "in vec4 v_col;\n";
+        for (int i = 0; i < numTexCoords; i++) {
+            shader += "in vec2 v_tex" + i + ";\n";
+            shader += "uniform sampler2D u_sampler" + i + ";\n";
+        }
 
-		shader += "void main() {\n" + "   fragColor = " + (hasColors ? "v_col" : "vec4(1, 1, 1, 1)");
+        shader += "out vec4 fragColor;\n";
 
-		if (numTexCoords > 0)
-			shader += " * ";
+        shader += "void main() {\n" + "   fragColor = " + (hasColors ? "v_col" : "vec4(1, 1, 1, 1)");
 
-		for (int i = 0; i < numTexCoords; i++) {
-			if (i == numTexCoords - 1) {
-				shader += " texture(u_sampler" + i + ",  v_tex" + i + ")";
-			} else {
-				shader += " texture(u_sampler" + i + ",  v_tex" + i + ") *";
-			}
-		}
+        if (numTexCoords > 0)
+            shader += " * ";
 
-		shader += ";\n}";
-		return shader;
-	}
+        for (int i = 0; i < numTexCoords; i++) {
+            if (i == numTexCoords - 1) {
+                shader += " texture(u_sampler" + i + ",  v_tex" + i + ")";
+            } else {
+                shader += " texture(u_sampler" + i + ",  v_tex" + i + ") *";
+            }
+        }
 
-	private static String createImmediateModeRenderer20VertexShader(boolean hasNormals, boolean hasColors, int numTexCoords) {
-		String shader = "in vec4 " + ShaderProgram.POSITION_ATTRIBUTE + ";\n" + (hasNormals ? "in vec3 " + ShaderProgram.NORMAL_ATTRIBUTE + ";\n" : "")
-				+ (hasColors ? "in vec4 " + ShaderProgram.COLOR_ATTRIBUTE + ";\n" : "");
+        shader += ";\n}";
+        return shader;
+    }
 
-		for (int i = 0; i < numTexCoords; i++) {
-			shader += "in vec2 " + ShaderProgram.TEXCOORD_ATTRIBUTE + i + ";\n";
-		}
+    private static String createImmediateModeRenderer20VertexShader(boolean hasNormals, boolean hasColors, int numTexCoords) {
+        String shader = "in vec4 " + ShaderProgram.POSITION_ATTRIBUTE + ";\n" + (hasNormals ? "in vec3 " + ShaderProgram.NORMAL_ATTRIBUTE + ";\n" : "")
+                + (hasColors ? "in vec4 " + ShaderProgram.COLOR_ATTRIBUTE + ";\n" : "");
 
-		shader += "uniform mat4 u_projModelView;\n";
-		shader += (hasColors ? "out vec4 v_col;\n" : "");
+        for (int i = 0; i < numTexCoords; i++) {
+            shader += "in vec2 " + ShaderProgram.TEXCOORD_ATTRIBUTE + i + ";\n";
+        }
 
-		for (int i = 0; i < numTexCoords; i++) {
-			shader += "out vec2 v_tex" + i + ";\n";
-		}
+        shader += "uniform mat4 u_projModelView;\n";
+        shader += (hasColors ? "out vec4 v_col;\n" : "");
 
-		shader += "void main() {\n" + "   gl_Position = u_projModelView * " + ShaderProgram.POSITION_ATTRIBUTE + ";\n" + (hasColors ? "   v_col = " + ShaderProgram.COLOR_ATTRIBUTE + ";\n" : "");
+        for (int i = 0; i < numTexCoords; i++) {
+            shader += "out vec2 v_tex" + i + ";\n";
+        }
 
-		for (int i = 0; i < numTexCoords; i++) {
-			shader += "   v_tex" + i + " = " + ShaderProgram.TEXCOORD_ATTRIBUTE + i + ";\n";
-		}
-		shader += "   gl_PointSize = 1.0;\n";
-		shader += "}\n";
-		return shader;
-	}
+        shader += "void main() {\n" + "   gl_Position = u_projModelView * " + ShaderProgram.POSITION_ATTRIBUTE + ";\n" + (hasColors ? "   v_col = " + ShaderProgram.COLOR_ATTRIBUTE + ";\n" : "");
 
-	public static ShaderProgram createSpriteBatchShader() {
-		// @formatter:off
+        for (int i = 0; i < numTexCoords; i++) {
+            shader += "   v_tex" + i + " = " + ShaderProgram.TEXCOORD_ATTRIBUTE + i + ";\n";
+        }
+        shader += "   gl_PointSize = 1.0;\n";
+        shader += "}\n";
+        return shader;
+    }
+
+    public static ShaderProgram createSpriteBatchShader() {
+        // @formatter:off
 		String vertexShader = Gdx.files.internal("shader/alternativeDefaultGl2.vs.glsl").readString();
 //				"#if __VERSION__ >= 130\n"//
 //				+"out vec4 fragColor;\n"//
@@ -143,11 +131,7 @@ public final class GL32CMacIssueHandler {
 //				+ "  fragColor = v_color * texture(u_texture, v_texCoords);\n" //
 //				+ "}\n";
 		// @formatter:on
-		return ShaderProgramFactory.fromString(vertexShader, fragmentShader);
-	}
-
-	private GL32CMacIssueHandler() {
-		throw new UnsupportedOperationException();
-	}
+        return ShaderProgramFactory.fromString(vertexShader, fragmentShader);
+    }
 
 }

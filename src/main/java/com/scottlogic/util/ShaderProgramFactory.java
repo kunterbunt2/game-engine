@@ -8,108 +8,107 @@ import com.badlogic.gdx.utils.GdxRuntimeException;
  * A factory for {@link ShaderProgram}s, which supports some convenience options.
  *
  * @author damios
- *
  */
 public final class ShaderProgramFactory {
 
-	/**
-	 * A simple preconditions class used to check whether a {@link ShaderProgram} was properly compiled.
-	 *
-	 * @author damios
-	 */
-	public static final class ShaderPreconditions {
+    private ShaderProgramFactory() {
+        throw new UnsupportedOperationException();
+    }
 
-		/**
-		 * Throws a {@link GdxRuntimeException} when the program was not compiled. The compilation log is printed as part of the exception's message.
-		 *
-		 * @param program
-		 */
-		public static void checkCompilation(ShaderProgram program) {
-			checkCompilation(program, "");
-		}
+    /**
+     * Creates a ShaderProgram and automatically throws an {@link GdxRuntimeException} when it couldn't be compiled.
+     *
+     * @param vertexShader
+     * @param fragmentShader
+     * @return the shader program
+     */
+    public static ShaderProgram fromFile(FileHandle vertexShader, FileHandle fragmentShader) {
+        return fromString(vertexShader.readString(), fragmentShader.readString());
+    }
 
-		/**
-		 * Throws a {@link GdxRuntimeException} when the program was not compiled. The compilation log is appended to {@code msg}.
-		 *
-		 * @param program
-		 * @param msg     the exception's message
-		 */
-		public static void checkCompilation(ShaderProgram program, String msg) {
-			if (!program.isCompiled())
-				throw new GdxRuntimeException(msg + program.getLog());
-		}
+    /**
+     * Creates a ShaderProgram and automatically throws an {@link GdxRuntimeException} when it couldn't be compiled.
+     *
+     * @param vertexShader
+     * @param fragmentShader
+     * @return the shader program
+     */
+    public static ShaderProgram fromString(String vertexShader, String fragmentShader) {
+        return fromString(vertexShader, fragmentShader, true);
+    }
 
-		private ShaderPreconditions() {
-			throw new UnsupportedOperationException();
-		}
+    /**
+     * @param vertexShader
+     * @param fragmentShader
+     * @param throwException whether to throw an exception when the shader couldn't be compiled
+     * @return the shader program
+     */
+    public static ShaderProgram fromString(String vertexShader, String fragmentShader, boolean throwException) {
+        return fromString(vertexShader, fragmentShader, throwException, false);
+    }
 
-	}
+    /**
+     * Creates a {@link ShaderProgram}.
+     *
+     * @param vertexShader   the vertex shader code
+     * @param fragmentShader the fragment shader code
+     * @param throwException whether to throw an exception when the shader couldn't be compiled ({@link ShaderPreconditions#checkCompilation(ShaderProgram)})
+     * @param ignorePrepend  whether to ignore the code in {@link ShaderProgram#prependFragmentCode} and {@link ShaderProgram#prependVertexCode}; is useful to prevent the version being set twice
+     * @return the shader program
+     */
+    public static ShaderProgram fromString(String vertexShader, String fragmentShader, boolean throwException, boolean ignorePrepend) {
+        String prependVertexCode = null, prependFragmentCode = null;
+        if (ignorePrepend) {
+            prependVertexCode                 = ShaderProgram.prependVertexCode;
+            ShaderProgram.prependVertexCode   = null;
+            prependFragmentCode               = ShaderProgram.prependFragmentCode;
+            ShaderProgram.prependFragmentCode = null;
+        }
 
-	/**
-	 * Creates a ShaderProgram and automatically throws an {@link GdxRuntimeException} when it couldn't be compiled.
-	 *
-	 * @param vertexShader
-	 * @param fragmentShader
-	 * @return the shader program
-	 */
-	public static ShaderProgram fromFile(FileHandle vertexShader, FileHandle fragmentShader) {
-		return fromString(vertexShader.readString(), fragmentShader.readString());
-	}
+        ShaderProgram program = new ShaderProgram(vertexShader, fragmentShader);
 
-	/**
-	 * Creates a ShaderProgram and automatically throws an {@link GdxRuntimeException} when it couldn't be compiled.
-	 *
-	 * @param vertexShader
-	 * @param fragmentShader
-	 * @return the shader program
-	 */
-	public static ShaderProgram fromString(String vertexShader, String fragmentShader) {
-		return fromString(vertexShader, fragmentShader, true);
-	}
+        if (ignorePrepend) {
+            ShaderProgram.prependVertexCode   = prependVertexCode;
+            ShaderProgram.prependFragmentCode = prependFragmentCode;
+        }
 
-	/**
-	 * @param vertexShader
-	 * @param fragmentShader
-	 * @param throwException whether to throw an exception when the shader couldn't be compiled
-	 * @return the shader program
-	 */
-	public static ShaderProgram fromString(String vertexShader, String fragmentShader, boolean throwException) {
-		return fromString(vertexShader, fragmentShader, throwException, false);
-	}
+        if (throwException)
+            ShaderPreconditions.checkCompilation(program);
 
-	/**
-	 * Creates a {@link ShaderProgram}.
-	 *
-	 * @param vertexShader   the vertex shader code
-	 * @param fragmentShader the fragment shader code
-	 * @param throwException whether to throw an exception when the shader couldn't be compiled ({@link ShaderPreconditions#checkCompilation(ShaderProgram)})
-	 * @param ignorePrepend  whether to ignore the code in {@link ShaderProgram#prependFragmentCode} and {@link ShaderProgram#prependVertexCode}; is useful to prevent the version being set twice
-	 * @return the shader program
-	 */
-	public static ShaderProgram fromString(String vertexShader, String fragmentShader, boolean throwException, boolean ignorePrepend) {
-		String prependVertexCode = null, prependFragmentCode = null;
-		if (ignorePrepend) {
-			prependVertexCode = ShaderProgram.prependVertexCode;
-			ShaderProgram.prependVertexCode = null;
-			prependFragmentCode = ShaderProgram.prependFragmentCode;
-			ShaderProgram.prependFragmentCode = null;
-		}
+        return program;
+    }
 
-		ShaderProgram program = new ShaderProgram(vertexShader, fragmentShader);
+    /**
+     * A simple preconditions class used to check whether a {@link ShaderProgram} was properly compiled.
+     *
+     * @author damios
+     */
+    public static final class ShaderPreconditions {
 
-		if (ignorePrepend) {
-			ShaderProgram.prependVertexCode = prependVertexCode;
-			ShaderProgram.prependFragmentCode = prependFragmentCode;
-		}
+        private ShaderPreconditions() {
+            throw new UnsupportedOperationException();
+        }
 
-		if (throwException)
-			ShaderPreconditions.checkCompilation(program);
+        /**
+         * Throws a {@link GdxRuntimeException} when the program was not compiled. The compilation log is printed as part of the exception's message.
+         *
+         * @param program
+         */
+        public static void checkCompilation(ShaderProgram program) {
+            checkCompilation(program, "");
+        }
 
-		return program;
-	}
+        /**
+         * Throws a {@link GdxRuntimeException} when the program was not compiled. The compilation log is appended to {@code msg}.
+         *
+         * @param program
+         * @param msg     the exception's message
+         */
+        public static void checkCompilation(ShaderProgram program, String msg) {
+            if (!program.isCompiled())
+                throw new GdxRuntimeException(msg + program.getLog());
+        }
 
-	private ShaderProgramFactory() {
-		throw new UnsupportedOperationException();
-	}
+    }
 
 }

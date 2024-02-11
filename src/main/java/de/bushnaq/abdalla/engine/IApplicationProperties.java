@@ -1,98 +1,113 @@
+/*
+ * Copyright (C) 2024 Abdalla Bushnaq
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package de.bushnaq.abdalla.engine;
 
 /**
  * @author kunterbunt
- *
  */
 public interface IApplicationProperties {
 
-	int MAX_GRAPHICS_QUALITY = 4;
+    int MAX_GRAPHICS_QUALITY = 4;
 
-	boolean getAmbientAudioProperty();
+    boolean getAmbientAudioProperty();
 
-	int getAmbientAudioVolumenProperty();
+    int getAmbientAudioVolumenProperty();
 
-	int getAudioVolumenProperty();
+    int getAudioVolumenProperty();
 
-	boolean getDebugModeProperty();
+    boolean getDebugModeProperty();
 
-	int getForegroundFPSProperty();
+    int getForegroundFPSProperty();
 
-	boolean getFullscreenModeProperty();
+    boolean getFullscreenModeProperty();
 
-	int getGraphicsQuality();
+    int getGraphicsQuality();
 
-	int getMaxPointLights();
+    int getMSAASamples();
 
-	int getMaxSceneObjects();
+    int getMaxPointLights();
 
-	int getMonitorProperty();
+    int getMaxSceneObjects();
 
-	int getMSAASamples();
+    int getMonitorProperty();
 
-	int getNumberOfMonitors();
+    int getNumberOfMonitors();
 
-	boolean getPbrModeProperty();
+    boolean getPbrModeProperty();
 
-	int getShadowMapSizeProperty();
+    int getShadowMapSizeProperty();
 
-	boolean getShowFpsProperty();
+    boolean getShowFpsProperty();
 
-	boolean getShowGraphsProperty();
+    boolean getShowGraphsProperty();
 
-	boolean getVsyncProperty();
+    boolean getVsyncProperty();
 
-	boolean isDebugMode();
+    boolean isDebugMode();
 
-	boolean isDebugModeSupported();
+    boolean isDebugModeSupported();
 
-	boolean isForegroundFpsSupported();
+    boolean isForegroundFpsSupported();
 
-	boolean isFullscreenModeSupported();
+    boolean isFullscreenModeSupported();
 
-	boolean isMonitorSupported();
+    boolean isMSAASamplesSupported();
 
-	boolean isMSAASamplesSupported();
+    boolean isMonitorSupported();
 
-	boolean isPbrModeSupported();
+    boolean isPbrModeSupported();
 
-	boolean isRestartSuported();
+    boolean isRestartSuported();
 
-	boolean isShowGraphs();
+    boolean isShowGraphs();
 
-	boolean isVsyncSupported();
+    boolean isVsyncSupported();
 
-	void setAmbientAudio(boolean checked);
+    void setAmbientAudio(boolean checked);
 
-	void setAmbientAudioVolumen(int value);
+    void setAmbientAudioVolumen(int value);
 
-	void setAudioVolumen(int value);
+    void setAudioVolumen(int value);
 
-	void setDebugMode(boolean checked);
+    void setDebugMode(boolean checked);
 
-	void setForegroundFps(int value);
+    void setForegroundFps(int value);
 
-	void setFullScreenMode(boolean checked);
+    void setFullScreenMode(boolean checked);
 
-	void SetGraphicsQuality(int value);
+    void setGraphicsQuality(int value);
 
-	void setMaxPointLights(int value);
+    void setMaxPointLights(int value);
 
-	void setMaxSceneObjects(int value);
+    void setMaxSceneObjects(int value);
 
-	void setMonitor(int value);
+    void setMonitor(int value);
 
-	void setMsaaSamples(int value);
+    void setMsaaSamples(int value);
 
-	void setPbr(boolean checked);
+    void setPbr(boolean checked);
 
-	void setShadowMapSize(int value);
+    void setShadowMapSize(int value);
 
-	void setShowFps(boolean checked);
+    void setShowFps(boolean checked);
 
-	void setShowGraphs(boolean checked);
+    void setShowGraphs(boolean checked);
 
-	void setVsync(boolean checked);
+    void setVsync(boolean checked);
 
-	void write();
+    void write();
 }

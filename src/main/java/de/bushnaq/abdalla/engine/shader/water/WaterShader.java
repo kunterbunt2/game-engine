@@ -1,3 +1,19 @@
+/*
+ * Copyright (C) 2024 Abdalla Bushnaq
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package de.bushnaq.abdalla.engine.shader.water;
 
 import com.badlogic.gdx.Application.ApplicationType;
@@ -7,7 +23,6 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.Texture.TextureWrap;
 import com.badlogic.gdx.graphics.g3d.Renderable;
 import com.badlogic.gdx.graphics.g3d.shaders.DefaultShader;
-import com.badlogic.gdx.graphics.g3d.shaders.DepthShader;
 import com.badlogic.gdx.graphics.g3d.utils.RenderContext;
 import com.badlogic.gdx.math.Plane;
 
@@ -15,23 +30,23 @@ import com.badlogic.gdx.math.Plane;
  * @author kunterbunt
  */
 public class WaterShader extends DefaultShader {
-    private static Plane clippingPlane;
-    private static final String DUDV_MAP_FILE_NAME = "shader/texture/waterDUDV.png";
-    private static final String NORMAL_MAP_FILE_NAME = "shader/texture/normal.png";
-    private float moveFactor = 0f;
-    private final Texture normalMap;
-    private final int u_clippingPlane = register("u_clippingPlane");
-    private final int u_depthMap = register("u_depthMap");
-    private final int u_dudvMapTexture = register("u_dudvMapTexture");
-    private final int u_moveFactor = register("u_moveFactor");
-    private final int u_normalMap = register("u_normalMap");
-    private final int u_reflectionTexture = register("u_reflectionTexture");
-    private final int u_refractionTexture = register("u_refractionTexture");
-    private final int u_refractiveMultiplicator = register("u_refractiveMultiplicator");
-    private final int u_tiling = register("u_tiling");
-    private final int u_waveStrength = register("u_waveStrength");
-    private Water water;
-    private final Texture waterDuDv;
+    private static final String  DUDV_MAP_FILE_NAME        = "shader/texture/waterDUDV.png";
+    private static final String  NORMAL_MAP_FILE_NAME      = "shader/texture/normal.png";
+    private static       Plane   clippingPlane;
+    private final        Texture normalMap;
+    private final        int     u_clippingPlane           = register("u_clippingPlane");
+    private final        int     u_depthMap                = register("u_depthMap");
+    private final        int     u_dudvMapTexture          = register("u_dudvMapTexture");
+    private final        int     u_moveFactor              = register("u_moveFactor");
+    private final        int     u_normalMap               = register("u_normalMap");
+    private final        int     u_reflectionTexture       = register("u_reflectionTexture");
+    private final        int     u_refractionTexture       = register("u_refractionTexture");
+    private final        int     u_refractiveMultiplicator = register("u_refractiveMultiplicator");
+    private final        int     u_tiling                  = register("u_tiling");
+    private final        int     u_waveStrength            = register("u_waveStrength");
+    private final        Texture waterDuDv;
+    private              float   moveFactor                = 0f;
+    private              Water   water;
 
     public WaterShader(final Renderable renderable, final Config config, final String prefix, final Water water) {
         super(renderable, config, prefix + createPrefix(renderable, config));
@@ -41,6 +56,20 @@ public class WaterShader extends DefaultShader {
         waterDuDv.setWrap(TextureWrap.Repeat, TextureWrap.Repeat);
         normalMap = new Texture(Gdx.files.internal(NORMAL_MAP_FILE_NAME));
         normalMap.setWrap(TextureWrap.Repeat, TextureWrap.Repeat);
+    }
+
+    public static String createPrefix(final Renderable renderable, final Config config) {
+        if (Gdx.app.getType() != ApplicationType.iOS)
+            return "#define PackedDepthFlag\n";
+        return "";
+    }
+
+    @Override
+    public boolean canRender(final Renderable renderable) {
+        if (renderable.material.id.equals("water"))
+            return true;
+        else
+            return false;
     }
 
     @Override
@@ -64,14 +93,6 @@ public class WaterShader extends DefaultShader {
 
     }
 
-    @Override
-    public boolean canRender(final Renderable renderable) {
-        if (renderable.material.id.equals("water"))
-            return true;
-        else
-            return false;
-    }
-
     public String getLog() {
         return program.getLog();
     }
@@ -83,12 +104,6 @@ public class WaterShader extends DefaultShader {
 
     public void setClippingPlane(final Plane clippingPlane) {
         WaterShader.clippingPlane = clippingPlane;
-    }
-
-    public static String createPrefix(final Renderable renderable, final Config config) {
-        if (Gdx.app.getType() != ApplicationType.iOS)
-            return "#define PackedDepthFlag\n";
-        return "";
     }
 
 }

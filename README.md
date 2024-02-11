@@ -1,6 +1,9 @@
 # game-engine
-Engine based on libgdx and gltf 
+
+Engine based on libgdx and gltf
+
 # usage instructions
+
 1. Create youro GameEngine class.<br>
    This class will do all the game specific part.<br>
    It needs to implement ApplicationListener interface.<br>

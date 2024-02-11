@@ -1,83 +1,100 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-	<modelVersion>4.0.0</modelVersion>
+<!--
+  ~ Copyright (C) 2024 Abdalla Bushnaq
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
 
-	<artifactId>game-engine</artifactId>
-	<groupId>de.bushnaq.abdalla</groupId>
-	<version>1.0.0-SNAPSHOT</version>
-	<name>de.bushnaq.abdalla.game-engine</name>
-	<description>game-engine</description>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
 
-	<properties>
-		<file.encoding>utf-8</file.encoding>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<libgdxVersion>1.12.1</libgdxVersion>
-		<gdx.vfx.version>0.5.4</gdx.vfx.version>
-		<!-- Java Code Compliance Level -->
-		<source.level>17</source.level>
-		<target.level>17</target.level>
-	</properties>
-	<dependencies>
-		<dependency>
-			<groupId>com.badlogicgames.gdx</groupId>
-			<artifactId>gdx</artifactId>
-			<version>${libgdxVersion}</version>
-		</dependency>
-		<dependency>
-			<groupId>com.github.mgsx-dev.gdx-gltf</groupId>
-			<artifactId>gltf</artifactId>
-			<version>2.1.0</version>
-		</dependency>
-		<dependency>
-			<groupId>com.crashinvaders.vfx</groupId>
-			<artifactId>gdx-vfx-core</artifactId>
-			<version>${gdx.vfx.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>com.crashinvaders.vfx</groupId>
-			<artifactId>gdx-vfx-effects</artifactId>
-			<version>${gdx.vfx.version}</version>
-		</dependency>
-	</dependencies>
+    <artifactId>game-engine</artifactId>
+    <groupId>de.bushnaq.abdalla</groupId>
+    <version>1.0.0-SNAPSHOT</version>
+    <name>de.bushnaq.abdalla.game-engine</name>
+    <description>game-engine</description>
 
-	<build>
-		<resources>
-			<resource>
-				<directory>src/main/resources</directory>
-				<filtering>true</filtering>
-			</resource>
-		</resources>
-		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-resources-plugin</artifactId>
-				<version>3.2.0</version>
-				<executions></executions>
+    <properties>
+        <file.encoding>utf-8</file.encoding>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <libgdxVersion>1.12.1</libgdxVersion>
+        <gdx.vfx.version>0.5.4</gdx.vfx.version>
+        <!-- Java Code Compliance Level -->
+        <source.level>17</source.level>
+        <target.level>17</target.level>
+    </properties>
+    <dependencies>
+        <dependency>
+            <groupId>com.badlogicgames.gdx</groupId>
+            <artifactId>gdx</artifactId>
+            <version>${libgdxVersion}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.mgsx-dev.gdx-gltf</groupId>
+            <artifactId>gltf</artifactId>
+            <version>2.1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.crashinvaders.vfx</groupId>
+            <artifactId>gdx-vfx-core</artifactId>
+            <version>${gdx.vfx.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.crashinvaders.vfx</groupId>
+            <artifactId>gdx-vfx-effects</artifactId>
+            <version>${gdx.vfx.version}</version>
+        </dependency>
+    </dependencies>
 
-			</plugin>
-			<plugin>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.12.1</version>
-				<configuration>
-					<source>${source.level}</source>
-					<target>${target.level}</target>
-				</configuration>
-			</plugin>
-		</plugins>
-	</build>
-	<!-- Artifact Repositories -->
-	<repositories>
-		<repository>
-			<id>jitpack.io</id>
-			<url>https://jitpack.io</url>
-		</repository>
-		<repository>
-			<id>gdx-nightlies</id>
-			<url>https://oss.sonatype.org/content/repositories/snapshots/</url>
-		</repository>
-		<repository>
-			<id>sonartype-snapshots</id>
-			<url>https://oss.sonatype.org/content/repositories/snapshots/</url>
-		</repository>
-		<!-- -->
-	</repositories>
+    <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>3.2.0</version>
+                <executions></executions>
+
+            </plugin>
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.12.1</version>
+                <configuration>
+                    <source>${source.level}</source>
+                    <target>${target.level}</target>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+    <!-- Artifact Repositories -->
+    <repositories>
+        <repository>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
+        </repository>
+        <repository>
+            <id>gdx-nightlies</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+        </repository>
+        <repository>
+            <id>sonartype-snapshots</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+        </repository>
+        <!-- -->
+    </repositories>
 </project>
