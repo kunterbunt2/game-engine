@@ -8,26 +8,31 @@ import net.mgsx.gltf.scene3d.model.ModelInstanceHack;
 
 /**
  * @author kunterbunt
- *
  */
-public class GameObject {
+public class GameObject<T> {
 
-	public BoundingBox				boundingBox				= new BoundingBox();
-	public final Vector3			center					= new Vector3();
-	public AnimationControllerHack	controller;
-	public ModelInstanceHack		instance;
-	public Object					interactive;
-	public BoundingBox				transformedBoundingBox	= new BoundingBox();
+    public BoundingBox boundingBox = new BoundingBox();
+    public final Vector3 center = new Vector3();
+    public AnimationControllerHack controller;
+    public ModelInstanceHack instance;
+    public Object interactive;
+    public BoundingBox transformedBoundingBox = new BoundingBox();
+    public ObjectRenderer<T> objectRenderer = null;//used to render 3D text
 
-	public GameObject(final ModelInstanceHack instance, final Object interactive) {
-		this.instance = instance;
-		this.interactive = interactive;
-		boundingBox = new BoundingBox();
-		instance.calculateBoundingBox(boundingBox);
-		boundingBox.getCenter(center);
-	}
+    public GameObject(final ModelInstanceHack instance, final Object interactive) {
+        this(instance, interactive, null);
+    }
 
-	public void update() {
-		transformedBoundingBox.set(boundingBox).mul(instance.transform);
-	}
+    public GameObject(final ModelInstanceHack instance, final Object interactive, ObjectRenderer<T> objectRenderer) {
+        this.instance = instance;
+        this.interactive = interactive;
+        this.objectRenderer = objectRenderer;
+        boundingBox = new BoundingBox();
+        instance.calculateBoundingBox(boundingBox);
+        boundingBox.getCenter(center);
+    }
+
+    public void update() {
+        transformedBoundingBox.set(boundingBox).mul(instance.transform);
+    }
 }

@@ -8,6 +8,8 @@ import com.badlogic.gdx.utils.Align;
 
 /**
  * @author kunterbunt
+ * 2D Text layered on top of 3D scene.
+ * TODO example
  *
  */
 public class Text2D {
