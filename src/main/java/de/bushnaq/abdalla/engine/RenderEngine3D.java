@@ -1276,17 +1276,19 @@ public class RenderEngine3D<T> {
     }
 
     public void updateCamera(final float centerXD, final float centerYD, final float centerZD) {
-        camera.translate(centerXD, centerYD, centerZD);
-        camera.lookat.add(centerXD, centerYD, centerZD);
-        camera.lookAt(camera.lookat);
-        camera.update();
-        Vector3 v1 = new Vector3(camera.position);
-        Vector3 v2 = new Vector3(camera.position);
+//        if (centerXD != 0f || centerYD != 0f || centerZD != 0f)
+        {
+            camera.translate(centerXD, centerYD, centerZD);
+            camera.lookat.add(centerXD, centerYD, centerZD);
+            camera.lookAt(camera.lookat);
+            camera.update();
+            Vector3 v1 = new Vector3(camera.position);
+            Vector3 v2 = new Vector3(camera.position);
 //        sceneBox.set(v1.add(-2000-300,-2000-500,-2000-400),v2.add(2000-300,2000-500,2000-400));
-        sceneBox.set(v1.add(sceneBoxMin), v2.add(sceneBoxMax));
-        shadowLight.setBounds(sceneBox);
-        shadowLight.direction.set(-.5f, -.7f, .5f).nor();
-        camera.setDirty(true);
+            sceneBox.set(v1.add(sceneBoxMin), v2.add(sceneBoxMax));
+            shadowLight.setBounds(sceneBox);
+            shadowLight.direction.set(-.5f, -.7f, .5f).nor();
+            camera.setDirty(true);
 
 //        shadowLight.getCamera().translate(centerXD, centerYD, centerZD);
 //        shadowLight.setCenter(camera.position);
@@ -1294,6 +1296,7 @@ public class RenderEngine3D<T> {
 //            if (shadowLight.getCamera().position.x != x + centerXD)
 //                logger.info("");
 //        shadowLight.getCamera().update();
+        }
     }
 
     private void updateDynamicModelInstanceCache() {
