@@ -153,7 +153,8 @@ public class RenderEngine3D<T> {
     private              ModelBatch                  depthBatch;
     // GaussianBlurEffect effect1;
 //	BloomEffect								effect2;
-    private              boolean                     depthOfField                     = false;
+    private              boolean                     depthOfField                     = true;
+    private              DepthOfFieldEffect          depthOfFieldEffect;
     //    private              GameObject                  depthOfFieldMeter;
     private              boolean                     dynamicDayTime                   = false;
     private              float                       fixedDayTime                     = 10;
@@ -175,7 +176,6 @@ public class RenderEngine3D<T> {
     private              boolean                     staticCacheDirty                 = true;
     private              int                         staticCacheDirtyCount            = 0;
     private              float                       timeOfDay                        = 8;                                                                    // 24h time
-    private              DepthOfFieldEffect          vfxEffect;
     private              VfxManager                  vfxManager                       = null;
 
     public RenderEngine3D(final IContext context, T gameEngine, final InputProcessor inputProcessor, MovingCamera camera, Camera camera2D, BitmapFont font, AtlasRegion atlasRegion) throws Exception {
@@ -272,9 +272,9 @@ public class RenderEngine3D<T> {
 //		vfxManager.addEffect(new FxaaEffect());
 //		vfxManager.addEffect(new FilmGrainEffect());
 //		vfxManager.addEffect(new OldTvEffect());
-        vfxManager = new VfxManager(Pixmap.Format.RGBA8888);
-        vfxEffect  = new DepthOfFieldEffect(postFbo, camera);
-        vfxManager.addEffect(vfxEffect);
+        vfxManager         = new VfxManager(Pixmap.Format.RGBA8888);
+        depthOfFieldEffect = new DepthOfFieldEffect(postFbo, camera);
+        vfxManager.addEffect(depthOfFieldEffect);
 //		vfxManager.addEffect(new FxaaEffect());
         createGraphs();
     }
@@ -480,7 +480,7 @@ public class RenderEngine3D<T> {
         staticCache.dispose();
         dynamicCache.dispose();
         vfxManager.dispose();
-        vfxEffect.dispose();
+        depthOfFieldEffect.dispose();
         disposeGraphs();
         disposeStage();
         disposeEnvironment();
@@ -501,6 +501,11 @@ public class RenderEngine3D<T> {
         postFbo.dispose();
         mirror.dispose();
         water.dispose();
+    }
+
+    private void disposeGraphs() {
+        gpuGraph.dispose();
+        cpuGraph.dispose();
     }
 
 //	private void createDepthOfFieldMeter() {
@@ -543,11 +548,6 @@ public class RenderEngine3D<T> {
 //		}
 //	}
 
-    private void disposeGraphs() {
-        gpuGraph.dispose();
-        cpuGraph.dispose();
-    }
-
     private void disposeShader() {
         gameShaderProvider.dispose();
         batch2D.dispose();
@@ -560,6 +560,10 @@ public class RenderEngine3D<T> {
     }
 
     public void end() {
+    }
+
+    public MovingCamera getCamera() {
+        return camera;
     }
 
 //    private void fboToScreen() {
@@ -594,12 +598,12 @@ public class RenderEngine3D<T> {
 //		}
 //	}
 
-    public MovingCamera getCamera() {
-        return camera;
-    }
-
     public float getCurrentDayTime() {
         return currentDayTime;
+    }
+
+    public DepthOfFieldEffect getDepthOfFieldEffect() {
+        return depthOfFieldEffect;
     }
 
     public float getFixedDayTime() {

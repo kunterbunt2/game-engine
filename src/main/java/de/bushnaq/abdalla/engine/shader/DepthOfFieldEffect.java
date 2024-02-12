@@ -35,20 +35,23 @@ public class DepthOfFieldEffect extends ShaderVfxEffect implements ChainVfxEffec
     private static final String       Texture0         = "u_sourceTexture";
     private static final String       Texture1         = "u_depthTexture";
     private final        MovingCamera camera;
-    private final        float        farDistanceBlur  = 50f;
-    private final        Vector2      focusDistance    = new Vector2(200.0f, 700.0f);
-    private final        float        nearDistanceBlur = 50f;
-
     //	private float time = 0f;
-    private final FrameBuffer postFbo;
-    private final Vector2     resolution = new Vector2();
-    private final int         vertical   = 0;
+    private final        FrameBuffer  postFbo;
+    private final        Vector2      resolution       = new Vector2();
+    private final        int          vertical         = 0;
+    private              float        farDistanceBlur  = 50f;
+    private              Vector2      focusDistance    = new Vector2(200.0f, 700.0f);
+    private              float        nearDistanceBlur = 50f;
 
     public DepthOfFieldEffect(final FrameBuffer postFbo, final MovingCamera camera) {
         super(MyVfxGLUtils.compileShader(Gdx.files.classpath("shader/depthOfField.vs.glsl"), Gdx.files.classpath("shader/depthOfField.fs.glsl"), ""));
         this.postFbo = postFbo;
         this.camera  = camera;
         rebind();
+    }
+
+    public Vector2 getFocusDistance() {
+        return focusDistance;
     }
 
     public void render(final VfxRenderContext context, final VfxFrameBuffer src, final VfxFrameBuffer dst) {
@@ -58,6 +61,7 @@ public class DepthOfFieldEffect extends ShaderVfxEffect implements ChainVfxEffec
         program.setUniformi("u_vertical", 0);
         postFbo.getColorBufferTexture().bind(TEXTURE_HANDLE0);
         postFbo.getTextureAttachments().get(1).bind(TEXTURE_HANDLE1);
+        program.setUniformf("u_focusDistance", focusDistance);
         program.end();
         // Apply shader effect and render result to dst buffer.
         renderShader(context, dst);
@@ -65,6 +69,7 @@ public class DepthOfFieldEffect extends ShaderVfxEffect implements ChainVfxEffec
         program.setUniformi("u_vertical", 1);
         postFbo.getColorBufferTexture().bind(TEXTURE_HANDLE0);
         postFbo.getTextureAttachments().get(1).bind(TEXTURE_HANDLE1);
+        program.setUniformf("u_focusDistance", focusDistance);
         program.end();
         // Apply shader effect and render result to dst buffer.
         renderShader(context, dst);
@@ -89,6 +94,7 @@ public class DepthOfFieldEffect extends ShaderVfxEffect implements ChainVfxEffec
         program.setUniformf("u_pixelSize", 1f / postFbo.getWidth(), 1f / postFbo.getHeight());
         program.setUniformf("u_cameraClipping", camera.near, camera.far);
         program.setUniformf("u_focusDistance", focusDistance);
+        System.out.println(focusDistance.x + " " + focusDistance.y);
         program.setUniformf("u_nearDistanceBlur", nearDistanceBlur);
         program.setUniformf("u_farDistanceBlur", farDistanceBlur);
 
@@ -100,6 +106,10 @@ public class DepthOfFieldEffect extends ShaderVfxEffect implements ChainVfxEffec
     @Override
     public void update(final float delta) {
         super.update(delta);
+    }
+
+    public void setFocusDistance(Vector2 focusDistance) {
+        this.focusDistance = focusDistance;
     }
 
     //	public void enableDepthOfFiled(boolean enableDepthOfField) {
