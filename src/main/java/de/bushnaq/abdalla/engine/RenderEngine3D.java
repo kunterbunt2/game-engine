@@ -153,7 +153,7 @@ public class RenderEngine3D<T> {
     private              ModelBatch                  depthBatch;
     // GaussianBlurEffect effect1;
 //	BloomEffect								effect2;
-    private              boolean                     depthOfField                     = true;
+    private              boolean                     depthOfField                     = false;
     private              DepthOfFieldEffect          depthOfFieldEffect;
     //    private              GameObject                  depthOfFieldMeter;
     private              boolean                     dynamicDayTime                   = false;

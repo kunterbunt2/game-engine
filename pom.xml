@@ -50,9 +50,19 @@
             <version>${gdx.vfx.version}</version>
         </dependency>
         <dependency>
+            <groupId>com.badlogicgames.gdx</groupId>
+            <artifactId>gdx-backend-lwjgl3</artifactId>
+            <version>${libgdxVersion}</version>
+        </dependency>
+        <dependency>
             <groupId>com.crashinvaders.vfx</groupId>
             <artifactId>gdx-vfx-effects</artifactId>
             <version>${gdx.vfx.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>1.4.14</version>
         </dependency>
     </dependencies>
 
