@@ -7,6 +7,17 @@ out vec4 fragColor;
 #else
 #define fragColor gl_FragColor
 #endif
+#ifdef GL_ES
+    #extension GL_APPLE_clip_distance: require
+    #define LOWP lowp
+    #define MED mediump
+    #define HIGH highp
+ precision highp float;
+#else
+    #define MED
+    #define LOWP
+    #define HIGH
+#endif
 /*
 #ifdef GL_ES
 	#define PRECISION mediump
@@ -22,6 +33,6 @@ attribute vec2 a_texCoord0;
 varying vec2 v_texCoords;
 
 void main() {
-	v_texCoords = a_texCoord0;
-	gl_Position = a_position;
+v_texCoords = a_texCoord0;
+gl_Position = a_position;
 }

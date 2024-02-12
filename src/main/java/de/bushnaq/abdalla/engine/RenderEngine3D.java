@@ -39,6 +39,7 @@ import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.graphics.g3d.utils.RenderableSorter;
 import com.badlogic.gdx.graphics.g3d.utils.ShaderProvider;
 import com.badlogic.gdx.graphics.glutils.FrameBuffer;
+import com.badlogic.gdx.graphics.glutils.GLFrameBuffer;
 import com.badlogic.gdx.math.Intersector;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Plane;
@@ -50,9 +51,11 @@ import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.BufferUtils;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
+import com.crashinvaders.vfx.VfxManager;
 import com.scottlogic.util.GL32CMacIssueHandler;
 import com.scottlogic.util.ShaderCompatibilityHelper;
 import de.bushnaq.abdalla.engine.camera.MovingCamera;
+import de.bushnaq.abdalla.engine.shader.DepthOfFieldEffect;
 import de.bushnaq.abdalla.engine.shader.GamePbrShaderProvider;
 import de.bushnaq.abdalla.engine.shader.GameShaderProvider;
 import de.bushnaq.abdalla.engine.shader.GameShaderProviderInterface;
@@ -95,34 +98,44 @@ public class RenderEngine3D<T> {
     private static final float                       NIGHT_AMBIENT_INTENSITY_G        = 0.2f;
     private static final float                       NIGHT_AMBIENT_INTENSITY_R        = 0.2f;
     private static final float                       NIGHT_SHADOW_INTENSITY           = 0.2f;
-    public final         Array<GameObject>           staticModelInstances             = new Array<>();
+    public final         Array<GameObject<T>>        staticModelInstances             = new Array<>();
     private final        Camera                      camera2D;
     private final        EnvironmentCache            computedEnvironement             = new EnvironmentCache();
     private final        IContext                    context;
     private final        ModelCache                  dynamicCache                     = new ModelCache();
+    private final        Set<ObjectRenderer<T>>      dynamicText3DList                = new HashSet<>();
+    private final        Fog                         fog                              = new Fog(Color.BLACK, 15f, 30f, 0.5f);
+    private final        BitmapFont                  font;
+    private final        T                           gameEngine;
+    private final        Matrix4                     identityMatrix                   = new Matrix4();
+    //    private              GameObject                  lookatCube;
+    private final        Mirror                      mirror                           = new Mirror();
     private final        PointLightsAttribute        pointLights                      = new PointLightsAttribute();
     private final        Vector3                     position                         = new Vector3();
+    // private final Ray ray = new Ray(new Vector3(), new Vector3());
+    private final        Plane                       reflectionClippingPlane          = new Plane(new Vector3(0f, 1f, 0f), 0.1f);                                // render everything above the
+    private final        Plane                       refractionClippingPlane          = new Plane(new Vector3(0f, -1f, 0f), (-0.1f));                            // render everything below the
     private final        Array<ModelInstance>        renderableProviders              = new Array<>();
     //    private final        Vector3                     shadowLightDirection             = new Vector3();
     private final        int                         speed                            = 5;                                                                    // speed of time
     private final        SpotLightsAttribute         spotLights                       = new SpotLightsAttribute();
     private final        ModelCache                  staticCache                      = new ModelCache();
+    private final        Set<ObjectRenderer<T>>      staticText3DList                 = new HashSet<>();
+    private final        Set<Text2D>                 text2DList                       = new HashSet<>();
     private final        boolean                     useDynamicCache                  = false;
     private final        boolean                     useStaticCache                   = true;
     private final        Array<ModelInstance>        visibleDynamicModelInstances     = new Array<>();
     private final        Array<ModelInstance>        visibleStaticModelInstances      = new Array<>();
     private final        Array<RenderableProvider>   visibleStaticRenderableProviders = new Array<>();
+    private final        Water                       water                            = new Water();
     public               PolygonSpriteBatch          batch2D;
     public               TimeGraph                   cpuGraph;
-    public               Array<GameObject>           dynamicModelInstances            = new Array<>();
+    public               Array<GameObject<T>>        dynamicModelInstances            = new Array<>();
     public               Environment                 environment                      = new Environment();
     public               GameShaderProviderInterface gameShaderProvider;
     public               TimeGraph                   gpuGraph;
     public               SceneSkybox                 nightSkyBox;
-    // private FrameBuffer postFbo;
     public               Model                       rayCube;
-    // private DepthOfFieldEffect vfxEffect;
-//	private final VfxManager				vfxManager							= null;
     public               int                         visibleDynamicGameObjectCount    = 0;
     public               int                         visibleDynamicLightCount         = 0;
     public               int                         visibleStaticGameObjectCount     = 0;
@@ -138,26 +151,17 @@ public class RenderEngine3D<T> {
     private              SceneSkybox                 daySkyBox;
     private              boolean                     debugMode                        = false;
     private              ModelBatch                  depthBatch;
-    //    private              GameObject                  depthOfFieldMeter;
-    private              boolean                     dynamicDayTime                   = false;
-    private              Set<ObjectRenderer<T>>      dynamicText3DList                = new HashSet<>();
     // GaussianBlurEffect effect1;
 //	BloomEffect								effect2;
-    private              boolean                     enableDepthOfField               = true;
+    private              boolean                     depthOfField                     = false;
+    //    private              GameObject                  depthOfFieldMeter;
+    private              boolean                     dynamicDayTime                   = false;
     private              float                       fixedDayTime                     = 10;
-    private              Fog                         fog                              = new Fog(Color.BLACK, 15f, 30f, 0.5f);
-    private              BitmapFont                  font;
-    private              T                           gameEngine;
-    private              Matrix4                     identityMatrix                   = new Matrix4();
     //    private              InputProcessor              inputProcessor;
     private              Logger                      logger                           = LoggerFactory.getLogger(this.getClass());
-    //    private              GameObject                  lookatCube;
-    private              Mirror                      mirror                           = new Mirror();
     //    private              float                       northDirectionDegree             = 90;
     private              boolean                     pbr;
-    // private final Ray ray = new Ray(new Vector3(), new Vector3());
-    private              Plane                       reflectionClippingPlane          = new Plane(new Vector3(0f, 1f, 0f), 0.1f);                                // render everything above the
-    private              Plane                       refractionClippingPlane          = new Plane(new Vector3(0f, -1f, 0f), (-0.1f));                            // render everything below the
+    private              FrameBuffer                 postFbo;
     private              RenderableSorter            renderableSorter;
     private              Vector3                     sceneBoxMax                      = new Vector3(2000, 2000, 1000);
     //    public final BoundingBox sceneBox = new BoundingBox(new Vector3(-20, -50, -30), new Vector3(20, 20, 2));
@@ -170,10 +174,9 @@ public class RenderEngine3D<T> {
     private              Stage                       stage;
     private              boolean                     staticCacheDirty                 = true;
     private              int                         staticCacheDirtyCount            = 0;
-    private              Set<ObjectRenderer<T>>      staticText3DList                 = new HashSet<>();
-    private              Set<Text2D>                 text2DList                       = new HashSet<>();
     private              float                       timeOfDay                        = 8;                                                                    // 24h time
-    private              Water                       water                            = new Water();
+    private              DepthOfFieldEffect          vfxEffect;
+    private              VfxManager                  vfxManager                       = null;
 
     public RenderEngine3D(final IContext context, T gameEngine, final InputProcessor inputProcessor, MovingCamera camera, Camera camera2D, BitmapFont font, AtlasRegion atlasRegion) throws Exception {
 //		logger.info(String.format("GL_VERSION = %s", Gdx.gl.glGetString(GL20.GL_VERSION)));
@@ -223,7 +226,7 @@ public class RenderEngine3D<T> {
         dynamicText3DList.add(renderer);
     }
 
-    public void addDynamic(final GameObject instance) {
+    public void addDynamic(final GameObject<T> instance) {
         dynamicModelInstances.add(instance);
     }
 
@@ -231,7 +234,7 @@ public class RenderEngine3D<T> {
         staticText3DList.add(renderer);
     }
 
-    public void addStatic(final GameObject instance) {
+    public void addStatic(final GameObject<T> instance) {
         staticModelInstances.add(instance);
         if (isVisible(instance)) {
             staticCacheDirty = true;
@@ -269,6 +272,10 @@ public class RenderEngine3D<T> {
 //		vfxManager.addEffect(new FxaaEffect());
 //		vfxManager.addEffect(new FilmGrainEffect());
 //		vfxManager.addEffect(new OldTvEffect());
+        vfxManager = new VfxManager(Pixmap.Format.RGBA8888);
+        vfxEffect  = new DepthOfFieldEffect(postFbo, camera);
+        vfxManager.addEffect(vfxEffect);
+//		vfxManager.addEffect(new FxaaEffect());
         createGraphs();
     }
 
@@ -346,12 +353,12 @@ public class RenderEngine3D<T> {
     private void createFrameBuffer() {
         water.createFrameBuffer();
         getMirror().createFrameBuffer();
-//		{
-//			final FrameBufferBuilder frameBufferBuilder = new FrameBufferBuilder(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-//			frameBufferBuilder.addColorTextureAttachment(GL30.GL_RGBA8, GL20.GL_RGBA, GL20.GL_UNSIGNED_BYTE);
-//			frameBufferBuilder.addDepthTextureAttachment(GL30.GL_DEPTH_COMPONENT24, GL20.GL_UNSIGNED_BYTE);
-//			postFbo = frameBufferBuilder.build();
-//		}
+        {
+            final GLFrameBuffer.FrameBufferBuilder frameBufferBuilder = new GLFrameBuffer.FrameBufferBuilder(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+            frameBufferBuilder.addColorTextureAttachment(GL30.GL_RGBA8, GL20.GL_RGBA, GL20.GL_UNSIGNED_BYTE);
+            frameBufferBuilder.addDepthTextureAttachment(GL30.GL_DEPTH_COMPONENT24, GL20.GL_UNSIGNED_BYTE);
+            postFbo = frameBufferBuilder.build();
+        }
     }
 
     private void createGraphs() {
@@ -359,12 +366,12 @@ public class RenderEngine3D<T> {
         gpuGraph = new TimeGraph(new Color(0f, 1f, 0f, 1f), new Color(0f, 1f, 0f, 0.6f), Gdx.graphics.getWidth(), Gdx.graphics.getHeight() / 4, font, atlasRegion);
     }
 
-    private GameObject createRay(final Ray ray, Float length) {
+    private GameObject<T> createRay(final Ray ray, Float length) {
         if (length == null) length = 10000f;
 //		final float			length		= 10000f;
-        final Vector3    direction = new Vector3(ray.direction.x, ray.direction.y, ray.direction.z);
-        final Vector3    position  = ray.origin.cpy();
-        final GameObject instance  = new GameObject(new ModelInstanceHack(rayCube), null);
+        final Vector3       direction = new Vector3(ray.direction.x, ray.direction.y, ray.direction.z);
+        final Vector3       position  = ray.origin.cpy();
+        final GameObject<T> instance  = new GameObject<T>(new ModelInstanceHack(rayCube), null);
         instance.instance.materials.get(0).set(ColorAttribute.createDiffuse(Color.RED));
         addDynamic(instance);
         final Vector3 xVector = new Vector3(1, 0, 0);
@@ -472,7 +479,8 @@ public class RenderEngine3D<T> {
     public void dispose() throws Exception {
         staticCache.dispose();
         dynamicCache.dispose();
-//		vfxManager.dispose();
+        vfxManager.dispose();
+        vfxEffect.dispose();
         disposeGraphs();
         disposeStage();
         disposeEnvironment();
@@ -490,7 +498,7 @@ public class RenderEngine3D<T> {
     }
 
     private void disposeFrameBuffer() {
-//		postFbo.dispose();
+        postFbo.dispose();
         mirror.dispose();
         water.dispose();
     }
@@ -554,9 +562,16 @@ public class RenderEngine3D<T> {
     public void end() {
     }
 
-    public MovingCamera getCamera() {
-        return camera;
-    }
+//    private void fboToScreen() {
+//        clearViewport();
+//        Gdx.gl.glDisable(GL20.GL_DEPTH_TEST);
+//        batch2D.disableBlending();
+//        batch2D.setProjectionMatrix(camera2D.combined);
+//        batch2D.begin();
+//        batch2D.draw(postFbo.getColorBufferTexture(), 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), 0, 0, postFbo.getWidth(), postFbo.getHeight(), false, true);
+//        batch2D.end();
+//        batch2D.enableBlending();
+//    }
 
 //	private void createLookatCube() {
 //		if (isDebugMode()) {
@@ -579,6 +594,10 @@ public class RenderEngine3D<T> {
 //		}
 //	}
 
+    public MovingCamera getCamera() {
+        return camera;
+    }
+
     public float getCurrentDayTime() {
         return currentDayTime;
     }
@@ -595,13 +614,13 @@ public class RenderEngine3D<T> {
         return gameEngine;
     }
 
-    public GameObject getGameObject(final int screenX, final int screenY) {
+    public GameObject<T> getGameObject(final int screenX, final int screenY) {
         final Ray ray = camera.getPickRay(screenX, screenY);
 //		createRay(ray);
-        GameObject result   = null;
-        float      distance = -1;
+        GameObject<T> result   = null;
+        float         distance = -1;
         for (int i = 0; i < dynamicModelInstances.size; ++i) {
-            final GameObject instance = dynamicModelInstances.get(i);
+            final GameObject<T> instance = dynamicModelInstances.get(i);
             if (instance.interactive != null) {
                 instance.instance.transform.getTranslation(position);
                 position.add(instance.center);
@@ -614,7 +633,7 @@ public class RenderEngine3D<T> {
             }
         }
         for (int i = 0; i < staticModelInstances.size; ++i) {
-            final GameObject instance = staticModelInstances.get(i);
+            final GameObject<T> instance = staticModelInstances.get(i);
             if (instance.interactive != null) {
                 instance.instance.transform.getTranslation(position);
                 position.add(instance.center);
@@ -628,17 +647,6 @@ public class RenderEngine3D<T> {
         }
         return result;
     }
-
-//	private void fboToScreen() {
-//		clearViewport();
-//		Gdx.gl.glDisable(GL20.GL_DEPTH_TEST);
-//		batch2D.disableBlending();
-//		batch2D.setProjectionMatrix(getInfo().getViewport().getCamera().combined);
-//		batch2D.begin();
-//		batch2D.draw(postFbo.getColorBufferTexture(), 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), 0, 0,postFbo.getWidth(),postFbo.getHeight(), false, true);
-//		batch2D.end();
-//		batch2D.enableBlending();
-//	}
 
     public Mirror getMirror() {
         return mirror;
@@ -705,12 +713,12 @@ public class RenderEngine3D<T> {
         return debugMode;
     }
 
-    public boolean isDynamicDayTime() {
-        return dynamicDayTime;
+    public boolean isDepthOfField() {
+        return depthOfField;
     }
 
-    public boolean isEnableDepthOfField() {
-        return enableDepthOfField;
+    public boolean isDynamicDayTime() {
+        return dynamicDayTime;
     }
 
     public boolean isMirrorPresent() {
@@ -737,7 +745,7 @@ public class RenderEngine3D<T> {
         return skyBox;
     }
 
-    private boolean isVisible(final GameObject gameObject) {
+    private boolean isVisible(final GameObject<T> gameObject) {
         return camera.frustum.boundsInFrustum(gameObject.transformedBoundingBox);
     }
 
@@ -746,48 +754,26 @@ public class RenderEngine3D<T> {
     }
 
     public void postProcessRender() throws Exception {
+        if (isDepthOfField()) {
+            // Clean up the screen.
+            Gdx.gl.glClearColor(0f, 0f, 0f, 1f);
+            Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+            // Clean up internal buffers, as we don't need any information from the last render.
+            vfxManager.cleanUpBuffers();
+            vfxManager.applyEffects();
+            // Render result to the screen.
+            vfxManager.renderToScreen();
+        } else {
+//            clearViewport();
+//            Gdx.gl.glDisable(GL20.GL_DEPTH_TEST);
+//            batch2D.disableBlending();
+//            batch2D.setProjectionMatrix(camera2D.combined);
+//            batch2D.begin();
+//            batch2D.draw(postFbo.getColorBufferTexture(), 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), false, true);
+//            batch2D.end();
+//            batch2D.enableBlending();
+        }
 
-//		if (isEnableDepthOfField()) {
-//			// Clean up the screen.
-//			// Clean up internal buffers, as we don't need any information from the last
-//			// render.
-
-//		vfxManager.cleanUpBuffers();
-//		vfxManager.beginInputCapture();
-//		batch2D.getProjectionMatrix().setToOrtho2D(0, 0, 1, 1);
-//		batch2D.begin();
-//		batch2D.draw(postFbo.getColorBufferTexture(), 0, 0, 1, 1, 0, 0, 1, 1);
-//		batch2D.end();
-//		vfxManager.endInputCapture();
-//		vfxManager.applyEffects();
-//		vfxManager.renderToScreen();
-
-//			vfxManager.renderToFbo(postFbo);
-//			// Render result to the screen.
-//			postFbo.begin();
-//			batch2D.begin();
-//			batch2D.draw(vfxManager.getPingPongWrapper().getDstTexture(), 0, 0, 1, 1, 0, 0, 1, 1);
-//			batch2D.end();
-//			postFbo.end();
-//
-//		} else {
-//			clearViewport();
-//			Gdx.gl.glDisable(GL20.GL_DEPTH_TEST);
-//			batch2D.disableBlending();
-//			batch2D.setProjectionMatrix(getInfo().getViewport().getCamera().combined);
-//			batch2D.begin();
-//			// // batch2D.draw(waterRefractionFbo.getColorBufferTexture(), 0, 1080 - 1080 /
-//			// 4, 1920 / 4, 1080 / 4, 0, 0, 1920, 1080, false, true);
-//			// batch2D.draw(waterReflectionFbo.getColorBufferTexture(), 1920 - 1920 / 4,
-//			// 1080 - 1080 / 4, 1920 / 4, 1080 / 4, 0, 0, 1920, 1080, false, true);
-//			batch2D.draw(postFbo.getColorBufferTexture(), 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), false, true);
-//			//// batch2D.draw(postFbo.getTextureAttachments().get(1), 0, 0, 1920, 1080, 0,
-//			//// 0, 1920, 1080, false, true);
-//			// batch2D.draw(waterRefractionFbo.getTextureAttachments().get(1), 0, 0, 1920,
-//			//// 1080, 0, 0, 1920, 1080, false, true);
-//			batch2D.end();
-//			batch2D.enableBlending();
-//		}
     }
 
     public void remove(final PointLight pointLight, final boolean dynamic) {
@@ -839,7 +825,7 @@ public class RenderEngine3D<T> {
         dynamicText3DList.remove(renderer);
     }
 
-    public boolean removeDynamic(final GameObject instance) {
+    public boolean removeDynamic(final GameObject<T> instance) {
         return dynamicModelInstances.removeValue(instance, true);
     }
 
@@ -847,7 +833,7 @@ public class RenderEngine3D<T> {
         staticText3DList.remove(renderer);
     }
 
-    public boolean removeStatic(final GameObject instance) {
+    public boolean removeStatic(final GameObject<T> instance) {
         final boolean result = staticModelInstances.removeValue(instance, true);
         if (isVisible(instance)) {
             staticCacheDirty = true;
@@ -946,25 +932,28 @@ public class RenderEngine3D<T> {
             context.disableClipping();
         }
         // if (firstTime) {
-//		postFbo.begin();
+        if (isDepthOfField())
+            postFbo.begin();
 //		createCameraCube();
 //		createLookatCube();
 //		createDepthOfFieldMeter();
         renderColors(takeScreenShot);
-        render2DText();
+//        render2DText();
         render3DText();
-//		postFbo.end();
+        if (isDepthOfField())
+            postFbo.end();
 
         camera.setDirty(false);
         staticCacheDirtyCount = 0;
-//		postProcessRender();
         renderGraphs();
 
-//		postFbo.begin();
+        if (isDepthOfField())
+            postFbo.begin();
         renderFbos(takeScreenShot);
-//		postFbo.end();
+        if (isDepthOfField())
+            postFbo.end();
 
-//		fboToScreen();
+//        fboToScreen();
     }
 
     private void render2DText() {
@@ -993,12 +982,12 @@ public class RenderEngine3D<T> {
         staticCache.getRenderables(renderables, null);
 
 
-        for (GameObject gameObject : staticModelInstances) {
+        for (GameObject<T> gameObject : staticModelInstances) {
             if (isVisible(gameObject)) {
                 if (gameObject.objectRenderer != null) gameObject.objectRenderer.renderText(this, 0, false);
             }
         }
-        for (GameObject gameObject : dynamicModelInstances) {
+        for (GameObject<T> gameObject : dynamicModelInstances) {
             if (isVisible(gameObject)) {
                 if (gameObject.objectRenderer != null) gameObject.objectRenderer.renderText(this, 0, false);
             }
@@ -1067,7 +1056,7 @@ public class RenderEngine3D<T> {
                     Texture t = water.getRefractionFbo().getTextureAttachments().get(1);
                     batch2D.draw(t, Gdx.graphics.getWidth() - t.getWidth() / 4, Gdx.graphics.getHeight() - t.getHeight() / 4, t.getWidth() / 4, t.getHeight() / 4, 0, 0, t.getWidth(), t.getHeight(), false, true);
                 }
-                // middle-up left (mirror reflection)
+                // middle-up left (water reflection)
                 {
                     Texture t = water.getReflectionFbo().getColorBufferTexture();
                     batch2D.draw(t, 0, Gdx.graphics.getHeight() - (t.getHeight() / 4) * 2, t.getWidth() / 4, t.getHeight() / 4, 0, 0, t.getWidth(), t.getHeight(), false, true);
@@ -1111,7 +1100,7 @@ public class RenderEngine3D<T> {
 
     }
 
-    private void renderGraphs() {
+    public void renderGraphs() {
         if (context.isShowGraphs()) {
             cpuGraph.update();
             gpuGraph.update();
@@ -1177,12 +1166,12 @@ public class RenderEngine3D<T> {
         this.debugMode = debugMode;
     }
 
-    public void setDynamicDayTime(boolean dynamicDayTime) {
-        this.dynamicDayTime = dynamicDayTime;
+    public void setDepthOfField(final boolean depthOfField) {
+        this.depthOfField = depthOfField;
     }
 
-    public void setEnableDepthOfField(final boolean enableDepthOfField) {
-        this.enableDepthOfField = enableDepthOfField;
+    public void setDynamicDayTime(boolean dynamicDayTime) {
+        this.dynamicDayTime = dynamicDayTime;
     }
 
     public void setFixedDayTime(float fixedDayTime) {
@@ -1305,7 +1294,7 @@ public class RenderEngine3D<T> {
             visibleDynamicGameObjectCount = 0;
             if (useDynamicCache) {
                 dynamicCache.begin(camera);
-                for (final GameObject instance : dynamicModelInstances) {
+                for (final GameObject<T> instance : dynamicModelInstances) {
                     if (isVisible(instance)) {
                         dynamicCache.add(instance.instance);
                         visibleDynamicGameObjectCount++;
@@ -1315,7 +1304,7 @@ public class RenderEngine3D<T> {
                 dynamicCache.end();
             } else {
                 visibleDynamicModelInstances.clear();
-                for (final GameObject instance : dynamicModelInstances) {
+                for (final GameObject<T> instance : dynamicModelInstances) {
                     if (isVisible(instance)) {
                         visibleDynamicGameObjectCount++;
                         renderableProviders.add(instance.instance);
@@ -1425,7 +1414,7 @@ public class RenderEngine3D<T> {
                 visibleStaticGameObjectCount = 0;
                 visibleStaticModelInstances.clear();
                 staticCache.begin(camera);
-                for (final GameObject instance : staticModelInstances) {
+                for (final GameObject<T> instance : staticModelInstances) {
                     if (isVisible(instance)) {
                         visibleStaticModelInstances.add(instance.instance);
                         staticCache.add(instance.instance);
