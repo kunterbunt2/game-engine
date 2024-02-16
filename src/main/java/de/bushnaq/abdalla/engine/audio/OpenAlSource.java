@@ -36,30 +36,30 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class OpenAlSource extends Thread {
-    private static final int                       BUFFER_COUNT       = 3;
+    private static final int                       BUFFER_COUNT         = 3;
     private final        int                       bits;
-    private final        int[]                     bufferId           = new int[BUFFER_COUNT];
-    private final        List<Integer>             bufferQueue        = new ArrayList<>(); // A quick and dirty queue of buffer objects
-    private final        List<Integer>             buffersUnqueued    = new ArrayList<>(); // A quick and dirty queue of buffer objects
+    private final        int[]                     bufferId             = new int[BUFFER_COUNT];
+    private final        List<Integer>             bufferQueue          = new ArrayList<>(); // A quick and dirty queue of buffer objects
+    private final        List<Integer>             buffersUnqueued      = new ArrayList<>(); // A quick and dirty queue of buffer objects
     private final        int                       channels;
     //	private long lastIndex = 0;
-    private final        Logger                    logger             = LoggerFactory.getLogger(this.getClass());
-    private final        Vector3                   position           = new Vector3();//last position submitted to openal
+    private final        Logger                    logger               = LoggerFactory.getLogger(this.getClass());
+    private final        Vector3                   position             = new Vector3();//last position submitted to openal
     private final        int                       samplerate;
     private final        long                      samples;
-    private final        Vector3                   velocity           = new Vector3();//last velocity submitted to openal
-    public               List<ByteBufferContainer> byteBufferCopyList = new ArrayList<>();
-    boolean keepCopy = false;
-    private          AudioProducer audio;
-    private          int           auxiliaryEffectSlot  = 0;
-    private          long          buffersize;
-    private          ByteBuffer    byteBuffer;
-    private volatile boolean       end                  = false;
-    private          int           filter;
-    private          boolean       play;//source should be in play state
-    private          int           restartedSourceCount = 0;
-    private          boolean       sleeping             = false;
-    private          int           source;
+    private final        Vector3                   velocity             = new Vector3();//last velocity submitted to openal
+    private              AudioProducer             audio;
+    private              int                       auxiliaryEffectSlot  = 0;
+    private              long                      buffersize;
+    private              ByteBuffer                byteBuffer;
+    private              List<ByteBufferContainer> byteBufferCopyList   = new ArrayList<>();
+    private volatile     boolean                   end                  = false;
+    private              int                       filter;
+    private              boolean                   keepCopy             = false;
+    private              boolean                   play;//source should be in play state
+    private              int                       restartedSourceCount = 0;
+    private              boolean                   sleeping             = false;
+    private              int                       source;
 
     public OpenAlSource(final long samples, final int samplerate, final int bits, final int channels, final int auxiliaryEffectSlot) throws OpenAlException {
         this.samples             = samples;
@@ -149,6 +149,10 @@ public class OpenAlSource extends Thread {
 
     public long getBuffersize() {
         return buffersize;
+    }
+
+    public List<ByteBufferContainer> getByteBufferCopyList() {
+        return byteBufferCopyList;
     }
 
     public int getRestartedSourceCount() {

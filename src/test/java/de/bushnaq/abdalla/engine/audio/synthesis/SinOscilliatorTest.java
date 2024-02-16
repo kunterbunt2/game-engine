@@ -62,18 +62,22 @@ public class SinOscilliatorTest {
         final int               numberOfSources = audioEngine.getMaxMonoSources();
         final List<Synthesizer> synths          = new ArrayList<>();
         //create synths
+        logger.info("Start creating synths");
         for (int i = 0; i < numberOfSources; i++) {
             synths.add(audioEngine.createAudioProducer(SinSynthesizer.class));
         }
+        logger.info("End creating synths");
 
         audioEngine.begin(camera);
+        audioEngine.end();
+        logger.info("Start rendering synths");
         final long time1 = System.currentTimeMillis();
         for (final Synthesizer synth : synths) {
             synth.renderBuffer();
         }
         final long time2 = System.currentTimeMillis();
+        logger.info("End rendering synths");
         final long delta = time2 - time1;
-        audioEngine.end();
         audioEngine.dispose();
         logger.info(String.format("Rendered %d buffers each %d samples in %dms", numberOfSources, SinAudioEngine.samples, delta));
         assertThat(String.format("expected to render %d buffers each %d samples in less than 1s", numberOfSources, SinAudioEngine.samples), delta, is(lessThan(1000L)));

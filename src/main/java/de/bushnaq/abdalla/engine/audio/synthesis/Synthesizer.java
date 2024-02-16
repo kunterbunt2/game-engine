@@ -150,7 +150,7 @@ public class Synthesizer extends AbstractAudioProducer {
         if (isKeepCopy()) {
             byteBufferContainer            = new ByteBufferContainer();
             byteBufferContainer.byteBuffer = LibCStdlib.malloc(source.getBuffersize());
-            source.byteBufferCopyList.add(byteBufferContainer);
+            source.getByteBufferCopyList().add(byteBufferContainer);
         }
         for (int sampleIndex = 0, bufferIndex = 0; sampleIndex < source.getSamples(); sampleIndex++, bufferIndex += 2) {
             final Short value = process(lastIndex + sampleIndex);
