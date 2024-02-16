@@ -55,15 +55,11 @@ import com.crashinvaders.vfx.VfxManager;
 import com.scottlogic.util.GL32CMacIssueHandler;
 import com.scottlogic.util.ShaderCompatibilityHelper;
 import de.bushnaq.abdalla.engine.camera.MovingCamera;
-import de.bushnaq.abdalla.engine.shader.DepthOfFieldEffect;
-import de.bushnaq.abdalla.engine.shader.GamePbrShaderProvider;
-import de.bushnaq.abdalla.engine.shader.GameShaderProvider;
-import de.bushnaq.abdalla.engine.shader.GameShaderProviderInterface;
+import de.bushnaq.abdalla.engine.shader.*;
 import de.bushnaq.abdalla.engine.shader.mirror.Mirror;
 import de.bushnaq.abdalla.engine.shader.water.Water;
 import de.bushnaq.abdalla.engine.util.logger.Logger;
 import de.bushnaq.abdalla.engine.util.logger.LoggerFactory;
-import net.mgsx.gltf.scene3d.attributes.FogAttribute;
 import net.mgsx.gltf.scene3d.attributes.PBRColorAttribute;
 import net.mgsx.gltf.scene3d.attributes.PBRFloatAttribute;
 import net.mgsx.gltf.scene3d.lights.DirectionalShadowLight;
@@ -99,6 +95,8 @@ public class RenderEngine3D<T> {
     private static final float                       NIGHT_AMBIENT_INTENSITY_R        = 0.2f;
     private static final float                       NIGHT_SHADOW_INTENSITY           = 0.2f;
     public final         Array<GameObject<T>>        staticModelInstances             = new Array<>();
+    private final        AtlasRegion                 atlasRegion;
+    private final        MovingCamera                camera;
     private final        Camera                      camera2D;
     private final        EnvironmentCache            computedEnvironement             = new EnvironmentCache();
     private final        IContext                    context;
@@ -116,7 +114,7 @@ public class RenderEngine3D<T> {
     private final        Plane                       reflectionClippingPlane          = new Plane(new Vector3(0f, 1f, 0f), 0.1f);                                // render everything above the
     private final        Plane                       refractionClippingPlane          = new Plane(new Vector3(0f, -1f, 0f), (-0.1f));                            // render everything below the
     private final        Array<ModelInstance>        renderableProviders              = new Array<>();
-    //    private final        Vector3                     shadowLightDirection             = new Vector3();
+    private final        Vector3                     shadowLightDirection             = new Vector3();
     private final        int                         speed                            = 5;                                                                    // speed of time
     private final        SpotLightsAttribute         spotLights                       = new SpotLightsAttribute();
     private final        ModelCache                  staticCache                      = new ModelCache();
@@ -128,6 +126,7 @@ public class RenderEngine3D<T> {
     private final        Array<ModelInstance>        visibleStaticModelInstances      = new Array<>();
     private final        Array<RenderableProvider>   visibleStaticRenderableProviders = new Array<>();
     private final        Water                       water                            = new Water();
+    public               float                       angle;
     public               PolygonSpriteBatch          batch2D;
     public               TimeGraph                   cpuGraph;
     public               Array<GameObject<T>>        dynamicModelInstances            = new Array<>();
@@ -142,10 +141,7 @@ public class RenderEngine3D<T> {
     public               int                         visibleStaticLightCount          = 0;
     private              boolean                     alwaysDay                        = true;
     private              ColorAttribute              ambientLight;
-    private              float                       angle;
-    private              AtlasRegion                 atlasRegion;
     private              ModelBatch                  batch;
-    private              MovingCamera                camera;
     //    private              GameObject                  cameraCube;
     private              float                       currentDayTime;
     private              SceneSkybox                 daySkyBox;
@@ -158,9 +154,7 @@ public class RenderEngine3D<T> {
     //    private              GameObject                  depthOfFieldMeter;
     private              boolean                     dynamicDayTime                   = false;
     private              float                       fixedDayTime                     = 10;
-    //    private              InputProcessor              inputProcessor;
     private              Logger                      logger                           = LoggerFactory.getLogger(this.getClass());
-    //    private              float                       northDirectionDegree             = 90;
     private              boolean                     pbr;
     private              FrameBuffer                 postFbo;
     private              RenderableSorter            renderableSorter;
@@ -192,14 +186,23 @@ public class RenderEngine3D<T> {
 //			}
 //		}
         logger.info(String.format("width = %d height = %d", Gdx.graphics.getWidth(), Gdx.graphics.getHeight()));
-        this.context    = context;
-        this.gameEngine = gameEngine;
-//        this.inputProcessor = inputProcessor;
+        this.context     = context;
+        this.gameEngine  = gameEngine;
         this.camera      = camera;
         this.camera2D    = camera2D;
         this.font        = font;
         this.atlasRegion = atlasRegion;
         create();
+        logger.info(String.format("fog = %b", getFog().isEnabled()));
+        logger.info(String.format("pbr = %b", isPbr()));
+        logger.info(String.format("mirror = %b", isMirrorPresent()));
+        logger.info(String.format("water = %b", isWaterPresent()));
+        logger.info(String.format("shadow = %b", isShadowEnabled()));
+        logger.info(String.format("depth of field = %b", isDepthOfField()));
+        logger.info(String.format("dynamic day= %b", isDynamicDayTime()));
+        logger.info(String.format("debug mode = %b", isDebugMode()));
+        logger.info(String.format("sky box = %b", isSkyBox()));
+        logger.info(String.format("graphs = %b", isShowGraphs()));
     }
 
     public void add(final PointLight pointLight, final boolean dynamic) {
@@ -308,8 +311,7 @@ public class RenderEngine3D<T> {
     private void createEnvironment() {
         // shadow
         int shadowMapSize = context.getShadowMapSizeProperty();
-        shadowLight = new DirectionalShadowLight(4048 * 2, 4048 * 2);
-//                new DirectionalShadowLight(shadowMapSize, shadowMapSize, GameSettings.SHADOW_VIEWPORT_WIDTH, GameSettings.SHADOW_VIEWPORT_HEIGHT, GameSettings.SHADOW_NEAR, GameSettings.SHADOW_FAR);
+        shadowLight = new DirectionalShadowLight(shadowMapSize, shadowMapSize, GameSettings.SHADOW_VIEWPORT_WIDTH, GameSettings.SHADOW_VIEWPORT_HEIGHT, GameSettings.SHADOW_NEAR, GameSettings.SHADOW_FAR);
         final Matrix4 m = new Matrix4();
         sceneBox.mul(m);
         shadowLight.setBounds(sceneBox);
@@ -317,29 +319,11 @@ public class RenderEngine3D<T> {
         shadowLight.color.set(Color.WHITE);
         shadowLight.intensity = 1.0f;
         environment.add(shadowLight);
-//		csm = new CascadeShadowMap(3);
-//		csm.setCascades(camera,shadowLight, 0f, 0.5f);
 
-        // setup IBL (image based lighting)
-//		if (isPbr()) {
-////			setupImageBasedLightingByFaceNames("ruins", "jpg", "png", "jpg", 10);
-//			setupImageBasedLightingByFaceNames("clouds", "jpg", "jpg", "jpg", 10);
-////			setupImageBasedLightingByFaceNames("moonless_golf_2k", "jpg", "jpg", "jpg", 10);
-//			// setup skybox
-//			daySkyBox = new SceneSkybox(environmentDayCubemap);
-//			nightSkyBox = new SceneSkybox(environmentNightCubemap);
-//			environment.set(PBRCubemapAttribute.createDiffuseEnv(diffuseCubemap));
-//			environment.set(PBRCubemapAttribute.createSpecularEnv(specularCubemap));
-//			environment.set(new PBRTextureAttribute(PBRTextureAttribute.BRDFLUTTexture, brdfLUT));
-//			environment.set(new PBRFloatAttribute(PBRFloatAttribute.ShadowBias, 0f));
-//		} else {
-//		}
         final float lum = 0.0f;
         ambientLight = new ColorAttribute(ColorAttribute.AmbientLight, lum, lum, lum, 1.0f);
         environment.set(ambientLight);
-        environment.set(new ColorAttribute(ColorAttribute.Fog, getFog().getColor()));
-        environment.set(new FogAttribute(FogAttribute.FogEquation));
-        getFog().setFogEquation(environment);
+        getFog().createFog(environment);
     }
 
     private String createFileName(final Date date, final String append) {
@@ -490,8 +474,8 @@ public class RenderEngine3D<T> {
 
     private void disposeEnvironment() {
         if (isPbr()) {
-            nightSkyBox.dispose();
-            daySkyBox.dispose();
+            if (nightSkyBox != null) nightSkyBox.dispose();
+            if (daySkyBox != null) daySkyBox.dispose();
         }
         shadowLight.dispose();
         environment.clear();
@@ -741,7 +725,7 @@ public class RenderEngine3D<T> {
         return shadowEnabled;
     }
 
-    private boolean isShowGraphs() {
+    public boolean isShowGraphs() {
         return context.getShowGraphsProperty();
     }
 
@@ -936,26 +920,22 @@ public class RenderEngine3D<T> {
             context.disableClipping();
         }
         // if (firstTime) {
-        if (isDepthOfField())
-            postFbo.begin();
+        if (isDepthOfField()) postFbo.begin();
 //		createCameraCube();
 //		createLookatCube();
 //		createDepthOfFieldMeter();
         renderColors(takeScreenShot);
-//        render2DText();
+        render2DText();
         render3DText();
-        if (isDepthOfField())
-            postFbo.end();
+        if (isDepthOfField()) postFbo.end();
 
         camera.setDirty(false);
         staticCacheDirtyCount = 0;
         renderGraphs();
 
-        if (isDepthOfField())
-            postFbo.begin();
+        if (isDepthOfField()) postFbo.begin();
         renderFbos(takeScreenShot);
-        if (isDepthOfField())
-            postFbo.end();
+        if (isDepthOfField()) postFbo.end();
 
 //        fboToScreen();
     }
@@ -997,12 +977,6 @@ public class RenderEngine3D<T> {
             }
         }
 
-//		for (final Stone stone : context.stoneList) {
-//			stone.get3DRenderer().renderText(this, 0, false);
-//		}
-//		for (final Digit digit : context.digitList) {
-//			digit.get3DRenderer().renderText(this, 0, false);
-//		}
         batch2D.end();
         batch2D.setTransformMatrix(identityMatrix);// fix transformMatrix
     }
@@ -1030,9 +1004,6 @@ public class RenderEngine3D<T> {
     /**
      * Render only depth (packed 32 bits), usefull for post processing effects. You typically render it to a FBO with depth enabled.
      */
-    // private void renderDepth() {
-    // renderDepth(camera);
-    // }
     private void renderDepth(final Camera camera) {
         depthBatch.begin(camera);
         if (useStaticCache) depthBatch.render(staticCache);
@@ -1203,21 +1174,6 @@ public class RenderEngine3D<T> {
         sceneBox.set(sceneBoxMin, sceneBoxMax);
     }
 
-//	private void updateFog() {
-//		if (fogEquation != null) {
-//			// fogEquation.x is where the fog begins
-//			// .y should be where it reaches 100%
-//			// then z is how quickly it falls off
-//			// fogEquation.value.set(MathUtils.lerp(sceneManager.camera.near,
-//			// sceneManager.camera.far, (FOG_X + 1f) / 2f),
-//			// MathUtils.lerp(sceneManager.camera.near, sceneManager.camera.far, (FAG_Y +
-//			// 1f) / 2f),
-//			// 1000f * (FOG_Z + 1f) / 2f);
-//
-//			fogEquation.value.set(fogMinDistance, fogMaxDistance, fogMixValue);
-//		}
-//	}
-
     public void setSceneBoxMin(Vector3 sceneBoxMin) {
         this.sceneBoxMin = sceneBoxMin;
         sceneBox.set(sceneBoxMin, sceneBoxMax);
@@ -1227,23 +1183,17 @@ public class RenderEngine3D<T> {
         this.shadowEnabled = shadowEnabled;
     }
 
-//	private void setShowGraphs(boolean showGraphs) {
-//		this.showGraphs = showGraphs;
-//	}
-
     private void setShadowLight(final float lum) {
         shadowLight.intensity = lum;
-//		shadowLight.set(GameSettings.SHADOW_INTENSITY, GameSettings.SHADOW_INTENSITY, GameSettings.SHADOW_INTENSITY,shadowLightDirection.nor());
-//        shadowLight.set(lum, lum, lum, shadowLightDirection.nor());
+    }
+
+    public void setShowGraphs(boolean enable) {
+        context.setShowGraphs(enable);
     }
 
     public void setSkyBox(boolean skyBox) {
         this.skyBox = skyBox;
     }
-
-//	public void toggleShowGraphs() {
-//		setShowGraphs(!isShowGraphs());
-//	}
 
     /**
      * should be called in order to perform light culling, skybox update and animations.
@@ -1269,7 +1219,7 @@ public class RenderEngine3D<T> {
     }
 
     public void updateCamera(final float centerXD, final float centerYD, final float centerZD) {
-//        if (centerXD != 0f || centerYD != 0f || centerZD != 0f)
+//        if (centerXD != 0f || centerYD != 0f || centerZD != 0f)//TODO do not update if nothing has changed
         {
             camera.translate(centerXD, centerYD, centerZD);
             camera.lookat.add(centerXD, centerYD, centerZD);
@@ -1277,18 +1227,10 @@ public class RenderEngine3D<T> {
             camera.update();
             Vector3 v1 = new Vector3(camera.position);
             Vector3 v2 = new Vector3(camera.position);
-//        sceneBox.set(v1.add(-2000-300,-2000-500,-2000-400),v2.add(2000-300,2000-500,2000-400));
             sceneBox.set(v1.add(sceneBoxMin), v2.add(sceneBoxMax));
             shadowLight.setBounds(sceneBox);
-            shadowLight.direction.set(-.5f, -.7f, .5f).nor();
             camera.setDirty(true);
 
-//        shadowLight.getCamera().translate(centerXD, centerYD, centerZD);
-//        shadowLight.setCenter(camera.position);
-//        if (centerXD != 0f)
-//            if (shadowLight.getCamera().position.x != x + centerXD)
-//                logger.info("");
-//        shadowLight.getCamera().update();
         }
     }
 
@@ -1338,17 +1280,15 @@ public class RenderEngine3D<T> {
         }
         cullLights();
     }
-//	private CascadeShadowMap csm;
 
     public void updateEnvironment(final float timeOfDay) {
         if (Math.abs(this.timeOfDay - timeOfDay) > 0.01) {
-//            angle = (float) (Math.PI * (timeOfDay - 6) / 12);
-//            shadowLightDirection.x = (float) Math.cos(angle);
-//            shadowLightDirection.z = Math.abs((float) (Math.sin(angle)));
-//            shadowLightDirection.y = -Math.abs((float) Math.sin(angle));
-//            shadowLightDirection.nor();
-//            shadowLight.setDirection(shadowLightDirection);
-//            shadowLight.setCenter(0f,-14f,-15);
+            angle                  = (float) (Math.PI * (timeOfDay - 6) / 12);
+            shadowLightDirection.x = (float) Math.cos(angle);
+            shadowLightDirection.z = Math.abs((float) (Math.sin(angle)));
+            shadowLightDirection.y = -Math.abs((float) Math.sin(angle));
+            shadowLightDirection.nor();
+            shadowLight.setDirection(shadowLightDirection);
 
             // day break
             if (!alwaysDay && timeOfDay > 5 && timeOfDay <= 6) {

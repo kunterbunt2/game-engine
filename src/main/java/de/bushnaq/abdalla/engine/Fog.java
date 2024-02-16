@@ -24,6 +24,8 @@ import net.mgsx.gltf.scene3d.attributes.FogAttribute;
 public class Fog {
     private float        beginDistance   = 15;
     private Color        color           = Color.BLACK;
+    private boolean      enabled;
+    private Environment  environment;
     private FogAttribute equation        = null;
     private float        falloffGradiant = 0.5f;
     private float        fullDistance    = 30;
@@ -34,6 +36,18 @@ public class Fog {
         this.fullDistance    = fogMaxDistance;
         this.falloffGradiant = fogMixValue;
 
+    }
+
+    public void createFog(Environment environment) {
+        this.environment = environment;
+        if (enabled) {
+            environment.set(new ColorAttribute(ColorAttribute.Fog, getColor()));
+            environment.set(new FogAttribute(FogAttribute.FogEquation));
+            setFogEquation(environment);
+        } else {
+            environment.remove(ColorAttribute.Fog);
+            environment.remove(FogAttribute.FogEquation);
+        }
     }
 
     public float getBeginDistance() {
@@ -52,12 +66,21 @@ public class Fog {
         return fullDistance;
     }
 
+    public boolean isEnabled() {
+        return enabled;
+    }
+
     public void setBeginDistance(float beginDistance) {
         this.beginDistance = beginDistance;
     }
 
     public void setColor(Color color) {
         this.color = color;
+    }
+
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+        createFog(environment);//update environment
     }
 
     public void setFalloffGradiant(float falloffGradiant) {
@@ -73,17 +96,21 @@ public class Fog {
     }
 
     public void updateFog(Environment environment) {
-        if (equation != null) {
-            // fogEquation.x is where the fog begins
-            // .y should be where it reaches 100%
-            // then z is how quickly it falls off
-            // fogEquation.value.set(MathUtils.lerp(sceneManager.camera.near,
-            // sceneManager.camera.far, (FOG_X + 1f) / 2f),
-            // MathUtils.lerp(sceneManager.camera.near, sceneManager.camera.far, (FAG_Y +
-            // 1f) / 2f),
-            // 1000f * (FOG_Z + 1f) / 2f);
-            equation.value.set(getBeginDistance(), fullDistance, falloffGradiant);
-            environment.set(new ColorAttribute(ColorAttribute.Fog, getColor()));
+        if (enabled) {
+            if (equation != null) {
+                // fogEquation.x is where the fog begins
+                // .y should be where it reaches 100%
+                // then z is how quickly it falls off
+                // fogEquation.value.set(MathUtils.lerp(sceneManager.camera.near,
+                // sceneManager.camera.far, (FOG_X + 1f) / 2f),
+                // MathUtils.lerp(sceneManager.camera.near, sceneManager.camera.far, (FAG_Y +
+                // 1f) / 2f),
+                // 1000f * (FOG_Z + 1f) / 2f);
+                equation.value.set(getBeginDistance(), fullDistance, falloffGradiant);
+                environment.set(new ColorAttribute(ColorAttribute.Fog, getColor()));
+            }
+        } else {
+
         }
     }
 }
