@@ -686,7 +686,6 @@ public class RenderEngine3D<T> {
             PixmapIO.writePNG(handle, pixmap);
             pixmap.dispose();
         }
-
     }
 
     public boolean isAlwaysDay() {
@@ -938,6 +937,7 @@ public class RenderEngine3D<T> {
         if (isDepthOfField()) postFbo.end();
 
 //        fboToScreen();
+        postProcessRender();
     }
 
     private void render2DText() {

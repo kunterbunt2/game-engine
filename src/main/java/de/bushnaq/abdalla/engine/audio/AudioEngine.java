@@ -48,9 +48,8 @@ public class AudioEngine {
     private final        float           disableRadius2 = STOP_RADIUS * STOP_RADIUS;//all audio streams that are located further away will be stopped and removed
     private final        float           enableRadius2  = START_RADIUS * START_RADIUS;//an audio streams that gets closer will get added and started
     private final        Vector3         position       = new Vector3();//position of the listener
-    private final        int             samplerate;
-    private final        int             samples;
-
+    private final int samplerate;
+    private final int samples;
     //	private MovingCamera camera;
     //	private final SynthesizerFactory<T> synthFactory;
     private final List<AudioProducer> synths        = new UnsortedList<>();
@@ -63,7 +62,6 @@ public class AudioEngine {
     private int  effect;
     private int  enabledAudioSourceCount = 0;
     private int  maxMonoSources          = 0;
-
     public AudioEngine(final int samples, final int samplerate, final int bits/*, final int channels*/) {
         this.samples    = samples;
         this.samplerate = samplerate;
@@ -168,9 +166,6 @@ public class AudioEngine {
         cullSynths();
     }
 
-    //	MercatorSynthesizerFactory mercatorSynthesizerFactory = new MercatorSynthesizerFactory();
-    //	Mp3PlayerFactory mp3PlayerFactory = new Mp3PlayerFactory();
-
     public void create() throws OpenAlException {
         //		List<String> list = ALUtil.getStringList(0, ALC10.ALC_DEVICE_SPECIFIER/*, EnumerateAllExt.ALC_DEFAULT_ALL_DEVICES_SPECIFIER*/);
         final String deviceinfo = ALC10.alcGetString(0, EnumerateAllExt.ALC_DEFAULT_ALL_DEVICES_SPECIFIER);
@@ -218,6 +213,9 @@ public class AudioEngine {
         setListenerOrientation(new Vector3(0, 0, -1), new Vector3(0, 1, 0));
         createAuxiliaryEffectSlot();
     }
+
+    //	MercatorSynthesizerFactory mercatorSynthesizerFactory = new MercatorSynthesizerFactory();
+    //	Mp3PlayerFactory mp3PlayerFactory = new Mp3PlayerFactory();
 
     public <T extends AudioProducer> T createAudioProducer(final Class<T> clazz) throws OpenAlException {
 
@@ -392,6 +390,10 @@ public class AudioEngine {
 
     public int getMaxMonoSources() {
         return maxMonoSources;
+    }
+
+    public int getSamplerate() {
+        return samplerate;
     }
 
     public int getSamples() {
