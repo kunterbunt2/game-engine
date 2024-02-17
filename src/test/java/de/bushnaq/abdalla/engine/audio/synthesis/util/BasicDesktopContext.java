@@ -119,7 +119,7 @@ public class BasicDesktopContext extends Context {
 
     @Override
     public boolean isVsyncSupported() {
-        return true;
+        return false;
     }
 
     @Override

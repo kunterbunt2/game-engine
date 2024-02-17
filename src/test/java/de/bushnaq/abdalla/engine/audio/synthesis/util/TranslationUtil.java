@@ -250,7 +250,7 @@ public abstract class TranslationUtil<T extends Translation> extends BasicGameEn
         final float y = aY;
         final float z = aZ;
         //draw text
-        final PolygonSpriteBatch batch = getRenderEngine().batch2D;
+        final PolygonSpriteBatch batch = getRenderEngine().renderEngine2D.batch;
         final BitmapFont         font  = getAtlasManager().modelFont;
         {
             final Matrix4     m        = new Matrix4();

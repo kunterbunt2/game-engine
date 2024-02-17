@@ -25,3 +25,8 @@ renderEngine.handleQueuedScreenshot(takeScreenShot);
 ---
 
 You can add any other rendering code you need inbetween.
+
+Current Status running
+managed textures 12
+shader switches 11
+texture bindings 61

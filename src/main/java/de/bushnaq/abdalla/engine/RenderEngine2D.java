@@ -23,6 +23,8 @@ import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
+import com.scottlogic.util.GL32CMacIssueHandler;
+import com.scottlogic.util.ShaderCompatibilityHelper;
 
 public class RenderEngine2D<T> {
     public CustomizedSpriteBatch batch;
@@ -88,7 +90,9 @@ public class RenderEngine2D<T> {
     }
 
     private void createShader() {
-        batch = new CustomizedSpriteBatch(5460);
+
+        batch = new CustomizedSpriteBatch(5460, ShaderCompatibilityHelper.mustUse32CShader() ? GL32CMacIssueHandler.createSpriteBatchShader() : null);
+//        batch = new CustomizedSpriteBatch(5460);
     }
 
     public void dispose() {

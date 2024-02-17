@@ -26,7 +26,6 @@ import com.badlogic.gdx.assets.loaders.resolvers.InternalFileHandleResolver;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration;
 import com.badlogic.gdx.graphics.*;
-import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
@@ -61,7 +60,7 @@ public abstract class BasicGameEngine implements ApplicationListener, InputProce
     private              OrthographicCamera              camera2D;
     private              long                            currentTime       = 0L;
     private              Cubemap                         diffuseCubemap;
-    private              BitmapFont                      font;
+    //    private              BitmapFont                      font;
     private              boolean                         hrtfEnabled       = true;
     private              long                            lastTime          = 0;
     private              RenderEngine3D<BasicGameEngine> renderEngine;
@@ -92,7 +91,7 @@ public abstract class BasicGameEngine implements ApplicationListener, InputProce
             atlasManager = new BasicAtlasManager();
             atlasManager.init();
             createStage();
-            renderEngine = new RenderEngine3D<BasicGameEngine>(context, this, this, camera, camera2D, getAtlasManager().menuFont, getAtlasManager().systemTextureRegion);
+            renderEngine = new RenderEngine3D<BasicGameEngine>(context, this, camera, camera2D, getAtlasManager().menuFont, getAtlasManager().systemTextureRegion);
             getRenderEngine().getWater().setPresent(false);
             getRenderEngine().setShadowEnabled(true);
             getRenderEngine().getFog().setEnabled(false);
@@ -117,15 +116,18 @@ public abstract class BasicGameEngine implements ApplicationListener, InputProce
         try {
             advanceInTime();
             update();
+            if (renderEngine.getProfiler().isEnabled()) {
+                renderEngine.getProfiler().reset();// reset on each frame
+            }
             getRenderEngine().render(currentTime, Gdx.graphics.getDeltaTime(), takeScreenShot);
             getRenderEngine().postProcessRender();
             Gdx.gl.glEnable(GL20.GL_DEPTH_TEST);
-            getRenderEngine().batch2D.enableBlending();
-            getRenderEngine().batch2D.begin();
-            getRenderEngine().batch2D.setProjectionMatrix(getRenderEngine().getCamera().combined);
+            getRenderEngine().renderEngine2D.batch.enableBlending();
+            getRenderEngine().renderEngine2D.batch.begin();
+            getRenderEngine().renderEngine2D.batch.setProjectionMatrix(getRenderEngine().getCamera().combined);
             renderText();
-            getRenderEngine().batch2D.end();
-            getRenderEngine().batch2D.setTransformMatrix(identityMatrix);//fix transformMatrix
+            getRenderEngine().renderEngine2D.batch.end();
+            getRenderEngine().renderEngine2D.batch.setTransformMatrix(identityMatrix);//fix transformMatrix
             renderStage();
             takeScreenShot = false;
             getAudioEngine().begin(getRenderEngine().getCamera());
@@ -148,7 +150,7 @@ public abstract class BasicGameEngine implements ApplicationListener, InputProce
         try {
             stage.dispose();
             getAudioEngine().dispose();
-            font.dispose();
+//            font.dispose();
             getRenderEngine().dispose();
             Gdx.app.exit();
         } catch (final Exception e) {
@@ -214,9 +216,9 @@ public abstract class BasicGameEngine implements ApplicationListener, InputProce
     private void createStage() {
         final int height = 12;
         stage = new Stage();
-        font  = new BitmapFont();
+//        font  = new BitmapFont();
         for (int i = 0; i < 8; i++) {
-            final Label label = new Label(" ", new Label.LabelStyle(font, Color.WHITE));
+            final Label label = new Label(" ", new Label.LabelStyle(getAtlasManager().menuFont, Color.WHITE));
             label.setPosition(0, i * height);
             stage.addActor(label);
             labels.add(label);

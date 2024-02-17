@@ -17,12 +17,10 @@
 package de.bushnaq.abdalla.engine;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.*;
 import com.badlogic.gdx.graphics.VertexAttributes.Usage;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
-import com.badlogic.gdx.graphics.g2d.PolygonSpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas.AtlasRegion;
 import com.badlogic.gdx.graphics.g3d.Renderable;
 import com.badlogic.gdx.graphics.g3d.*;
@@ -40,6 +38,8 @@ import com.badlogic.gdx.graphics.g3d.utils.RenderableSorter;
 import com.badlogic.gdx.graphics.g3d.utils.ShaderProvider;
 import com.badlogic.gdx.graphics.glutils.FrameBuffer;
 import com.badlogic.gdx.graphics.glutils.GLFrameBuffer;
+import com.badlogic.gdx.graphics.profiling.GLErrorListener;
+import com.badlogic.gdx.graphics.profiling.GLProfiler;
 import com.badlogic.gdx.math.Intersector;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Plane;
@@ -52,8 +52,6 @@ import com.badlogic.gdx.utils.BufferUtils;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.crashinvaders.vfx.VfxManager;
-import com.scottlogic.util.GL32CMacIssueHandler;
-import com.scottlogic.util.ShaderCompatibilityHelper;
 import de.bushnaq.abdalla.engine.camera.MovingCamera;
 import de.bushnaq.abdalla.engine.shader.*;
 import de.bushnaq.abdalla.engine.shader.mirror.Mirror;
@@ -86,93 +84,93 @@ import java.util.zip.Deflater;
  * @author kunterbunt
  */
 public class RenderEngine3D<T> {
-    private static final float                       DAY_AMBIENT_INTENSITY_B          = 1f;
-    private static final float                       DAY_AMBIENT_INTENSITY_G          = 1f;
-    private static final float                       DAY_AMBIENT_INTENSITY_R          = 1f;
-    private static final float                       DAY_SHADOW_INTENSITY             = 5.0f;
-    private static final float                       NIGHT_AMBIENT_INTENSITY_B        = 0.2f;
-    private static final float                       NIGHT_AMBIENT_INTENSITY_G        = 0.2f;
-    private static final float                       NIGHT_AMBIENT_INTENSITY_R        = 0.2f;
-    private static final float                       NIGHT_SHADOW_INTENSITY           = 0.2f;
-    public final         Array<GameObject<T>>        staticModelInstances             = new Array<>();
-    private final        AtlasRegion                 atlasRegion;
-    private final        MovingCamera                camera;
-    private final        Camera                      camera2D;
-    private final        EnvironmentCache            computedEnvironement             = new EnvironmentCache();
-    private final        IContext                    context;
-    private final        ModelCache                  dynamicCache                     = new ModelCache();
-    private final        Set<ObjectRenderer<T>>      dynamicText3DList                = new HashSet<>();
-    private final        Fog                         fog                              = new Fog(Color.BLACK, 15f, 30f, 0.5f);
-    private final        BitmapFont                  font;
-    private final        T                           gameEngine;
-    private final        Matrix4                     identityMatrix                   = new Matrix4();
+    public final  Array<GameObject<T>>        staticModelInstances             = new Array<>();
+    private final AtlasRegion                 atlasRegion;
+    private final MovingCamera                camera;
+    private final OrthographicCamera          camera2D;
+    private final EnvironmentCache            computedEnvironement             = new EnvironmentCache();
+    private final IContext                    context;
+    private final ModelCache                  dynamicCache                     = new ModelCache();
+    private final Set<ObjectRenderer<T>>      dynamicText3DList                = new HashSet<>();
+    private final Fog                         fog                              = new Fog(Color.BLACK, 15f, 30f, 0.5f);
+    private final BitmapFont                  font;
+    private final T                           gameEngine;
+    private final Matrix4                     identityMatrix                   = new Matrix4();
     //    private              GameObject                  lookatCube;
-    private final        Mirror                      mirror                           = new Mirror();
-    private final        PointLightsAttribute        pointLights                      = new PointLightsAttribute();
-    private final        Vector3                     position                         = new Vector3();
+    private final Mirror                      mirror                           = new Mirror();
+    private final PointLightsAttribute        pointLights                      = new PointLightsAttribute();
+    private final Vector3                     position                         = new Vector3();
     // private final Ray ray = new Ray(new Vector3(), new Vector3());
-    private final        Plane                       reflectionClippingPlane          = new Plane(new Vector3(0f, 1f, 0f), 0.1f);                                // render everything above the
-    private final        Plane                       refractionClippingPlane          = new Plane(new Vector3(0f, -1f, 0f), (-0.1f));                            // render everything below the
-    private final        Array<ModelInstance>        renderableProviders              = new Array<>();
-    private final        Vector3                     shadowLightDirection             = new Vector3();
-    private final        int                         speed                            = 5;                                                                    // speed of time
-    private final        SpotLightsAttribute         spotLights                       = new SpotLightsAttribute();
-    private final        ModelCache                  staticCache                      = new ModelCache();
-    private final        Set<ObjectRenderer<T>>      staticText3DList                 = new HashSet<>();
-    private final        Set<Text2D>                 text2DList                       = new HashSet<>();
-    private final        boolean                     useDynamicCache                  = false;
-    private final        boolean                     useStaticCache                   = true;
-    private final        Array<ModelInstance>        visibleDynamicModelInstances     = new Array<>();
-    private final        Array<ModelInstance>        visibleStaticModelInstances      = new Array<>();
-    private final        Array<RenderableProvider>   visibleStaticRenderableProviders = new Array<>();
-    private final        Water                       water                            = new Water();
-    public               float                       angle;
-    public               PolygonSpriteBatch          batch2D;
-    public               TimeGraph                   cpuGraph;
-    public               Array<GameObject<T>>        dynamicModelInstances            = new Array<>();
-    public               Environment                 environment                      = new Environment();
-    public               GameShaderProviderInterface gameShaderProvider;
-    public               TimeGraph                   gpuGraph;
-    public               SceneSkybox                 nightSkyBox;
-    public               Model                       rayCube;
-    public               int                         visibleDynamicGameObjectCount    = 0;
-    public               int                         visibleDynamicLightCount         = 0;
-    public               int                         visibleStaticGameObjectCount     = 0;
-    public               int                         visibleStaticLightCount          = 0;
-    private              boolean                     alwaysDay                        = true;
-    private              ColorAttribute              ambientLight;
-    private              ModelBatch                  batch;
+    private final Plane                       reflectionClippingPlane          = new Plane(new Vector3(0f, 1f, 0f), 0.1f);                                // render everything above the
+    private final Plane                       refractionClippingPlane          = new Plane(new Vector3(0f, -1f, 0f), (-0.1f));                            // render everything below the
+    private final Array<ModelInstance>        renderableProviders              = new Array<>();
+    private final Vector3                     shadowLightDirection             = new Vector3();
+    private final int                         speed                            = 5;                                                                    // speed of time
+    private final SpotLightsAttribute         spotLights                       = new SpotLightsAttribute();
+    private final ModelCache                  staticCache                      = new ModelCache();
+    private final Set<ObjectRenderer<T>>      staticText3DList                 = new HashSet<>();
+    private final Set<Text2D>                 text2DList                       = new HashSet<>();
+    private final boolean                     useDynamicCache                  = false;
+    private final boolean                     useStaticCache                   = true;
+    private final Array<ModelInstance>        visibleDynamicModelInstances     = new Array<>();
+    private final Array<ModelInstance>        visibleStaticModelInstances      = new Array<>();
+    private final Array<RenderableProvider>   visibleStaticRenderableProviders = new Array<>();
+    private final Water                       water                            = new Water();
+    public        float                       angle;
+    //    private        PolygonSpriteBatch          batch2D;
+    public        TimeGraph                   cpuGraph;
+    public        Array<GameObject<T>>        dynamicModelInstances            = new Array<>();
+    public        Environment                 environment                      = new Environment();
+    public        GameShaderProviderInterface gameShaderProvider;
+    public        TimeGraph                   gpuGraph;
+    public        SceneSkybox                 nightSkyBox;
+    public        Model                       rayCube;
+    public        RenderEngine2D<T>           renderEngine2D;
+    public        int                         visibleDynamicGameObjectCount    = 0;
+    public        int                         visibleDynamicLightCount         = 0;
+    public        int                         visibleStaticGameObjectCount     = 0;
+    public        int                         visibleStaticLightCount          = 0;
+    private       boolean                     alwaysDay                        = true;
+    private       ColorAttribute              ambientLight;
+    private       ModelBatch                  batch;
     //    private              GameObject                  cameraCube;
-    private              float                       currentDayTime;
-    private              SceneSkybox                 daySkyBox;
-    private              boolean                     debugMode                        = false;
-    private              ModelBatch                  depthBatch;
+    private       float                       currentDayTime;
+    private       float                       dayAmbientIntensityB             = 1f;
+    private       float                       dayAmbientIntensityG             = 1f;
+    private       float                       dayAmbientIntensityR             = 1f;
+    private       float                       dayShadowIntensity               = 5f;
+    private       SceneSkybox                 daySkyBox;
+    private       boolean                     debugMode                        = false;
+    private       ModelBatch                  depthBatch;
     // GaussianBlurEffect effect1;
 //	BloomEffect								effect2;
-    private              boolean                     depthOfField                     = false;
-    private              DepthOfFieldEffect          depthOfFieldEffect;
+    private       boolean                     depthOfField                     = false;
+    private       DepthOfFieldEffect          depthOfFieldEffect;
     //    private              GameObject                  depthOfFieldMeter;
-    private              boolean                     dynamicDayTime                   = false;
-    private              float                       fixedDayTime                     = 10;
-    private              Logger                      logger                           = LoggerFactory.getLogger(this.getClass());
-    private              boolean                     pbr;
-    private              FrameBuffer                 postFbo;
-    private              RenderableSorter            renderableSorter;
-    private              Vector3                     sceneBoxMax                      = new Vector3(2000, 2000, 1000);
-    //    public final BoundingBox sceneBox = new BoundingBox(new Vector3(-20, -50, -30), new Vector3(20, 20, 2));
-    private              Vector3                     sceneBoxMin                      = new Vector3(-2000, -2000, -1000);
-    private final        BoundingBox                 sceneBox                         = new BoundingBox(sceneBoxMin, sceneBoxMax);
-    private              boolean                     shadowEnabled                    = true;
-    private              DirectionalShadowLight      shadowLight                      = null;
-    // OrthographicCamera debugCamera;
-    private              boolean                     skyBox                           = false;
-    private              Stage                       stage;
-    private              boolean                     staticCacheDirty                 = true;
-    private              int                         staticCacheDirtyCount            = 0;
-    private              float                       timeOfDay                        = 8;                                                                    // 24h time
-    private              VfxManager                  vfxManager                       = null;
+    private       boolean                     dynamicDayTime                   = false;
+    private       boolean                     enableProfiling                  = true;
+    private       float                       fixedDayTime                     = 10;
+    private       Logger                      logger                           = LoggerFactory.getLogger(this.getClass());
+    private       float                       nightAmbientIntensityB           = .2f;
+    private       float                       nightAmbientIntensityG           = .2f;
+    private       float                       nightAmbientIntensityR           = .2f;
+    private       float                       nightShadowIntensity             = .2f;
+    private       boolean                     pbr;
+    private       FrameBuffer                 postFbo;
+    private       GLProfiler                  profiler;
+    private       Vector3                     sceneBoxMax                      = new Vector3(2000, 2000, 1000);
+    private       Vector3                     sceneBoxMin                      = new Vector3(-2000, -2000, -1000);
+    private final BoundingBox                 sceneBox                         = new BoundingBox(sceneBoxMin, sceneBoxMax);
+    private       boolean                     shadowEnabled                    = true;
+    private       DirectionalShadowLight      shadowLight                      = null;
+    private       boolean                     skyBox                           = false;
+    private       Stage                       stage;
+    private       boolean                     staticCacheDirty                 = true;
+    private       int                         staticCacheDirtyCount            = 0;
+    private       float                       timeOfDay                        = 8;                                                                    // 24h time
+    private       VfxManager                  vfxManager                       = null;
 
-    public RenderEngine3D(final IContext context, T gameEngine, final InputProcessor inputProcessor, MovingCamera camera, Camera camera2D, BitmapFont font, AtlasRegion atlasRegion) throws Exception {
+    public RenderEngine3D(final IContext context, T gameEngine, MovingCamera camera, OrthographicCamera camera2D, BitmapFont font, AtlasRegion atlasRegion) throws Exception {
 //		logger.info(String.format("GL_VERSION = %s", Gdx.gl.glGetString(GL20.GL_VERSION)));
 //		logger.info(String.format("GL_ES_VERSION_2_0 = %s", Gdx.gl.glGetString(GL20.GL_ES_VERSION_2_0)));
 //		logger.info(String.format("GL_SHADING_LANGUAGE_VERSION = %s", Gdx.gl.glGetString(GL20.GL_SHADING_LANGUAGE_VERSION)));
@@ -192,6 +190,7 @@ public class RenderEngine3D<T> {
         this.camera2D    = camera2D;
         this.font        = font;
         this.atlasRegion = atlasRegion;
+        renderEngine2D   = new RenderEngine2D<>(gameEngine, camera2D);
         create();
         logger.info(String.format("fog = %b", getFog().isEnabled()));
         logger.info(String.format("pbr = %b", isPbr()));
@@ -260,6 +259,12 @@ public class RenderEngine3D<T> {
     }
 
     public void create() throws Exception {
+        profiler = new GLProfiler(Gdx.graphics);
+        profiler.setListener(GLErrorListener.LOGGING_LISTENER);// ---enable exception throwing in case of error
+        profiler.setListener(new MyGLErrorListener());
+        if (isEnableProfiling()) {
+            profiler.enable();
+        }
         pbr       = context.getPbrModeProperty();
         debugMode = context.getDebugModeProperty();
         createFrameBuffer();
@@ -384,16 +389,14 @@ public class RenderEngine3D<T> {
     }
 
     private void createShader() {
-        renderableSorter = new SceneRenderableSorter();
+        RenderableSorter renderableSorter = new SceneRenderableSorter();
         if (isPbr()) {
             depthBatch = new ModelBatch(PBRShaderProvider.createDefaultDepth(0));
         } else {
             depthBatch = new ModelBatch(new DepthShaderProvider());
         }
-        // oceanBatch = new ModelBatch(new OceanShaderProvider());
         batch = new ModelBatch(createShaderProvider(), renderableSorter);
-        // batch = new ModelBatch(PBRShaderProvider.createDefaultDepth(0));
-        batch2D = new CustomizedSpriteBatch(5460, ShaderCompatibilityHelper.mustUse32CShader() ? GL32CMacIssueHandler.createSpriteBatchShader() : null);
+//        batch2D = new CustomizedSpriteBatch(5460, ShaderCompatibilityHelper.mustUse32CShader() ? GL32CMacIssueHandler.createSpriteBatchShader() : null);
     }
 
     private ShaderProvider createShaderProvider() {
@@ -417,7 +420,7 @@ public class RenderEngine3D<T> {
     }
 
     private void createStage() {
-        stage = new Stage(new ScreenViewport(), batch2D);
+        stage = new Stage(new ScreenViewport(), renderEngine2D.batch);
     }
 
     private void cullLights() {
@@ -461,6 +464,9 @@ public class RenderEngine3D<T> {
     }
 
     public void dispose() throws Exception {
+        if (profiler.isEnabled()) {
+            profiler.disable();
+        }
         staticCache.dispose();
         dynamicCache.dispose();
         vfxManager.dispose();
@@ -470,6 +476,7 @@ public class RenderEngine3D<T> {
         disposeEnvironment();
         disposeShader();
         disposeFrameBuffer();
+        renderEngine2D.dispose();
     }
 
     private void disposeEnvironment() {
@@ -490,6 +497,13 @@ public class RenderEngine3D<T> {
     private void disposeGraphs() {
         gpuGraph.dispose();
         cpuGraph.dispose();
+    }
+
+    private void disposeShader() {
+        gameShaderProvider.dispose();
+//        batch2D.dispose();
+        batch.dispose();
+        depthBatch.dispose();
     }
 
 //	private void createDepthOfFieldMeter() {
@@ -532,13 +546,6 @@ public class RenderEngine3D<T> {
 //		}
 //	}
 
-    private void disposeShader() {
-        gameShaderProvider.dispose();
-        batch2D.dispose();
-        batch.dispose();
-        depthBatch.dispose();
-    }
-
     private void disposeStage() {
         stage.dispose();
     }
@@ -548,6 +555,10 @@ public class RenderEngine3D<T> {
 
     public MovingCamera getCamera() {
         return camera;
+    }
+
+    public float getCurrentDayTime() {
+        return currentDayTime;
     }
 
 //    private void fboToScreen() {
@@ -581,10 +592,6 @@ public class RenderEngine3D<T> {
 //			}
 //		}
 //	}
-
-    public float getCurrentDayTime() {
-        return currentDayTime;
-    }
 
     public DepthOfFieldEffect getDepthOfFieldEffect() {
         return depthOfFieldEffect;
@@ -638,6 +645,10 @@ public class RenderEngine3D<T> {
 
     public Mirror getMirror() {
         return mirror;
+    }
+
+    public GLProfiler getProfiler() {
+        return profiler;
     }
 
     public Array<ModelInstance> getRenderableProviders() {
@@ -708,6 +719,10 @@ public class RenderEngine3D<T> {
         return dynamicDayTime;
     }
 
+    public boolean isEnableProfiling() {
+        return enableProfiling;
+    }
+
     public boolean isMirrorPresent() {
         return mirror.isPresent() /* && isPbr() */;
     }
@@ -728,7 +743,7 @@ public class RenderEngine3D<T> {
         return context.getShowGraphsProperty();
     }
 
-    private boolean isSkyBox() {
+    public boolean isSkyBox() {
         return skyBox;
     }
 
@@ -941,21 +956,21 @@ public class RenderEngine3D<T> {
     }
 
     private void render2DText() {
-        batch2D.setProjectionMatrix(stage.getViewport().getCamera().combined);
-        batch2D.begin();
+        renderEngine2D.batch.setProjectionMatrix(stage.getViewport().getCamera().combined);
+        renderEngine2D.batch.begin();
         Gdx.gl.glDisable(GL20.GL_DEPTH_TEST);
-        batch2D.enableBlending();
+        renderEngine2D.batch.enableBlending();
         for (Text2D text2d : text2DList) {
-            text2d.draw(batch2D);
+            text2d.draw(renderEngine2D.batch);
         }
-        batch2D.end();
+        renderEngine2D.batch.end();
     }
 
     private void render3DText() {
         Gdx.gl.glEnable(GL20.GL_DEPTH_TEST);
-        batch2D.begin();
-        batch2D.enableBlending();
-        batch2D.setProjectionMatrix(camera.combined);
+        renderEngine2D.batch.begin();
+        renderEngine2D.batch.enableBlending();
+        renderEngine2D.batch.setProjectionMatrix(camera.combined);
         for (final ObjectRenderer<T> renderer : staticText3DList) {
             renderer.renderText(this, 0, false);
         }
@@ -977,8 +992,8 @@ public class RenderEngine3D<T> {
             }
         }
 
-        batch2D.end();
-        batch2D.setTransformMatrix(identityMatrix);// fix transformMatrix
+        renderEngine2D.batch.end();
+        renderEngine2D.batch.setTransformMatrix(identityMatrix);// fix transformMatrix
     }
 
     /**
@@ -1015,33 +1030,33 @@ public class RenderEngine3D<T> {
     }
 
     private void renderFbos(boolean takeScreenShot) {
-        batch2D.begin();
+        renderEngine2D.batch.begin();
         Gdx.gl.glDisable(GL20.GL_DEPTH_TEST);
-        batch2D.enableBlending();
-        batch2D.setProjectionMatrix(stage.getViewport().getCamera().combined);
+        renderEngine2D.batch.enableBlending();
+        renderEngine2D.batch.setProjectionMatrix(stage.getViewport().getCamera().combined);
         if (debugMode) {
             if (isWaterPresent()) {
                 // up left (water refraction)
                 {
                     Texture t = water.getRefractionFbo().getColorBufferTexture();
-                    batch2D.draw(t, 0, Gdx.graphics.getHeight() - t.getHeight() / 4, t.getWidth() / 4, t.getHeight() / 4, 0, 0, t.getWidth(), t.getHeight(), false, true);
+                    renderEngine2D.batch.draw(t, 0, Gdx.graphics.getHeight() - t.getHeight() / 4, t.getWidth() / 4, t.getHeight() / 4, 0, 0, t.getWidth(), t.getHeight(), false, true);
                 }
                 // up right (water refraction depth buffer)
                 {
                     Texture t = water.getRefractionFbo().getTextureAttachments().get(1);
-                    batch2D.draw(t, Gdx.graphics.getWidth() - t.getWidth() / 4, Gdx.graphics.getHeight() - t.getHeight() / 4, t.getWidth() / 4, t.getHeight() / 4, 0, 0, t.getWidth(), t.getHeight(), false, true);
+                    renderEngine2D.batch.draw(t, Gdx.graphics.getWidth() - t.getWidth() / 4, Gdx.graphics.getHeight() - t.getHeight() / 4, t.getWidth() / 4, t.getHeight() / 4, 0, 0, t.getWidth(), t.getHeight(), false, true);
                 }
                 // middle-up left (water reflection)
                 {
                     Texture t = water.getReflectionFbo().getColorBufferTexture();
-                    batch2D.draw(t, 0, Gdx.graphics.getHeight() - (t.getHeight() / 4) * 2, t.getWidth() / 4, t.getHeight() / 4, 0, 0, t.getWidth(), t.getHeight(), false, true);
+                    renderEngine2D.batch.draw(t, 0, Gdx.graphics.getHeight() - (t.getHeight() / 4) * 2, t.getWidth() / 4, t.getHeight() / 4, 0, 0, t.getWidth(), t.getHeight(), false, true);
                 }
             }
             if (isMirrorPresent()) {
                 // middle-up right (mirror reflection)
                 {
                     Texture t = mirror.getReflectionFbo().getColorBufferTexture();
-                    batch2D.draw(t, Gdx.graphics.getWidth() - t.getWidth() / 4, Gdx.graphics.getHeight() - (t.getHeight() / 4) * 2, t.getWidth() / 4, t.getHeight() / 4, 0, 0, t.getWidth(), t.getHeight(), false, true);
+                    renderEngine2D.batch.draw(t, Gdx.graphics.getWidth() - t.getWidth() / 4, Gdx.graphics.getHeight() - (t.getHeight() / 4) * 2, t.getWidth() / 4, t.getHeight() / 4, 0, 0, t.getWidth(), t.getHeight(), false, true);
                 }
             }
             if (isShadowEnabled()) {
@@ -1049,7 +1064,7 @@ public class RenderEngine3D<T> {
                 {
 
                     Texture t = shadowLight.getFrameBuffer().getColorBufferTexture();
-                    batch2D.draw(t, 0, 0, t.getWidth() / 8, t.getHeight() / 8, 0, 0, t.getWidth(), t.getHeight(), false, true);
+                    renderEngine2D.batch.draw(t, 0, 0, t.getWidth() / 8, t.getHeight() / 8, 0, 0, t.getWidth(), t.getHeight(), false, true);
                 }
             }
             // lower right
@@ -1063,15 +1078,15 @@ public class RenderEngine3D<T> {
             {
                 Texture t = cpuGraph.getFbo().getColorBufferTexture();
                 handleFrameBufferScreenshot(takeScreenShot, cpuGraph.getFbo(), "cpu.fbo");
-                batch2D.draw(t, 0, 0, t.getWidth(), t.getHeight(), 0, 0, t.getWidth(), t.getHeight(), false, true);
+                renderEngine2D.batch.draw(t, 0, 0, t.getWidth(), t.getHeight(), 0, 0, t.getWidth(), t.getHeight(), false, true);
             }
             {
                 Texture t = gpuGraph.getFbo().getColorBufferTexture();
                 handleFrameBufferScreenshot(takeScreenShot, gpuGraph.getFbo(), "gpu.fbo");
-                batch2D.draw(t, 0, cpuGraph.getFbo().getHeight(), t.getWidth(), t.getHeight(), 0, 0, t.getWidth(), t.getHeight(), false, true);
+                renderEngine2D.batch.draw(t, 0, cpuGraph.getFbo().getHeight(), t.getWidth(), t.getHeight(), 0, 0, t.getWidth(), t.getHeight(), false, true);
             }
         }
-        batch2D.end();
+        renderEngine2D.batch.end();
 
     }
 
@@ -1081,8 +1096,8 @@ public class RenderEngine3D<T> {
             gpuGraph.update();
         }
         if (isShowGraphs()) {
-            cpuGraph.draw(batch2D);
-            gpuGraph.draw(batch2D);
+            cpuGraph.draw(renderEngine2D.batch);
+            gpuGraph.draw(renderEngine2D.batch);
         }
 //		batch2D.setTransformMatrix(identityMatrix);// fix transformMatrix
     }
@@ -1133,6 +1148,13 @@ public class RenderEngine3D<T> {
         this.currentDayTime = currentDayTime;
     }
 
+    public void setDayAmbientLight(float r, float g, float b, float shadowIntensity) {
+        dayAmbientIntensityR = r;
+        dayAmbientIntensityG = g;
+        dayAmbientIntensityB = b;
+        dayShadowIntensity   = shadowIntensity;
+    }
+
     public void setDaySkyBox(SceneSkybox daySkyBox) {
         this.daySkyBox = daySkyBox;
     }
@@ -1149,8 +1171,19 @@ public class RenderEngine3D<T> {
         this.dynamicDayTime = dynamicDayTime;
     }
 
+    public void setEnableProfiling(boolean enableProfiling) {
+        this.enableProfiling = enableProfiling;
+    }
+
     public void setFixedDayTime(float fixedDayTime) {
         this.fixedDayTime = fixedDayTime;
+    }
+
+    public void setNightAmbientLight(float r, float g, float b, float shadowIntensity) {
+        nightAmbientIntensityR = r;
+        nightAmbientIntensityG = g;
+        nightAmbientIntensityB = b;
+        nightShadowIntensity   = shadowIntensity;
     }
 
     public void setNightSkyBox(SceneSkybox nightSkyBox) {
@@ -1293,28 +1326,28 @@ public class RenderEngine3D<T> {
             // day break
             if (!alwaysDay && timeOfDay > 5 && timeOfDay <= 6) {
                 final float intensity = (timeOfDay - 5);
-                final float r         = DAY_AMBIENT_INTENSITY_R * intensity;
-                final float g         = DAY_AMBIENT_INTENSITY_G * intensity;
-                final float b         = DAY_AMBIENT_INTENSITY_B * intensity;
-                setShadowLight(DAY_SHADOW_INTENSITY * intensity);
+                final float r         = dayAmbientIntensityR * intensity;
+                final float g         = dayAmbientIntensityG * intensity;
+                final float b         = dayAmbientIntensityB * intensity;
+                setShadowLight(dayShadowIntensity * intensity);
                 setAmbientLight(r, g, b);
             }
             // day
             else if (isDay()) {
                 final float intensity = 1.0f;
-                final float r         = DAY_AMBIENT_INTENSITY_R;
-                final float g         = DAY_AMBIENT_INTENSITY_G;
-                final float b         = DAY_AMBIENT_INTENSITY_B;
-                setShadowLight(DAY_SHADOW_INTENSITY * intensity);
+                final float r         = dayAmbientIntensityR;
+                final float g         = dayAmbientIntensityG;
+                final float b         = dayAmbientIntensityB;
+                setShadowLight(dayShadowIntensity * intensity);
                 setAmbientLight(r, g, b);
             }
             // sunset
             else if (timeOfDay > 18 && timeOfDay <= 19) {
                 final float intensity = 1.0f - (timeOfDay - 18);
-                final float r         = DAY_AMBIENT_INTENSITY_R * intensity;
-                final float g         = DAY_AMBIENT_INTENSITY_G * intensity;
-                final float b         = DAY_AMBIENT_INTENSITY_B * intensity;
-                setShadowLight(DAY_SHADOW_INTENSITY * intensity);
+                final float r         = dayAmbientIntensityR * intensity;
+                final float g         = dayAmbientIntensityG * intensity;
+                final float b         = dayAmbientIntensityB * intensity;
+                setShadowLight(dayShadowIntensity * intensity);
                 setAmbientLight(r, g, b);
             }
             // night
@@ -1322,10 +1355,10 @@ public class RenderEngine3D<T> {
                 // setShadowLight(0.01f);
                 // setAmbientLight(0.0f, 0.0f, 0.0f);
                 final float intensity = (float) Math.abs(Math.abs(Math.sin(angle)));
-                final float r         = NIGHT_AMBIENT_INTENSITY_R * intensity;
-                final float g         = NIGHT_AMBIENT_INTENSITY_G * intensity;
-                final float b         = NIGHT_AMBIENT_INTENSITY_B * intensity;
-                setShadowLight(NIGHT_SHADOW_INTENSITY * intensity);
+                final float r         = nightAmbientIntensityR * intensity;
+                final float g         = nightAmbientIntensityG * intensity;
+                final float b         = nightAmbientIntensityB * intensity;
+                setShadowLight(nightShadowIntensity * intensity);
                 setAmbientLight(r, g, b);
             }
             this.timeOfDay = timeOfDay;
