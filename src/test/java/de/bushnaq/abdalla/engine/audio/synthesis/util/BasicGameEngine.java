@@ -93,6 +93,7 @@ public abstract class BasicGameEngine implements ApplicationListener, InputProce
             createStage();
             renderEngine = new RenderEngine3D<BasicGameEngine>(context, this, camera, camera2D, getAtlasManager().menuFont, getAtlasManager().systemTextureRegion);
             getRenderEngine().getWater().setPresent(false);
+            getRenderEngine().getMirror().setPresent(false);
             getRenderEngine().setShadowEnabled(true);
             getRenderEngine().getFog().setEnabled(false);
             getRenderEngine().setDynamicDayTime(true);

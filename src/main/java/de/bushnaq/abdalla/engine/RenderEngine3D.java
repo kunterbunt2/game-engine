@@ -22,7 +22,6 @@ import com.badlogic.gdx.graphics.*;
 import com.badlogic.gdx.graphics.VertexAttributes.Usage;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas.AtlasRegion;
-import com.badlogic.gdx.graphics.g3d.Renderable;
 import com.badlogic.gdx.graphics.g3d.*;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.PointLightsAttribute;
@@ -39,7 +38,6 @@ import com.badlogic.gdx.graphics.g3d.utils.ShaderProvider;
 import com.badlogic.gdx.graphics.glutils.FrameBuffer;
 import com.badlogic.gdx.graphics.glutils.GLFrameBuffer;
 import com.badlogic.gdx.graphics.profiling.GLErrorListener;
-import com.badlogic.gdx.graphics.profiling.GLProfiler;
 import com.badlogic.gdx.math.Intersector;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Plane;
@@ -56,6 +54,7 @@ import de.bushnaq.abdalla.engine.camera.MovingCamera;
 import de.bushnaq.abdalla.engine.shader.*;
 import de.bushnaq.abdalla.engine.shader.mirror.Mirror;
 import de.bushnaq.abdalla.engine.shader.water.Water;
+import de.bushnaq.abdalla.engine.util.ExtendedGLProfiler;
 import de.bushnaq.abdalla.engine.util.logger.Logger;
 import de.bushnaq.abdalla.engine.util.logger.LoggerFactory;
 import net.mgsx.gltf.scene3d.attributes.PBRColorAttribute;
@@ -84,10 +83,10 @@ import java.util.zip.Deflater;
  * @author kunterbunt
  */
 public class RenderEngine3D<T> {
-    public final  Array<GameObject<T>>        staticModelInstances             = new Array<>();
+    public final  Array<GameObject<T>>        staticGameObjects                = new Array<>();
     private final AtlasRegion                 atlasRegion;
     private final MovingCamera                camera;
-    private final OrthographicCamera          camera2D;
+    //    private final OrthographicCamera          camera2D;
     private final EnvironmentCache            computedEnvironement             = new EnvironmentCache();
     private final IContext                    context;
     private final ModelCache                  dynamicCache                     = new ModelCache();
@@ -112,14 +111,16 @@ public class RenderEngine3D<T> {
     private final Set<Text2D>                 text2DList                       = new HashSet<>();
     private final boolean                     useDynamicCache                  = false;
     private final boolean                     useStaticCache                   = true;
+    private final Array<GameObject<T>>        visibleDynamicGameObjects        = new Array<>();
     private final Array<ModelInstance>        visibleDynamicModelInstances     = new Array<>();
+    private final Array<GameObject<T>>        visibleStaticGameObjects         = new Array<>();
     private final Array<ModelInstance>        visibleStaticModelInstances      = new Array<>();
     private final Array<RenderableProvider>   visibleStaticRenderableProviders = new Array<>();
     private final Water                       water                            = new Water();
     public        float                       angle;
     //    private        PolygonSpriteBatch          batch2D;
     public        TimeGraph                   cpuGraph;
-    public        Array<GameObject<T>>        dynamicModelInstances            = new Array<>();
+    public        Array<GameObject<T>>        dynamicGameObjects               = new Array<>();
     public        Environment                 environment                      = new Environment();
     public        GameShaderProviderInterface gameShaderProvider;
     public        TimeGraph                   gpuGraph;
@@ -157,7 +158,7 @@ public class RenderEngine3D<T> {
     private       float                       nightShadowIntensity             = .2f;
     private       boolean                     pbr;
     private       FrameBuffer                 postFbo;
-    private       GLProfiler                  profiler;
+    private       ExtendedGLProfiler          profiler;
     private       Vector3                     sceneBoxMax                      = new Vector3(2000, 2000, 1000);
     private       Vector3                     sceneBoxMin                      = new Vector3(-2000, -2000, -1000);
     private final BoundingBox                 sceneBox                         = new BoundingBox(sceneBoxMin, sceneBoxMax);
@@ -184,10 +185,10 @@ public class RenderEngine3D<T> {
 //			}
 //		}
         logger.info(String.format("width = %d height = %d", Gdx.graphics.getWidth(), Gdx.graphics.getHeight()));
-        this.context     = context;
-        this.gameEngine  = gameEngine;
-        this.camera      = camera;
-        this.camera2D    = camera2D;
+        this.context    = context;
+        this.gameEngine = gameEngine;
+        this.camera     = camera;
+//        this.camera2D    = camera2D;
         this.font        = font;
         this.atlasRegion = atlasRegion;
         renderEngine2D   = new RenderEngine2D<>(gameEngine, camera2D);
@@ -229,19 +230,22 @@ public class RenderEngine3D<T> {
     }
 
     public void addDynamic(final GameObject<T> instance) {
-        dynamicModelInstances.add(instance);
+        dynamicGameObjects.add(instance);
     }
 
     public void addStatic(ObjectRenderer<T> renderer) {
         staticText3DList.add(renderer);
     }
 
-    public void addStatic(final GameObject<T> instance) {
-        staticModelInstances.add(instance);
-        if (isVisible(instance)) {
+    public void addStatic(final GameObject<T> gameObject) {
+        staticGameObjects.add(gameObject);
+        if (isVisible(gameObject)) {
             staticCacheDirty = true;
             staticCacheDirtyCount++;
-            visibleStaticModelInstances.add(instance.instance);
+            visibleStaticModelInstances.add(gameObject.instance);
+            //do we have 3D text to render?
+            if (gameObject.objectRenderer != null)
+                visibleStaticGameObjects.add(gameObject);
         }
     }
 
@@ -259,7 +263,7 @@ public class RenderEngine3D<T> {
     }
 
     public void create() throws Exception {
-        profiler = new GLProfiler(Gdx.graphics);
+        profiler = new ExtendedGLProfiler(Gdx.graphics);
         profiler.setListener(GLErrorListener.LOGGING_LISTENER);// ---enable exception throwing in case of error
         profiler.setListener(new MyGLErrorListener());
         if (isEnableProfiling()) {
@@ -322,7 +326,7 @@ public class RenderEngine3D<T> {
         shadowLight.setBounds(sceneBox);
         shadowLight.direction.set(-.5f, -.7f, .5f).nor();
         shadowLight.color.set(Color.WHITE);
-        shadowLight.intensity = 1.0f;
+        shadowLight.intensity = 10.0f;
         environment.add(shadowLight);
 
         final float lum = 0.0f;
@@ -614,8 +618,8 @@ public class RenderEngine3D<T> {
 //		createRay(ray);
         GameObject<T> result   = null;
         float         distance = -1;
-        for (int i = 0; i < dynamicModelInstances.size; ++i) {
-            final GameObject<T> instance = dynamicModelInstances.get(i);
+        for (int i = 0; i < dynamicGameObjects.size; ++i) {
+            final GameObject<T> instance = dynamicGameObjects.get(i);
             if (instance.interactive != null) {
                 instance.instance.transform.getTranslation(position);
                 position.add(instance.center);
@@ -627,8 +631,8 @@ public class RenderEngine3D<T> {
                 }
             }
         }
-        for (int i = 0; i < staticModelInstances.size; ++i) {
-            final GameObject<T> instance = staticModelInstances.get(i);
+        for (int i = 0; i < staticGameObjects.size; ++i) {
+            final GameObject<T> instance = staticGameObjects.get(i);
             if (instance.interactive != null) {
                 instance.instance.transform.getTranslation(position);
                 position.add(instance.center);
@@ -647,7 +651,7 @@ public class RenderEngine3D<T> {
         return mirror;
     }
 
-    public GLProfiler getProfiler() {
+    public ExtendedGLProfiler getProfiler() {
         return profiler;
     }
 
@@ -787,7 +791,7 @@ public class RenderEngine3D<T> {
     }
 
     public boolean removeAllDynamic() {
-        dynamicModelInstances.clear();
+        dynamicGameObjects.clear();
         return true;
     }
 
@@ -827,20 +831,20 @@ public class RenderEngine3D<T> {
         dynamicText3DList.remove(renderer);
     }
 
-    public boolean removeDynamic(final GameObject<T> instance) {
-        return dynamicModelInstances.removeValue(instance, true);
+    public boolean removeDynamic(final GameObject<T> gameObject) {
+        return dynamicGameObjects.removeValue(gameObject, true);
     }
 
     public void removeStatic(ObjectRenderer<T> renderer) {
         staticText3DList.remove(renderer);
     }
 
-    public boolean removeStatic(final GameObject<T> instance) {
-        final boolean result = staticModelInstances.removeValue(instance, true);
-        if (isVisible(instance)) {
+    public boolean removeStatic(final GameObject<T> gameObject) {
+        final boolean result = staticGameObjects.removeValue(gameObject, true);
+        if (isVisible(gameObject)) {
             staticCacheDirty = true;
             staticCacheDirtyCount++;
-            visibleStaticModelInstances.removeValue(instance.instance, true);
+            visibleStaticModelInstances.removeValue(gameObject.instance, true);
         }
         return result;
     }
@@ -971,23 +975,29 @@ public class RenderEngine3D<T> {
         renderEngine2D.batch.begin();
         renderEngine2D.batch.enableBlending();
         renderEngine2D.batch.setProjectionMatrix(camera.combined);
+        profiler.setStaticText3D(staticText3DList.size());
         for (final ObjectRenderer<T> renderer : staticText3DList) {
             renderer.renderText(this, 0, false);
         }
+        profiler.setDynamicText3D(dynamicText3DList.size());
         for (final ObjectRenderer<T> renderer : dynamicText3DList) {
             renderer.renderText(this, 0, false);
         }
-        Array<com.badlogic.gdx.graphics.g3d.Renderable> renderables = new Array<Renderable>();
-        staticCache.getRenderables(renderables, null);
+//        Array<com.badlogic.gdx.graphics.g3d.Renderable> renderables = new Array<>();
+//        staticCache.getRenderables(renderables, null);
 
 
-        for (GameObject<T> gameObject : staticModelInstances) {
-            if (isVisible(gameObject)) {
+        profiler.setVisibleStaticGameObjects(visibleStaticGameObjects.size);
+        for (GameObject<T> gameObject : visibleStaticGameObjects) {
+//            if (isVisible(gameObject))
+            {
                 if (gameObject.objectRenderer != null) gameObject.objectRenderer.renderText(this, 0, false);
             }
         }
-        for (GameObject<T> gameObject : dynamicModelInstances) {
-            if (isVisible(gameObject)) {
+        profiler.setVisibleDynamicGameObjects(visibleDynamicGameObjects.size);
+        for (GameObject<T> gameObject : visibleDynamicGameObjects) {
+//            if (isVisible(gameObject))
+            {
                 if (gameObject.objectRenderer != null) gameObject.objectRenderer.renderText(this, 0, false);
             }
         }
@@ -1271,23 +1281,28 @@ public class RenderEngine3D<T> {
 
         {
             visibleDynamicGameObjectCount = 0;
+            visibleDynamicGameObjects.clear();
             if (useDynamicCache) {
                 dynamicCache.begin(camera);
-                for (final GameObject<T> instance : dynamicModelInstances) {
-                    if (isVisible(instance)) {
-                        dynamicCache.add(instance.instance);
+                for (final GameObject<T> gameObject : dynamicGameObjects) {
+                    if (isVisible(gameObject)) {
+                        dynamicCache.add(gameObject.instance);
+                        if (gameObject.objectRenderer != null)
+                            visibleDynamicGameObjects.add(gameObject);
                         visibleDynamicGameObjectCount++;
-                        renderableProviders.add(instance.instance);
+                        renderableProviders.add(gameObject.instance);
                     }
                 }
                 dynamicCache.end();
             } else {
                 visibleDynamicModelInstances.clear();
-                for (final GameObject<T> instance : dynamicModelInstances) {
-                    if (isVisible(instance)) {
+                for (final GameObject<T> gameObject : dynamicGameObjects) {
+                    if (isVisible(gameObject)) {
                         visibleDynamicGameObjectCount++;
-                        renderableProviders.add(instance.instance);
-                        visibleDynamicModelInstances.add(instance.instance);
+                        renderableProviders.add(gameObject.instance);
+                        visibleDynamicModelInstances.add(gameObject.instance);
+                        if (gameObject.objectRenderer != null)
+                            visibleDynamicGameObjects.add(gameObject);
                     }
                 }
             }
@@ -1369,7 +1384,7 @@ public class RenderEngine3D<T> {
 
         if (useStaticCache) {
             if (staticCacheDirty) {
-                // there where visible instances added or removed
+                // there were visible instances added or removed
                 visibleStaticGameObjectCount = 0;
                 staticCache.begin(camera);
                 for (final ModelInstance instance : visibleStaticModelInstances) {
@@ -1387,22 +1402,24 @@ public class RenderEngine3D<T> {
                 staticCacheDirty = false;
             }
             if (camera.isDirty()) {
-                // audioEngine.setListenerPosition(camera.position);
                 visibleStaticGameObjectCount = 0;
                 visibleStaticModelInstances.clear();
+                visibleStaticGameObjects.clear();
                 staticCache.begin(camera);
-                for (final GameObject<T> instance : staticModelInstances) {
-                    if (isVisible(instance)) {
-                        visibleStaticModelInstances.add(instance.instance);
-                        staticCache.add(instance.instance);
+                for (final GameObject<T> gameObject : staticGameObjects) {
+                    if (isVisible(gameObject)) {
+                        visibleStaticModelInstances.add(gameObject.instance);
+                        //do we have 3D text to render?
+                        if (gameObject.objectRenderer != null)
+                            visibleStaticGameObjects.add(gameObject);
+                        staticCache.add(gameObject.instance);
                         visibleStaticGameObjectCount++;
-                        renderableProviders.add(instance.instance);
+                        renderableProviders.add(gameObject.instance);
                     }
                 }
                 for (final RenderableProvider renderableProvider : visibleStaticRenderableProviders) {
                     staticCache.add(renderableProvider);
                     visibleStaticGameObjectCount++;
-                    // renderableProviders.add(renderableProvider);
                 }
                 staticCache.end();
                 staticCacheDirty = false;
