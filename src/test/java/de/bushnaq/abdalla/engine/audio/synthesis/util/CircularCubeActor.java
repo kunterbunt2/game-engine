@@ -16,10 +16,12 @@
 
 package de.bushnaq.abdalla.engine.audio.synthesis.util;
 
-import com.badlogic.gdx.math.Vector3;
+public class CircularCubeActor extends CubeActor {
 
-public class Translation {
-    public Vector3 origin   = new Vector3();
-    public Vector3 position = new Vector3();
-    public Vector3 velocity = new Vector3();
+    public CircularCubeActor(int index, int mode) {
+        super(index);
+        set3DRenderer(new CircularCubeRenderer(this, mode));
+    }
+
+
 }

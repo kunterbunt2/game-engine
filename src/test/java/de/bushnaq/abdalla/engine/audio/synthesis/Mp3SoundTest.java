@@ -22,14 +22,13 @@ import com.badlogic.gdx.backends.lwjgl3.Lwjgl3NativesLoader;
 import com.badlogic.gdx.math.Vector3;
 import de.bushnaq.abdalla.engine.audio.Mp3Player;
 import de.bushnaq.abdalla.engine.audio.synthesis.util.BasicAtlasManager;
-import de.bushnaq.abdalla.engine.audio.synthesis.util.LiniarTranslation;
 import de.bushnaq.abdalla.engine.audio.synthesis.util.TranslationUtil;
 import de.bushnaq.abdalla.engine.camera.MovingCamera;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class Mp3SoundTest extends TranslationUtil<LiniarTranslation> {
+public class Mp3SoundTest extends TranslationUtil {
     protected static final int    NUMBER_OF_SOURCES = 0;
     private static final   long   SECONDS_5         = 10000;
     private final          Logger logger            = LoggerFactory.getLogger(this.getClass());
@@ -38,7 +37,7 @@ public class Mp3SoundTest extends TranslationUtil<LiniarTranslation> {
 
     @Override
     public void create() {
-        super.create(NUMBER_OF_SOURCES);
+        super.create();
         createCamera();
         try {
             mp3Player = getAudioEngine().createAudioProducer(Mp3Player.class);
@@ -74,11 +73,11 @@ public class Mp3SoundTest extends TranslationUtil<LiniarTranslation> {
 
     @Test
     public void linearTranslatingSources() throws Exception {
-        runFor = 2000000;
+        runFor = 10000;
         startLwjgl();
     }
 
-    @Override
-    protected void updateTranslation() {
-    }
+//    @Override
+//    protected void updateTranslation() {
+//    }
 }

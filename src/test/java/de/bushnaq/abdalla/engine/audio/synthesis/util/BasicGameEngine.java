@@ -126,7 +126,7 @@ public abstract class BasicGameEngine implements ApplicationListener, InputProce
             getRenderEngine().renderEngine2D.batch.enableBlending();
             getRenderEngine().renderEngine2D.batch.begin();
             getRenderEngine().renderEngine2D.batch.setProjectionMatrix(getRenderEngine().getCamera().combined);
-            renderText();
+//            renderText();
             getRenderEngine().renderEngine2D.batch.end();
             getRenderEngine().renderEngine2D.batch.setTransformMatrix(identityMatrix);//fix transformMatrix
             renderStage();
@@ -332,7 +332,7 @@ public abstract class BasicGameEngine implements ApplicationListener, InputProce
         stage.draw();
     }
 
-    protected abstract void renderText();
+//    protected abstract void renderText();
 
     public void setSimulateBassBoost(boolean simulateBassBoost) {
         this.simulateBassBoost = simulateBassBoost;

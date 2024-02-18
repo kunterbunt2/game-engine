@@ -16,5 +16,12 @@
 
 package de.bushnaq.abdalla.engine.audio.synthesis.util;
 
-public class LiniarTranslation extends Translation {
+public class LiniarCubeActor extends CubeActor {
+
+    public LiniarCubeActor(int index, int mode) {
+        super(index);
+        set3DRenderer(new LiniarCubeRenderer(this, mode));
+    }
+
+
 }

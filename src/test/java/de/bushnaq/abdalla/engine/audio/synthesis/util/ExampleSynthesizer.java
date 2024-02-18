@@ -90,10 +90,10 @@ public class ExampleSynthesizer extends Synthesizer {
         saw4.setLfo(.85f, 15f);
         //
         sin1.setOscillator(frequency1 * 2);
-        sin1.setLfo(.88f, 15f);
+        sin1.setLfo(.88f, 150f);
         //
         sin2.setOscillator(frequency2 * 2);
-        sin2.setLfo(.85f, 15f);
+        sin2.setLfo(.85f, 150f);
 
         final float factor = (speed - TranslationUtil.MIN_ENGINE_SPEED) / (TranslationUtil.MAX_ENGINE_SPEED - TranslationUtil.MIN_ENGINE_SPEED);
         //		setGain( 10.0f);

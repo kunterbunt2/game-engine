@@ -16,9 +16,13 @@
 
 package de.bushnaq.abdalla.engine.audio.synthesis.util;
 
-public class CircularTranslation extends Translation {
-    public float angle;
-    public float angleSpeed;
-    public float radius1;
-    public float radius2;
+import de.bushnaq.abdalla.engine.Renderable;
+
+public class CubeActor extends Renderable<BasicGameEngine> {
+    public final int index;
+
+    public CubeActor(int index) {
+        this.index = index;
+    }
+
 }

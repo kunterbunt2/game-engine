@@ -14,7 +14,7 @@ Engine based on libgdx and gltf
 3. Use RendreEngine methods add(), addDynamic(), addStatic() to add GameObjects into your scene.
 3. In the render method called by libgdx, you need to call all the generic part.
 
----
+```
 renderEngine.cpuGraph.begin();
 renderEngine.updateCamera(centerXD, centerYD, centerZD);
 renderEngine.cpuGraph.end();
@@ -22,11 +22,16 @@ renderEngine.gpuGraph.begin();
 renderEngine.render(currentTime, deltaTime, takeScreenShot);
 renderEngine.gpuGraph.end();
 renderEngine.handleQueuedScreenshot(takeScreenShot);
----
+```
 
 You can add any other rendering code you need inbetween.
 
-Current Status running
+# Issues
+
+1. MercatorSoundTest synth is not started when nearing the camera
+
+# Current Status running
+
 managed textures 12
 shader switches 11
 texture bindings 61

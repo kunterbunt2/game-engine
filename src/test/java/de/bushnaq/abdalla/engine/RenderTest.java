@@ -18,7 +18,7 @@ package de.bushnaq.abdalla.engine;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
-import de.bushnaq.abdalla.engine.audio.synthesis.util.CircularTranslation;
+import de.bushnaq.abdalla.engine.audio.synthesis.util.CircularCubeActor;
 import de.bushnaq.abdalla.engine.audio.synthesis.util.TranslationUtil;
 import de.bushnaq.abdalla.engine.util.ExtendedGLProfiler;
 import org.junit.jupiter.api.Test;
@@ -30,13 +30,12 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class RenderTest extends TranslationUtil<CircularTranslation> {
+public class RenderTest extends TranslationUtil {
     public static final  String               VISIBLE_DYNAMIC_GAME_OBJECTS     = "visibleDynamicGameObjects";
     private static final String               CALLS                            = "calls";
     private static final String               DRAW_CALLS                       = "drawCalls";
     private static final String               DYNAMIC_TEXT_3_D                 = "dynamicText3D";
     private static final String               FPS                              = "fps";
-    private static final float                MAX_GRID_SIZE                    = 1000f;
     private static final int                  NUMBER_OF_SOURCES                = 10;
     private static final String               SHADER_SWITCHES                  = "shaderSwitches";
     private static final String               STATIC_TEXT_3_D                  = "staticText3D";
@@ -46,6 +45,7 @@ public class RenderTest extends TranslationUtil<CircularTranslation> {
     private final        Logger               logger                           = LoggerFactory.getLogger(this.getClass());
     private final        Map<String, Integer> performanceCounters              = new HashMap<>();
     private final        long                 started                          = System.currentTimeMillis();
+    CircularCubeActor[] ccaa = new CircularCubeActor[NUMBER_OF_SOURCES];
 
     private void assesPerformanceCounters() {
         if (getRenderEngine().isShowGraphs()) {
@@ -64,7 +64,7 @@ public class RenderTest extends TranslationUtil<CircularTranslation> {
             assertEquals(120, performanceCounters.get(FPS));
             assertEquals(0, performanceCounters.get(DYNAMIC_TEXT_3_D));
             assertEquals(0, performanceCounters.get(STATIC_TEXT_3_D));
-            assertEquals(0, performanceCounters.get(VISIBLE_DYNAMIC_GAME_OBJECTS));
+            assertEquals(10, performanceCounters.get(VISIBLE_DYNAMIC_GAME_OBJECTS));
             assertEquals(0, performanceCounters.get(VISIBLE_STATIC_GAME_OBJECTS));
         }
     }
@@ -77,25 +77,10 @@ public class RenderTest extends TranslationUtil<CircularTranslation> {
 
     @Override
     public void create() {
-        super.create(NUMBER_OF_SOURCES);
-        getRenderEngine().setShowGraphs(false);
-        try {
-            for (int i = 0; i < NUMBER_OF_SOURCES; i++) {
-                final float               grid = MAX_GRID_SIZE;
-                final float               x    = getRandomGenerator().nextInt(grid) - grid / 2;
-                final float               y    = CUBE_SIZE / 2;
-                final float               z    = getRandomGenerator().nextInt(grid) - grid / 2;
-                final CircularTranslation t    = new CircularTranslation();
-                t.origin.set(x, y, z);
-                t.angle   = 0;
-                t.radius1 = MAX_GRID_SIZE / 2 + getRandomGenerator().nextInt(MAX_GRID_SIZE / 2);
-                t.radius2 = MAX_GRID_SIZE / 2 + getRandomGenerator().nextInt(MAX_GRID_SIZE / 2);
-                final float averageRadius = (t.radius1 + t.radius2) / 2;
-                t.angleSpeed = generateAngleSpeed(averageRadius);
-                translation.add(t);
-            }
-        } catch (final Exception e) {
-            logger.error(e.getMessage(), e);
+        super.create();
+        for (int i = 0; i < NUMBER_OF_SOURCES; i++) {
+            ccaa[i] = new CircularCubeActor(i, 0);
+            ccaa[i].get3DRenderer().create(getRenderEngine());
         }
     }
 
@@ -107,26 +92,11 @@ public class RenderTest extends TranslationUtil<CircularTranslation> {
     }
 
     @Override
-    protected void updateTranslation() {
-        updateCounters(getRenderEngine().getProfiler());
-        for (int i = 0; i < gameObjects.size(); i++) {
-            final CircularTranslation t = translation.get(i);
-
-            final float x = t.origin.x + (float) (t.radius1 * Math.sin((t.angle / 180) * 3.14f));
-            final float z = t.origin.z + (float) (t.radius2 * Math.cos((t.angle / 180) * 3.14f));
-            t.position.set(x, 32, z);
-
-            final float vx = (float) (Math.PI * t.radius1 * t.angleSpeed * Math.cos((t.angle / 180) * 3.14f)) / 180;
-            final float vz = -(float) (Math.PI * t.radius2 * t.angleSpeed * Math.sin((t.angle / 180) * 3.14f)) / 180;
-
-            t.velocity.set(vx, 0, vz);
-            t.angle += t.angleSpeed;
+    protected void update() throws Exception {
+        for (int i = 0; i < NUMBER_OF_SOURCES; i++) {
+            ccaa[i].get3DRenderer().update(getRenderEngine(), 0, 0, 0, false);
         }
-    }
-
-    private float generateAngleSpeed(final float radius) {
-        final float speed = MIN_ENGINE_SPEED + getRandomGenerator().nextInt(MAX_ENGINE_SPEED - MIN_ENGINE_SPEED);
-        return (float) (speed * 180 / (Math.PI * radius));
+        super.update();
     }
 
     private void printPerformanceCounters() {
