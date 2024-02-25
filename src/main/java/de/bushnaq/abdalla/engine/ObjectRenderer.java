@@ -20,7 +20,7 @@ package de.bushnaq.abdalla.engine;
 /**
  * @author kunterbunt
  */
-public abstract class ObjectRenderer<T> {
+public abstract class ObjectRenderer<T extends RenderEngineExtension> {
     public void create(final float x, final float y, final float z, final RenderEngine3D<T> renderEngine) {
     }
 
@@ -31,6 +31,15 @@ public abstract class ObjectRenderer<T> {
     }
 
     public void render(final float px, final float py, final RenderEngine2D<T> renderEngine, final int index, final boolean selected) {
+    }
+
+    public void render2D(final RenderEngine3D<T> renderEngine, final int index, final boolean selected) {
+    }
+
+    public void render2D(final float px, final float py, final RenderEngine3D<T> renderEngine, final int index, final boolean selected) {
+    }
+
+    public void render2Da(final RenderEngine3D<T> renderEngine, final int index, final boolean selected) {
     }
 
     public void renderText(final float aX, final float aY, final float aZ, final RenderEngine3D<T> renderEngine, final int index) {

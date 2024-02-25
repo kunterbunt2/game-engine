@@ -32,6 +32,7 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import de.bushnaq.abdalla.engine.RenderEngine3D;
+import de.bushnaq.abdalla.engine.RenderEngineExtension;
 import de.bushnaq.abdalla.engine.audio.AudioEngine;
 import de.bushnaq.abdalla.engine.audio.OpenAlException;
 import de.bushnaq.abdalla.engine.camera.MovingCamera;
@@ -45,7 +46,7 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class BasicGameEngine implements ApplicationListener, InputProcessor {
+public abstract class BasicGameEngine implements ApplicationListener, InputProcessor, RenderEngineExtension {
     private static final float                           CAMERA_OFFSET_X   = 300f;
     private static final float                           CAMERA_OFFSET_Y   = 500f;
     private static final float                           CAMERA_OFFSET_Z   = 400f;
@@ -315,6 +316,12 @@ public abstract class BasicGameEngine implements ApplicationListener, InputProce
         return false;
     }
 
+    public void render2Dxz() {
+
+    }
+
+//    protected abstract void renderText();
+
     private void renderStage() {
         int labelIndex = 0;
         // fps
@@ -331,8 +338,6 @@ public abstract class BasicGameEngine implements ApplicationListener, InputProce
         }
         stage.draw();
     }
-
-//    protected abstract void renderText();
 
     public void setSimulateBassBoost(boolean simulateBassBoost) {
         this.simulateBassBoost = simulateBassBoost;

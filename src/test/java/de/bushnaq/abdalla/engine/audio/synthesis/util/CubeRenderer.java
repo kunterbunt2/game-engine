@@ -137,7 +137,6 @@ public class CubeRenderer extends ObjectRenderer<BasicGameEngine> {
             }
         }
         if (update) {
-            System.out.println("yes");
             synth.setPositionAndVelocity(positionArray, velocityArray);
             System.arraycopy(velocityArray, 0, lastVelocityArray, 0, 3);
             System.arraycopy(positionArray, 0, lastPositionArray, 0, 3);

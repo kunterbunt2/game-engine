@@ -56,10 +56,25 @@ public abstract class TranslationUtil extends BasicGameEngine {
             final PointLight light = new PointLight().set(Color.WHITE, 0, CUBE_SIZE * 2, 0, 10000f);
             getRenderEngine().add(light, true);
             getRenderEngine().addStatic(buildingGameObject);
+
             GameObject<BasicGameEngine> cityGameObject = new GameObject<>(new ModelInstanceHack(cityModel), null);
             cityGameObject.instance.transform.setToTranslationAndScaling(0, -CUBE_SIZE / 2, 0, MAX_CITY_SIZE, CUBE_SIZE, MAX_CITY_SIZE);
             getRenderEngine().addStatic(cityGameObject);
             time1 = System.currentTimeMillis();
+//            {
+//                SceneAsset                  traderAsset = new GLBLoader().load(Gdx.files.internal(String.format(BasicAtlasManager.getAssetsFolderName() + "/models/container.glb")));
+//                GameObject<BasicGameEngine> gameObject  = new GameObject<BasicGameEngine>(new ModelInstanceHack(traderAsset.scene.model), null, null);
+//                gameObject.instance.transform.setToTranslationAndScaling(0, 0, 0, CUBE_SIZE / 2, CUBE_SIZE / 2, CUBE_SIZE / 2);
+//                getRenderEngine().addDynamic(gameObject);
+//            }
+
+//            {
+//                float SPACE_SHIP_SIZE = 64;
+//                SceneAsset                  traderAsset = new GLBLoader().load(Gdx.files.internal(String.format(BasicAtlasManager.getAssetsFolderName() + "/models/space-ship.glb")));
+//                GameObject<BasicGameEngine> gameObject  = new GameObject<BasicGameEngine>(new ModelInstanceHack(traderAsset.scene.model), null, null);
+//                gameObject.instance.transform.setToTranslationAndScaling(0, 0, 0, SPACE_SHIP_SIZE, SPACE_SHIP_SIZE, SPACE_SHIP_SIZE);
+//                getRenderEngine().addDynamic(gameObject);
+//            }
         } catch (final Exception e) {
             logger.error(e.getMessage(), e);
         }

@@ -24,7 +24,7 @@ import net.mgsx.gltf.scene3d.model.ModelInstanceHack;
 /**
  * @author kunterbunt
  */
-public class GameObject<T> {
+public class GameObject<T extends RenderEngineExtension> {
 
     public final Vector3                 center                 = new Vector3();
     public       BoundingBox             boundingBox            = new BoundingBox();

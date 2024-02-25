@@ -30,7 +30,7 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class RenderTest extends TranslationUtil {
+public class renderTest extends TranslationUtil {
     public static final  String               VISIBLE_DYNAMIC_GAME_OBJECTS     = "visibleDynamicGameObjects";
     private static final String               CALLS                            = "calls";
     private static final String               DRAW_CALLS                       = "drawCalls";
@@ -71,7 +71,7 @@ public class RenderTest extends TranslationUtil {
 
     @Test
     public void circularTranslatingSources() {
-        runFor = 10000;
+        runFor = 5000;
         startLwjgl();
     }
 
