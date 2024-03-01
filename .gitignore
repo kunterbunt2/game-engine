@@ -1,4 +1,4 @@
-target/
+/target/
 pom.xml.tag
 pom.xml.releaseBackup
 pom.xml.versionsBackup
@@ -12,10 +12,11 @@ buildNumber.properties
 
 # Eclipse m2e generated files
 # Eclipse Core
-.project
+/.project
 # JDT-specific (Eclipse Java Development Tools)
-.classpath
-.idea
-.settings
-docs/references
-src/main/resources/atlas/atlas.png
+/.classpath
+/.idea/
+/.settings/
+/docs/references/
+/app/assets/atlas/atlas.atlas
+/app/assets/atlas/atlas.png

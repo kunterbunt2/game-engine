@@ -55,9 +55,9 @@ public abstract class BasicGameEngine implements ApplicationListener, InputProce
     private final        List<Label>                     labels            = new ArrayList<>();
     private final        Logger                          logger            = LoggerFactory.getLogger(this.getClass());
     private final        BasicRandomGenerator            randomGenerator   = new BasicRandomGenerator(1);
+    public               MovingCamera                    camera;
     private              BasicAtlasManager               atlasManager;
     private              Texture                         brdfLUT;
-    private              MovingCamera                    camera;
     private              OrthographicCamera              camera2D;
     private              long                            currentTime       = 0L;
     private              Cubemap                         diffuseCubemap;
@@ -122,14 +122,13 @@ public abstract class BasicGameEngine implements ApplicationListener, InputProce
                 renderEngine.getProfiler().reset();// reset on each frame
             }
             getRenderEngine().render(currentTime, Gdx.graphics.getDeltaTime(), takeScreenShot);
-            getRenderEngine().postProcessRender();
+//            getRenderEngine().postProcessRender();
             Gdx.gl.glEnable(GL20.GL_DEPTH_TEST);
-            getRenderEngine().renderEngine2D.batch.enableBlending();
-            getRenderEngine().renderEngine2D.batch.begin();
-            getRenderEngine().renderEngine2D.batch.setProjectionMatrix(getRenderEngine().getCamera().combined);
-//            renderText();
-            getRenderEngine().renderEngine2D.batch.end();
-            getRenderEngine().renderEngine2D.batch.setTransformMatrix(identityMatrix);//fix transformMatrix
+//            getRenderEngine().renderEngine2D.batch.enableBlending();
+//            getRenderEngine().renderEngine2D.batch.begin();
+//            getRenderEngine().renderEngine2D.batch.setProjectionMatrix(getRenderEngine().getCamera().combined);
+//            getRenderEngine().renderEngine2D.batch.end();
+//            getRenderEngine().renderEngine2D.batch.setTransformMatrix(identityMatrix);//fix transformMatrix
             renderStage();
             takeScreenShot = false;
             getAudioEngine().begin(getRenderEngine().getCamera());
@@ -167,7 +166,7 @@ public abstract class BasicGameEngine implements ApplicationListener, InputProce
         camera.up.set(0, 1, 0);
         camera.lookAt(lookat);
         camera.near = 8f;
-        camera.far  = 8000f;
+        camera.far  = 80000f;
         camera.update();
         camera.setDirty(true);
         camera2D = new OrthographicCamera();
@@ -226,6 +225,9 @@ public abstract class BasicGameEngine implements ApplicationListener, InputProce
             labels.add(label);
         }
         stringBuilder = new StringBuilder();
+    }
+
+    private void exitGame() {
     }
 
     BasicAtlasManager getAtlasManager() {
@@ -328,6 +330,12 @@ public abstract class BasicGameEngine implements ApplicationListener, InputProce
         {
             stringBuilder.setLength(0);
             stringBuilder.append(" FPS: ").append(Gdx.graphics.getFramesPerSecond());
+            labels.get(labelIndex++).setText(stringBuilder);
+        }
+        //camera y
+        {
+            stringBuilder.setLength(0);
+            stringBuilder.append(" camera height: ").append(camera.position.y);
             labels.get(labelIndex++).setText(stringBuilder);
         }
         //audio sources

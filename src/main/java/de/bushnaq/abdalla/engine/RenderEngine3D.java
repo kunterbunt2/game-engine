@@ -1305,24 +1305,25 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
     }
 
     public void updateCamera(final float centerXD, final float centerYD, final float centerZD) {
-        if (centerXD != 0f || centerYD != 0f || centerZD != 0f)//TODO do not update if nothing has changed
+        if (centerXD != 0f || /*centerYD != 0f ||*/ centerZD != 0f)//TODO do not update if nothing has changed
         {
             Vector3 backup = new Vector3(camera.lookat);
-            camera.translate(centerXD, centerYD, centerZD);
-            camera.lookat.add(centerXD, 0/*centerYD*/, centerZD);
+            camera.translate(centerXD, 0, centerZD);
+            camera.lookat.add(centerXD, 0, centerZD);
             camera.up.set(0, 1, 0);
-            camera.lookAt(backup/*camera.lookat*/);
+//            camera.lookAt(backup/*camera.lookat*/);
 //            camera.lookAt(camera.lookat);
             camera.update();
-            Vector3 v1 = new Vector3(camera.position);
-            Vector3 v2 = new Vector3(camera.position);
-            sceneBox.set(v1.add(sceneBoxMin), v2.add(sceneBoxMax));
-            shadowLight.setBounds(sceneBox);
             camera.setDirty(true);
+            System.out.println("updateCamera");
         }
         if (testCase == 1) {
-//            if (camera.isDirty())
-            {
+            if (camera.isDirty()) {
+                Vector3 v1 = new Vector3(camera.position);
+                Vector3 v2 = new Vector3(camera.position);
+                sceneBox.set(v1.add(sceneBoxMin), v2.add(sceneBoxMax));
+                shadowLight.setBounds(sceneBox);
+
                 renderutils2Dxz.batch.setTransformMatrix(identityMatrix);
                 renderutils2Dxz.batch.enableBlending();
                 renderutils2Dxz.batch.setProjectionMatrix(camera.combined);
@@ -1469,24 +1470,6 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
     private void updateStaticModelInstanceCache() throws Exception {
 
         if (useStaticCache) {
-            if (staticCacheDirty) {
-                // there were visible instances added or removed
-                visibleStaticGameObjectCount = 0;
-                if (render3D) staticCache.begin(camera);
-                for (final ModelInstance instance : visibleStaticModelInstances) {
-                    if (render3D) staticCache.add(instance);
-                    visibleStaticGameObjectCount++;
-                    renderableProviders.add(instance);
-                }
-                for (final RenderableProvider renderableProvider : visibleStaticRenderableProviders) {
-                    if (render3D) staticCache.add(renderableProvider);
-                    visibleStaticGameObjectCount++;
-                    // renderableProviders.add(renderableProvider);
-                }
-
-                if (render3D) staticCache.end();
-                staticCacheDirty = false;
-            }
             if (camera.isDirty()) {
                 visibleStaticGameObjectCount = 0;
                 visibleStaticModelInstances.clear();
@@ -1506,6 +1489,24 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
                     if (render3D) staticCache.add(renderableProvider);
                     visibleStaticGameObjectCount++;
                 }
+                if (render3D) staticCache.end();
+                staticCacheDirty = false;
+            }
+            if (staticCacheDirty) {
+                // there were visible instances added or removed
+                visibleStaticGameObjectCount = 0;
+                if (render3D) staticCache.begin(camera);
+                for (final ModelInstance instance : visibleStaticModelInstances) {
+                    if (render3D) staticCache.add(instance);
+                    visibleStaticGameObjectCount++;
+                    renderableProviders.add(instance);
+                }
+                for (final RenderableProvider renderableProvider : visibleStaticRenderableProviders) {
+                    if (render3D) staticCache.add(renderableProvider);
+                    visibleStaticGameObjectCount++;
+                    // renderableProviders.add(renderableProvider);
+                }
+
                 if (render3D) staticCache.end();
                 staticCacheDirty = false;
             }
