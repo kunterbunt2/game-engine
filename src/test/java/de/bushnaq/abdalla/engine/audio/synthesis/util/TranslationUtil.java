@@ -18,6 +18,7 @@ package de.bushnaq.abdalla.engine.audio.synthesis.util;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.VertexAttributes;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.PolygonSpriteBatch;
@@ -25,6 +26,7 @@ import com.badlogic.gdx.graphics.g3d.Attribute;
 import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.environment.PointLight;
+import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 import de.bushnaq.abdalla.engine.GameObject;
@@ -53,8 +55,8 @@ public abstract class TranslationUtil extends BasicGameEngine {
             createCube();
             GameObject<BasicGameEngine> buildingGameObject = new GameObject<>(new ModelInstanceHack(buildingModel), null);
             buildingGameObject.instance.transform.setToTranslationAndScaling(0, CUBE_SIZE / 2, 0, CUBE_SIZE, CUBE_SIZE, CUBE_SIZE);
-            final PointLight light = new PointLight().set(Color.WHITE, 0, CUBE_SIZE * 2, 0, 10000f);
-            getRenderEngine().add(light, true);
+            final PointLight light = new PointLight().set(Color.RED, 0, CUBE_SIZE * 3, 0, 100000f);
+            getRenderEngine().add(light, false);
             getRenderEngine().addStatic(buildingGameObject);
 
             GameObject<BasicGameEngine> cityGameObject = new GameObject<>(new ModelInstanceHack(cityModel), null);
@@ -92,13 +94,20 @@ public abstract class TranslationUtil extends BasicGameEngine {
     }
 
     private void createCube() {
+        final ModelBuilder modelBuilder = new ModelBuilder();
         final ModelCreator modelCreator = new ModelCreator();
         {
-            final Attribute color     = new PBRColorAttribute(PBRColorAttribute.BaseColorFactor, Color.BLUE);
-            final Attribute metallic  = PBRFloatAttribute.createMetallic(0.1f);
-            final Attribute roughness = PBRFloatAttribute.createRoughness(0.5f);
-            final Material  material  = new Material(metallic, roughness, color);
-            buildingModel = modelCreator.createBox(material);
+//            final Attribute color     = new PBRColorAttribute(PBRColorAttribute.BaseColorFactor, Color.BLUE);
+//            final Attribute metallic  = PBRFloatAttribute.createMetallic(0.1f);
+//            final Attribute roughness = PBRFloatAttribute.createRoughness(0.5f);
+//            final Material  material  = new Material(metallic, roughness, color);
+//            buildingModel = modelCreator.createBox(material);
+            final Attribute color     = new PBRColorAttribute(PBRColorAttribute.BaseColorFactor, Color.BLACK);
+            final Attribute metallic  = PBRFloatAttribute.createMetallic(0f);
+            final Attribute roughness = PBRFloatAttribute.createRoughness(0.9f);
+//            final Attribute occlusion = PBRFloatAttribute.createOcclusionStrength(1.0f);
+            final Material material = new Material(metallic, roughness, color);
+            buildingModel = modelBuilder.createBox(1.0f, 1.0f, 1.0f, material, VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
         }
         {
             final Attribute color     = new PBRColorAttribute(PBRColorAttribute.BaseColorFactor, Color.DARK_GRAY);

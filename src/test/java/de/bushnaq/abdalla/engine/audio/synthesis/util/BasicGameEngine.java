@@ -16,16 +16,13 @@
 
 package de.bushnaq.abdalla.engine.audio.synthesis.util;
 
-import com.badlogic.gdx.ApplicationListener;
-import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.*;
 import com.badlogic.gdx.Graphics.DisplayMode;
 import com.badlogic.gdx.Graphics.Monitor;
-import com.badlogic.gdx.Input;
-import com.badlogic.gdx.InputProcessor;
-import com.badlogic.gdx.assets.loaders.resolvers.InternalFileHandleResolver;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration;
 import com.badlogic.gdx.graphics.*;
+import com.badlogic.gdx.graphics.g3d.utils.CameraInputController;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
@@ -39,7 +36,8 @@ import de.bushnaq.abdalla.engine.camera.MovingCamera;
 import net.mgsx.gltf.scene3d.attributes.PBRCubemapAttribute;
 import net.mgsx.gltf.scene3d.attributes.PBRFloatAttribute;
 import net.mgsx.gltf.scene3d.attributes.PBRTextureAttribute;
-import net.mgsx.gltf.scene3d.utils.EnvironmentUtil;
+import net.mgsx.gltf.scene3d.lights.DirectionalLightEx;
+import net.mgsx.gltf.scene3d.utils.IBLBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,30 +45,32 @@ import java.util.ArrayList;
 import java.util.List;
 
 public abstract class BasicGameEngine implements ApplicationListener, InputProcessor, RenderEngineExtension {
-    private static final float                           CAMERA_OFFSET_X   = 300f;
-    private static final float                           CAMERA_OFFSET_Y   = 500f;
-    private static final float                           CAMERA_OFFSET_Z   = 400f;
-    private final        AudioEngine                     audioEngine       = new BasicAudioEngine();
-    private final        Matrix4                         identityMatrix    = new Matrix4();
-    private final        List<Label>                     labels            = new ArrayList<>();
-    private final        Logger                          logger            = LoggerFactory.getLogger(this.getClass());
-    private final        BasicRandomGenerator            randomGenerator   = new BasicRandomGenerator(1);
-    public               MovingCamera                    camera;
-    private              BasicAtlasManager               atlasManager;
-    private              Texture                         brdfLUT;
-    private              OrthographicCamera              camera2D;
-    private              long                            currentTime       = 0L;
-    private              Cubemap                         diffuseCubemap;
+    private static final float                CAMERA_OFFSET_X = 300f;
+    private static final float                CAMERA_OFFSET_Y = 500f;
+    private static final float                CAMERA_OFFSET_Z = 400f;
+    private final        AudioEngine          audioEngine     = new BasicAudioEngine();
+    private final        Matrix4              identityMatrix  = new Matrix4();
+    private final        List<Label>          labels          = new ArrayList<>();
+    private final        Logger               logger          = LoggerFactory.getLogger(this.getClass());
+    private final        BasicRandomGenerator randomGenerator = new BasicRandomGenerator(1);
+    public               MovingCamera         camera;
+    InputMultiplexer inputMultiplexer = new InputMultiplexer();
+    private BasicAtlasManager               atlasManager;
+    private Texture                         brdfLUT;
+    private CameraInputController           camController;
+    private OrthographicCamera              camera2D;
+    private long                            currentTime       = 0L;
+    private Cubemap                         diffuseCubemap;
     //    private              BitmapFont                      font;
-    private              boolean                         hrtfEnabled       = true;
-    private              long                            lastTime          = 0;
-    private              RenderEngine3D<BasicGameEngine> renderEngine;
-    private              boolean                         simulateBassBoost = true;
-    private              Cubemap                         specularCubemap;
-    private              Stage                           stage;
-    private              StringBuilder                   stringBuilder;
-    private              boolean                         takeScreenShot    = false;
-    private              long                            timeDelta         = 0L;
+    private boolean                         hrtfEnabled       = true;
+    private long                            lastTime          = 0;
+    private RenderEngine3D<BasicGameEngine> renderEngine;
+    private boolean                         simulateBassBoost = true;
+    private Cubemap                         specularCubemap;
+    private Stage                           stage;
+    private StringBuilder                   stringBuilder;
+    private boolean                         takeScreenShot    = false;
+    private long                            timeDelta         = 0L;
 
     public void advanceInTime() {
         long fixedDelta = 20L;
@@ -89,16 +89,20 @@ public abstract class BasicGameEngine implements ApplicationListener, InputProce
             BaiscDesktopContextFactory contextFactory = new BaiscDesktopContextFactory();
             Context                    context        = contextFactory.create();
             createCamera();
+            createInputProcessor(this);
             atlasManager = new BasicAtlasManager();
             atlasManager.init();
             createStage();
             renderEngine = new RenderEngine3D<BasicGameEngine>(context, this, camera, camera2D, getAtlasManager().menuFont, getAtlasManager().systemTextureRegion);
+//            renderEngine.setPbr(false);
+            renderEngine.setDayAmbientLight(.1f, .1f, .1f, 1f);
+            renderEngine.setNightAmbientLight(.01f, .01f, .01f, 1f);
             getRenderEngine().getWater().setPresent(false);
             getRenderEngine().getMirror().setPresent(false);
             getRenderEngine().setShadowEnabled(true);
             getRenderEngine().getFog().setEnabled(false);
             getRenderEngine().setDynamicDayTime(true);
-            getRenderEngine().setSkyBox(false);
+            getRenderEngine().setSkyBox(true);
             getRenderEngine().setSceneBoxMin(new Vector3(-1000, -1000, -1000));
             getRenderEngine().setSceneBoxMax(new Vector3(1000, 1000, 1000));
             getRenderEngine().setShowGraphs(true);
@@ -212,6 +216,15 @@ public abstract class BasicGameEngine implements ApplicationListener, InputProce
             getRenderEngine().environment.set(new PBRFloatAttribute(PBRFloatAttribute.ShadowBias, 0f));
         } else {
         }
+    }
+
+    private void createInputProcessor(final InputProcessor inputProcessor) {
+        camController                = new CameraInputController(camera);
+        camController.scrollFactor   = -0.1f;
+        camController.translateUnits = 1000f;
+        inputMultiplexer.addProcessor(inputProcessor);
+        inputMultiplexer.addProcessor(camController);
+        Gdx.input.setInputProcessor(inputMultiplexer);
     }
 
     private void createStage() {
@@ -352,9 +365,20 @@ public abstract class BasicGameEngine implements ApplicationListener, InputProce
     }
 
     private void setupImageBasedLightingByFaceNames(final String name, final String diffuseExtension, final String environmentExtension, final String specularExtension, final int specularIterations) {
-        diffuseCubemap  = EnvironmentUtil.createCubemap(new InternalFileHandleResolver(), BasicAtlasManager.getAssetsFolderName() + "/textures/" + name + "/diffuse/diffuse_", "_0." + diffuseExtension, EnvironmentUtil.FACE_NAMES_FULL);
-        specularCubemap = EnvironmentUtil.createCubemap(new InternalFileHandleResolver(), BasicAtlasManager.getAssetsFolderName() + "/textures/" + name + "/specular/specular_", "_", "." + specularExtension, specularIterations, EnvironmentUtil.FACE_NAMES_FULL);
-        brdfLUT         = new Texture(Gdx.files.classpath("net/mgsx/gltf/shaders/brdfLUT.png"));
+//        diffuseCubemap  = EnvironmentUtil.createCubemap(new InternalFileHandleResolver(), BasicAtlasManager.getAssetsFolderName() + "/textures/" + name + "/diffuse/diffuse_", "_0." + diffuseExtension, EnvironmentUtil.FACE_NAMES_FULL);
+//        specularCubemap = EnvironmentUtil.createCubemap(new InternalFileHandleResolver(), BasicAtlasManager.getAssetsFolderName() + "/textures/" + name + "/specular/specular_", "_", "." + specularExtension, specularIterations, EnvironmentUtil.FACE_NAMES_FULL);
+        brdfLUT = new Texture(Gdx.files.classpath("net/mgsx/gltf/shaders/brdfLUT.png"));
+
+        DirectionalLightEx light = new DirectionalLightEx();
+        light.direction.set(1, -3, 1).nor();
+        light.color.set(Color.GRAY);
+        IBLBuilder iblBuilder         = IBLBuilder.createOutdoor(light);
+        Cubemap    environmentCubemap = iblBuilder.buildEnvMap(1024);
+        diffuseCubemap  = iblBuilder.buildIrradianceMap(256);
+        specularCubemap = iblBuilder.buildRadianceMap(10);
+        iblBuilder.dispose();
+//        environmentDayCubemap   = environmentCubemap;
+//        environmentNightCubemap = environmentCubemap;
     }
 
     protected void startLwjgl() {

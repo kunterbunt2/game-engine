@@ -986,7 +986,7 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
     private void render2DText() {
         renderEngine2D.batch.setProjectionMatrix(stage.getViewport().getCamera().combined);
         renderEngine2D.batch.begin();
-        Gdx.gl.glDisable(GL20.GL_DEPTH_TEST);
+        Gdx.gl20.glDisable(GL20.GL_DEPTH_TEST);
         renderEngine2D.batch.enableBlending();
         for (Text2D text2d : text2DList) {
             text2d.draw(renderEngine2D.batch);
@@ -996,7 +996,7 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
 
     private void render2Dxz() {
         if (render2D) {
-            Gdx.gl.glEnable(GL20.GL_DEPTH_TEST);
+            Gdx.gl20.glEnable(GL20.GL_DEPTH_TEST);
             renderutils2Dxz.batch.begin();
 //            renderutils2Dxz.batch.setColor(new Color(.9f, .4f, .5f, 0.45f));
 //            renderutils2Dxz.batch.fillCircle(atlasRegion, 0, 0, 32, 32);
@@ -1060,7 +1060,6 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
 //         batch.render(visibleStaticModelInstances, computedEnvironement);
             if (useDynamicCache) batch.render(dynamicCache, computedEnvironement);
             else batch.render(visibleDynamicModelInstances, computedEnvironement);
-//         batch.render(ocean.instance, oceanShader);
             if (isSkyBox()) {
                 if (daySkyBox != null && isDay()) batch.render(daySkyBox);
                 else if (nightSkyBox != null && isNight()) batch.render(nightSkyBox);
@@ -1280,6 +1279,7 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
     public void setSkyBox(boolean skyBox) {
         this.skyBox = skyBox;
     }
+
 
     /**
      * should be called in order to perform light culling, skybox update and animations.
