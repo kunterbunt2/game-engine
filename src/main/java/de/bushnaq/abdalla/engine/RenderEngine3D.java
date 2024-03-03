@@ -298,9 +298,6 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
         createStage();
 //        createCoordinates();
 //		createRayCube();
-//		vfxManager = new VfxManager(Pixmap.Format.RGBA8888);
-//		vfxManager.addEffect(new DepthOfFieldEffect(postFbo, camera, 1));
-//		vfxManager.addEffect(new DepthOfFieldEffect(postFbo, camera, 0));
 //		createBlurEffect();
 //		createBloomEffect();
 //		vfxManager.addEffect(new FxaaEffect());
@@ -944,8 +941,8 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
             context.enableClipping();
 
             gameShaderProvider.setClippingPlane(reflectionClippingPlane);
-            final float cameraYDistance = 2 * (camera.position.y - context.getWaterLevel());
-            final float lookatYDistance = 2 * (camera.lookat.y - context.getWaterLevel());
+            final float cameraYDistance = 2 * (camera.position.y - context.getMirrorLevel());
+            final float lookatYDistance = 2 * (camera.lookat.y - context.getMirrorLevel());
             camera.position.y -= cameraYDistance;
             camera.lookat.y -= lookatYDistance;
             camera.up.set(0, 1, 0);

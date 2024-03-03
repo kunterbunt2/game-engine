@@ -25,6 +25,8 @@ public interface IContext extends IApplicationProperties {
 
     void enableClipping();
 
+    float getMirrorLevel();
+
     float getWaterLevel();
 
 }

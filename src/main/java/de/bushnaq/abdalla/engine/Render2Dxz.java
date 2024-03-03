@@ -41,20 +41,22 @@ public class Render2Dxz<T> {
         create();
     }
 
-    public void bar(final TextureRegion image, final float aX1, final float aY1, final float aX2, final float aY2, final Color color) {
+    public void bar(final TextureRegion image, final float aX1, final float aY1, final float aZ1, final float aX2, final float aY2, final float aZ2, final Color color) {
         final float       x1     = transformX(aX1);
         final float       y1     = transformY(aY1);
+        final float       z1     = transformY(aZ1);
         final float       x2     = transformX(aX2);
         final float       y2     = transformY(aY2);
+        final float       z2     = transformY(aZ2);
         final float       width  = x2 - x1 + 1;
-        final float       height = y2 - y1 - 1;
-        final Vector3     p1     = new Vector3(x1, y1, 0);
-        final Vector3     p2     = new Vector3(x2, y2, 0);
+        final float       height = -z2 + z1 - 1;
+        final Vector3     p1     = new Vector3(x1, y1, z1);
+        final Vector3     p2     = new Vector3(x2, y2, z2);
         final BoundingBox bb     = new BoundingBox(p2, p1);
         // Vector3[] v3 = camera.frustum.planePoints;
         if (camera.frustum.boundsInFrustum(bb)) {
             batch.setColor(color);
-            batch.draw(image, x1, y1, width, height);
+            batch.draw(image, x1, -z1, width, height);
         }
     }
 
