@@ -31,10 +31,11 @@ import de.bushnaq.abdalla.engine.util.FontData;
 public class BasicAtlasManager {
     private static String       assetsFolderName;
     public         TextureAtlas atlas;
-    public         FontData[]   fontDataList = {
-            new FontData("menu-font", Context.getAppFolderName() + "/assets/fonts/Roboto-Regular.ttf", 12),//
+    public         FontData[]   fontDataList = {new FontData("menu-font", Context.getAppFolderName() + "/assets/fonts/Roboto-Regular.ttf", 12),//
+            new FontData("menu-font-bold", Context.getAppFolderName() + "/assets/fonts/Roboto-bold.ttf", 12),//
             new FontData("model-font", Context.getAppFolderName() + "/assets/fonts/Roboto-Bold.ttf", 64),//
     };
+    public         BitmapFont   menuBoldFont;
     public         BitmapFont   menuFont;
     public         BitmapFont   modelFont;
     public         AtlasRegion  systemTextureRegion;
@@ -76,8 +77,9 @@ public class BasicAtlasManager {
             packer.dispose();
             fontData.font.setUseIntegerPositions(false);
         }
-        menuFont  = fontDataList[0].font;
-        modelFont = fontDataList[1].font;
+        menuFont     = fontDataList[0].font;
+        menuBoldFont = fontDataList[1].font;
+        modelFont    = fontDataList[2].font;
     }
 
     private void initTextures() {

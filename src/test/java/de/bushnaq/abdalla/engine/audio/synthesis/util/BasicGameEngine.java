@@ -93,7 +93,7 @@ public abstract class BasicGameEngine implements ApplicationListener, InputProce
             atlasManager = new BasicAtlasManager();
             atlasManager.init();
             createStage();
-            renderEngine = new RenderEngine3D<BasicGameEngine>(context, this, camera, camera2D, getAtlasManager().menuFont, getAtlasManager().systemTextureRegion);
+            renderEngine = new RenderEngine3D<BasicGameEngine>(context, this, camera, camera2D, getAtlasManager().menuFont, getAtlasManager().menuBoldFont, getAtlasManager().systemTextureRegion);
 //            renderEngine.setPbr(false);
             renderEngine.setDayAmbientLight(.1f, .1f, .1f, 1f);
             renderEngine.setNightAmbientLight(.01f, .01f, .01f, 1f);

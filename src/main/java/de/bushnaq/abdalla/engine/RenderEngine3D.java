@@ -88,6 +88,7 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
     public final  Matrix4                     identityMatrix                   = new Matrix4();
     public final  Array<GameObject<T>>        staticGameObjects                = new Array<>();
     private final AtlasRegion                 atlasRegion;
+    private final BitmapFont                  boldFont;
     private final MovingCamera                camera;
     private final OrthographicCamera          camera2D;
     private final EnvironmentCache            computedEnvironement             = new EnvironmentCache();
@@ -120,11 +121,11 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
     private final Water                       water                            = new Water();
     public        float                       angle;
     public        CustomizedSpriteBatch       batch2D;
-    public        TimeGraph                   cpuGraph;
+    public        Graph                       cpuGraph;
     public        Array<GameObject<T>>        dynamicGameObjects               = new Array<>();
     public        Environment                 environment                      = new Environment();
     public        GameShaderProviderInterface gameShaderProvider;
-    public        TimeGraph                   gpuGraph;
+    public        Graph                       gpuGraph;
     public        SceneSkybox                 nightSkyBox;
     public        Model                       rayCube;
     public        boolean                     render2D                         = true;
@@ -156,6 +157,7 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
     private       boolean                     dynamicDayTime                   = false;
     private       boolean                     enableProfiling                  = true;
     private       float                       fixedDayTime                     = 10;
+    private       Graph                       fpsGraph;
     private       Logger                      logger                           = LoggerFactory.getLogger(this.getClass());
     private       float                       nightAmbientIntensityB           = .2f;
     private       float                       nightAmbientIntensityG           = .2f;
@@ -177,7 +179,7 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
     private       boolean                     useDynamicCache                  = false;
     private       VfxManager                  vfxManager                       = null;
 
-    public RenderEngine3D(final IContext context, T gameEngine, MovingCamera camera, OrthographicCamera camera2D, BitmapFont font, AtlasRegion atlasRegion) throws Exception {
+    public RenderEngine3D(final IContext context, T gameEngine, MovingCamera camera, OrthographicCamera camera2D, BitmapFont font, BitmapFont boldFont, AtlasRegion atlasRegion) throws Exception {
 //		logger.info(String.format("GL_VERSION = %s", Gdx.gl.glGetString(GL20.GL_VERSION)));
 //		logger.info(String.format("GL_ES_VERSION_2_0 = %s", Gdx.gl.glGetString(GL20.GL_ES_VERSION_2_0)));
 //		logger.info(String.format("GL_SHADING_LANGUAGE_VERSION = %s", Gdx.gl.glGetString(GL20.GL_SHADING_LANGUAGE_VERSION)));
@@ -196,6 +198,7 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
         this.camera      = camera;
         this.camera2D    = camera2D;
         this.font        = font;
+        this.boldFont    = boldFont;
         this.atlasRegion = atlasRegion;
         renderEngine2D   = new RenderEngine2D<>(gameEngine, camera2D);
         if (testCase == 1) {
@@ -375,8 +378,9 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
     }
 
     private void createGraphs() {
-        cpuGraph = new TimeGraph(new Color(1f, 0f, 0f, 1f), new Color(1f, 0, 0, 0.6f), Gdx.graphics.getWidth(), Gdx.graphics.getHeight() / 4, font, atlasRegion);
-        gpuGraph = new TimeGraph(new Color(0f, 1f, 0f, 1f), new Color(0f, 1f, 0f, 0.6f), Gdx.graphics.getWidth(), Gdx.graphics.getHeight() / 4, font, atlasRegion);
+        cpuGraph = new TimeGraph("CPU", new Color(1f, 0f, 0f, 1f), new Color(1f, 0, 0, 0.6f), new Color(0f, 0f, 0f, .6f), Gdx.graphics.getWidth(), Gdx.graphics.getHeight() / 3, font, boldFont, atlasRegion);
+        gpuGraph = new TimeGraph("GPU", new Color(0f, 1f, 0f, 1f), new Color(0f, 1f, 0f, 0.6f), new Color(0f, 0f, 0f, .6f), Gdx.graphics.getWidth(), Gdx.graphics.getHeight() / 3, font, boldFont, atlasRegion);
+        fpsGraph = new FpsGraph("FPS", new Color(0f, 0f, 1f, 1f), new Color(0f, 0f, 1f, 0.6f), new Color(0f, 0f, 0f, .6f), Gdx.graphics.getWidth(), Gdx.graphics.getHeight() / 3, font, boldFont, atlasRegion);
     }
 
     private GameObject<T> createRay(final Ray ray, Float length) {
@@ -871,6 +875,8 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
     }
 
     public void render(final long currentTime, final float deltaTime, final boolean takeScreenShot) throws Exception {
+        fpsGraph.end();
+        fpsGraph.begin();
         float x1 = shadowLight.getCamera().position.x;
         if (isDynamicDayTime()) {
             // keep only what is smaller than 10000
@@ -1137,19 +1143,25 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
                 handleFrameBufferScreenshot(takeScreenShot, gpuGraph.getFbo(), "gpu.fbo");
                 renderEngine2D.batch.draw(t, 0, cpuGraph.getFbo().getHeight(), t.getWidth(), t.getHeight(), 0, 0, t.getWidth(), t.getHeight(), false, true);
             }
+            {
+                Texture t = fpsGraph.getFbo().getColorBufferTexture();
+                handleFrameBufferScreenshot(takeScreenShot, fpsGraph.getFbo(), "fps.fbo");
+                renderEngine2D.batch.draw(t, 0, fpsGraph.getFbo().getHeight() * 2, t.getWidth(), t.getHeight(), 0, 0, t.getWidth(), t.getHeight(), false, true);
+            }
         }
         renderEngine2D.batch.end();
 
     }
 
     public void renderGraphs() {
-        if (context.isShowGraphs()) {
-            cpuGraph.update();
-            gpuGraph.update();
-        }
+//        if (context.isShowGraphs()) {
+//            cpuGraph.update();
+//            gpuGraph.update();
+//        }
         if (isShowGraphs()) {
             cpuGraph.draw(renderEngine2D.batch);
             gpuGraph.draw(renderEngine2D.batch);
+            fpsGraph.draw(renderEngine2D.batch);
         }
 //		batch2D.setTransformMatrix(identityMatrix);// fix transformMatrix
     }
