@@ -37,31 +37,32 @@ import java.util.Map;
  * @author abdalla bushnaq
  */
 public class AudioEngine {
-    private static final int             START_RADIUS   = 1500;
-    private static final int             STOP_RADIUS    = 2000;
-    private static       ALCapabilities  alCapabilities;
-    private static       ALCCapabilities alcCapabilities;
-    private static       long            device;
-    private static       Logger          logger         = LoggerFactory.getLogger(AudioEngine.class);
-    private final        int             bits;
-    private final        Vector3         direction      = new Vector3();//direction of the listener (what direction is he looking to)
-    private final        float           disableRadius2 = STOP_RADIUS * STOP_RADIUS;//all audio streams that are located further away will be stopped and removed
-    private final        float           enableRadius2  = START_RADIUS * START_RADIUS;//an audio streams that gets closer will get added and started
-    private final        Vector3         position       = new Vector3();//position of the listener
-    private final int samplerate;
-    private final int samples;
+    private static final int                 START_RADIUS   = 1500;
+    private static final int                 STOP_RADIUS    = 2000;
+    private static       ALCapabilities      alCapabilities;
+    private static       ALCCapabilities     alcCapabilities;
+    private static       long                device;
+    private static       Logger              logger         = LoggerFactory.getLogger(AudioEngine.class);
+    private final        int                 bits;
+    private final        Vector3             direction      = new Vector3();//direction of the listener (what direction is he looking to)
+    private final        float               disableRadius2 = STOP_RADIUS * STOP_RADIUS;//all audio streams that are located further away will be stopped and removed
+    private final        float               enableRadius2  = START_RADIUS * START_RADIUS;//an audio streams that gets closer will get added and started
+    private final        Vector3             position       = new Vector3();//position of the listener
+    private final        int                 samplerate;
+    private final        int                 samples;
     //	private MovingCamera camera;
     //	private final SynthesizerFactory<T> synthFactory;
-    private final List<AudioProducer> synths        = new UnsortedList<>();
-    private final List<OpenAlSource>  unusedSources = new ArrayList<>();
-    private final Vector3             up            = new Vector3();//what is up direction for the listener?
-    private final Vector3             velocity      = new Vector3();//the velocity of the listener
+    private final        List<AudioProducer> synths         = new UnsortedList<>();
+    private final        List<OpenAlSource>  unusedSources  = new ArrayList<>();
+    private final        Vector3             up             = new Vector3();//what is up direction for the listener?
+    private final        Vector3             velocity       = new Vector3();//the velocity of the listener
     int                                                              auxiliaryEffectSlot;
     Map<String, AbstractSynthesizerFactory<? extends AudioProducer>> factoryMap = new HashMap<>();
     private long context;
     private int  effect;
     private int  enabledAudioSourceCount = 0;
     private int  maxMonoSources          = 0;
+
     public AudioEngine(final int samples, final int samplerate, final int bits/*, final int channels*/) {
         this.samples    = samples;
         this.samplerate = samplerate;
@@ -274,10 +275,10 @@ public class AudioEngine {
     private void cullSynths() throws OpenAlException {
         enabledAudioSourceCount = 0;
         for (final AudioProducer synth : synths) {
-            if (position.dst2(synth.getPosition()) > disableRadius2) {
+            if (!synth.isAmbient() && position.dst2(synth.getPosition()) > disableRadius2) {
                 //disable synth
                 disableSynth(synth);
-            } else if (position.dst2(synth.getPosition()) < enableRadius2) {
+            } else if (synth.isAmbient() || position.dst2(synth.getPosition()) < enableRadius2) {
                 //enable synth
                 enableSynth(synth);
             } else {

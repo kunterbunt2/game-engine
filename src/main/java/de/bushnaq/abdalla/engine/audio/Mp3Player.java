@@ -19,7 +19,6 @@ package de.bushnaq.abdalla.engine.audio;
 import com.badlogic.gdx.backends.lwjgl3.audio.OggInputStream;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.utils.StreamUtils;
-import de.bushnaq.abdalla.engine.audio.AbstractAudioProducer;
 
 import java.nio.ByteBuffer;
 
@@ -45,6 +44,7 @@ public class Mp3Player extends AbstractAudioProducer {
     private float          renderedSeconds, maxSecondsPerBuffer;
 
     public Mp3Player() {
+        setAmbient(true);//always follows camera
     }
 
     @Override

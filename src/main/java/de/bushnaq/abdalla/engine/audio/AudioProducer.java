@@ -23,38 +23,41 @@ import java.nio.ByteBuffer;
 
 public interface AudioProducer {
 
-    public void adaptToVelocity(final float speed) throws OpenAlException;
+    void adaptToVelocity(final float speed) throws OpenAlException;
 
-    public OpenAlSource disable() throws OpenAlException;
+    OpenAlSource disable() throws OpenAlException;
 
-    public void dispose() throws OpenAlException;
+    void dispose() throws OpenAlException;
 
-    public void enable(final OpenAlSource source) throws OpenAlException;
+    void enable(final OpenAlSource source) throws OpenAlException;
 
-    public int getChannels();
+    int getChannels();
 
-    public int getOpenAlFormat();
+    int getOpenAlFormat();
 
-    public Vector3 getPosition();
+    Vector3 getPosition();
 
-    public boolean isEnabled();
+    boolean isAmbient();
 
-    public boolean isPlaying() throws OpenAlException;
+    boolean isEnabled();
 
-    public void pause() throws OpenAlException;
+    boolean isPlaying() throws OpenAlException;
 
-    public void play() throws OpenAlException;
+    void pause() throws OpenAlException;
 
-    public void processBuffer(ByteBuffer byteBuffer) throws OpenAlcException;
+    void play() throws OpenAlException;
 
-    public void setGain(final float gain) throws OpenAlException;
+    void processBuffer(ByteBuffer byteBuffer) throws OpenAlcException;
 
-    public void setPositionAndVelocity(final float[] position, final float[] velocity) throws OpenAlException;
+    void setAmbient(boolean enabled);
 
-    public void waitForPlay() throws InterruptedException, OpenAlException;
+    void setGain(final float gain) throws OpenAlException;
 
     //	public short process(long l);
 
-    public void writeWav(final String fileName) throws IOException, OpenAlcException;
+    void setPositionAndVelocity(final float[] position, final float[] velocity) throws OpenAlException;
 
+    void waitForPlay() throws InterruptedException, OpenAlException;
+
+    void writeWav(final String fileName) throws IOException, OpenAlcException;
 }

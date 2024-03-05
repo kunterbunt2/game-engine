@@ -44,6 +44,11 @@ public class BasicDesktopContext extends Context {
     }
 
     @Override
+    public float getMirrorLevel() {
+        return -12;
+    }
+
+    @Override
     public float getWaterLevel() {
         return -10f;
     }

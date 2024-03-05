@@ -44,14 +44,15 @@ public class Mp3SoundTest extends TranslationUtil {
             mp3Player.setFile(Gdx.files.internal(BasicAtlasManager.getAssetsFolderName() + "/audio/06-abyss(m).ogg"));
             mp3Player.setGain(150.0f);
             mp3Player.play();
-            getAudioEngine().begin(getRenderEngine().getCamera());
             final long time1 = System.currentTimeMillis();
             do {
+                getAudioEngine().begin(getRenderEngine().getCamera());
+                Thread.sleep(100);
+                getAudioEngine().end();
             } while (System.currentTimeMillis() - time1 < SECONDS_5);
             mp3Player.pause();
             mp3Player.renderBuffer();
             mp3Player.writeWav("target/mp3.wav");
-            getAudioEngine().end();
             Gdx.app.exit();
 
         } catch (final Exception e) {

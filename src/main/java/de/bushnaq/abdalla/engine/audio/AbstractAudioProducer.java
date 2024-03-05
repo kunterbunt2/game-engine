@@ -27,6 +27,7 @@ public abstract class AbstractAudioProducer implements AudioProducer {
     protected       float        gain     = 1.0f;
     protected       boolean      play     = false;//is the source playing?
     protected       OpenAlSource source   = null;//if enabled, this will hold the attached openal source, otherwise null
+    private         boolean      ambient  = false;//position always follows camera
 
     /**
      * adapt synthesizer to the current source velocity
@@ -49,8 +50,7 @@ public abstract class AbstractAudioProducer implements AudioProducer {
 
     @Override
     public void dispose() throws OpenAlException {
-        if (isEnabled())
-            source.dispose();
+        if (isEnabled()) source.dispose();
     }
 
     @Override
@@ -59,14 +59,17 @@ public abstract class AbstractAudioProducer implements AudioProducer {
         this.source = source;
         this.source.attach(this);
         this.source.setGain(gain);
-        if (isPlaying())
-            this.source.play();//we should be playing
+        if (isPlaying()) this.source.play();//we should be playing
         this.source.unparkOrStartThread();
     }
 
     @Override
     public Vector3 getPosition() {
         return position;
+    }
+
+    public boolean isAmbient() {
+        return ambient;
     }
 
     @Override
@@ -84,8 +87,7 @@ public abstract class AbstractAudioProducer implements AudioProducer {
         if (this.play) {
             play = false;
         }
-        if (isEnabled())
-            source.pause();
+        if (isEnabled()) source.pause();
     }
 
     @Override
@@ -93,8 +95,11 @@ public abstract class AbstractAudioProducer implements AudioProducer {
         if (!this.play) {
             play = true;
         }
-        if (isEnabled())
-            source.play();
+        if (isEnabled()) source.play();
+    }
+
+    public void setAmbient(boolean ambient) {
+        this.ambient = ambient;
     }
 
     @Override
