@@ -145,44 +145,14 @@ public class RenderEngine2D<T> {
         final float y2       = (float) (y + height / 2 - end * Math.cos(angle));
         final float x3       = x2 + width * 3 * camera.zoom;
         final float thicknes = 2.0f * camera.zoom;
-        line(textureRegion, x1, y1, x2, y2, lableColor, thicknes);
-        line(textureRegion, x2, y2, x3, y2, lableColor, thicknes);
+        batch.line(textureRegion, x1, y1, x2, y2, lableColor, thicknes);
+        batch.line(textureRegion, x2, y2, x3, y2, lableColor, thicknes);
         layout.setText(font, name);
         text(x2, y2 - layout.height * 1.1f, font, nameColor, nameColor, name);
         layout.setText(font, value);
         text(x2, y2 + layout.height * 0.1f, font, valueColor, valueColor, value);
     }
 
-    public void line(final TextureRegion texture, final float aX1, final float aY1, final float aX2, final float aY2, final Color color, final float aThickness) {
-        final float x1 = transformX(aX1);
-        final float y1 = transformY(aY1);
-        final float x2 = transformX(aX2);
-        final float y2 = transformY(aY2);
-        // the center of your hand
-        final Vector3 center = new Vector3(x1, y1, 0);
-        // you need a vector from the center to your touchpoint
-        final Vector3 touchPoint = new Vector3(x2, y2, 0);
-        touchPoint.sub(center);
-        // now convert into polar angle
-        double rotation = Math.atan2(touchPoint.y, touchPoint.x);
-        // rotation should now be between -PI and PI
-        // so scale to 0..1
-        rotation = (rotation + Math.PI) / (Math.PI * 2);
-        // SpriteBatch.draw needs degrees
-        rotation *= 360;
-        // add Offset because of reasons
-        rotation += 90;
-        batch.setColor(color);
-        batch.draw(texture, x1, // x, center of rotation
-                y1, // y, center of rotation
-                aThickness / 2, // origin x in the texture region
-                0, // origin y in the texture region
-                aThickness, // width
-                touchPoint.len(), // height
-                1.0f, // scale x
-                1.0f, // scale y
-                (float) rotation);
-    }
 
     public void moveCenter(final int aX, final int aY) {
         //		System.out.println("------------------------------------------");

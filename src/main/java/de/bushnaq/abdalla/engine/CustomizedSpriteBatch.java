@@ -16,11 +16,13 @@
 
 package de.bushnaq.abdalla.engine;
 
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.PolygonRegion;
 import com.badlogic.gdx.graphics.g2d.PolygonSpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
+import com.badlogic.gdx.math.Vector3;
 
 /**
  * Draws batched quads using indices.
@@ -290,5 +292,32 @@ public class CustomizedSpriteBatch extends PolygonSpriteBatch {
          * vertices[idx++] = y + (float)Math.cos( nextAngle + overlapping ) * endRadius; vertices[idx++] = color; vertices[idx++] = u2; vertices[idx++] = v2; vertices[idx++] = x + (float)Math.sin( nextAngle + overlapping
          * ) * startRadius; vertices[idx++] = y + (float)Math.cos( nextAngle + overlapping ) * startRadius; vertices[idx++] = color; vertices[idx++] = u; vertices[idx++] = v; } this.idx = idx;
          */
+    }
+
+    public void line(final TextureRegion texture, final float x1, final float y1, final float x2, final float y2, final Color color, final float aThickness) {
+        // the center of your hand
+        final Vector3 center = new Vector3(x1, y1, 0);
+        // you need a vector from the center to your touchpoint
+        final Vector3 touchPoint = new Vector3(x2, y2, 0);
+        touchPoint.sub(center);
+        // now convert into polar angle
+        double rotation = Math.atan2(touchPoint.y, touchPoint.x);
+        // rotation should now be between -PI and PI
+        // so scale to 0..1
+        rotation = (rotation + Math.PI) / (Math.PI * 2);
+        // SpriteBatch.draw needs degrees
+        rotation *= 360;
+        // add Offset because of reasons
+        rotation += 90;
+        setColor(color);
+        draw(texture, x1, // x, center of rotation
+                y1, // y, center of rotation
+                aThickness / 2, // origin x in the texture region
+                0, // origin y in the texture region
+                aThickness, // width
+                touchPoint.len(), // height
+                1.0f, // scale x
+                1.0f, // scale y
+                (float) rotation);
     }
 }
