@@ -87,6 +87,7 @@ import java.util.zip.Deflater;
 public class RenderEngine3D<T extends RenderEngineExtension> {
     public final  Matrix4                     identityMatrix                   = new Matrix4();
     public final  Array<GameObject<T>>        staticGameObjects                = new Array<>();
+    final         Vector3                     xVector                          = new Vector3(1, 0, 0);
     private final AtlasRegion                 atlasRegion;
     private final BitmapFont                  boldFont;
     private final MovingCamera                camera;
@@ -1336,10 +1337,7 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
                 renderutils2Dxz.batch.setTransformMatrix(identityMatrix);
                 renderutils2Dxz.batch.enableBlending();
                 renderutils2Dxz.batch.setProjectionMatrix(camera.combined);
-                final Matrix4 m       = new Matrix4();
-                final Vector3 xVector = new Vector3(1, 0, 0);
-                final Vector3 yVector = new Vector3(0, 1, 0);
-                final Vector3 zVector = new Vector3(0, 0, 1);
+                final Matrix4 m = new Matrix4();
                 m.translate(0, 0.2f, 0);
                 m.rotate(xVector, -90);
                 renderutils2Dxz.batch.setTransformMatrix(m);
