@@ -26,6 +26,11 @@ import com.badlogic.gdx.math.collision.BoundingBox;
 import com.scottlogic.util.GL32CMacIssueHandler;
 import com.scottlogic.util.ShaderCompatibilityHelper;
 
+/**
+ * engine to draw 2D on a 3D scene like a 2D hud
+ *
+ * @param <T>
+ */
 public class RenderEngine2D<T> {
     public CustomizedSpriteBatch batch;
     public OrthographicCamera    camera;
@@ -145,8 +150,8 @@ public class RenderEngine2D<T> {
         final float y2       = (float) (y + height / 2 - end * Math.cos(angle));
         final float x3       = x2 + width * 3 * camera.zoom;
         final float thicknes = 2.0f * camera.zoom;
-        batch.line(textureRegion, x1, y1, x2, y2, lableColor, thicknes);
-        batch.line(textureRegion, x2, y2, x3, y2, lableColor, thicknes);
+        batch.line(textureRegion, x1, 0, y1, x2, 0, y2, lableColor, thicknes);
+        batch.line(textureRegion, x2, 0, y2, x3, 0, y2, lableColor, thicknes);
         layout.setText(font, name);
         text(x2, y2 - layout.height * 1.1f, font, nameColor, nameColor, name);
         layout.setText(font, value);

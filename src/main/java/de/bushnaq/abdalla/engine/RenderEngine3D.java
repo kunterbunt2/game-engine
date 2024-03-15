@@ -131,6 +131,7 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
     public        Model                       rayCube;
     public        boolean                     render2D                         = true;
     public        boolean                     render3D                         = true;
+    public        RenderEngine25D<T>          renderEngine25D;
     public        RenderEngine2D<T>           renderEngine2D;
     public        Render2Dxz<T>               renderutils2Dxz;
     public        int                         testCase                         = 1;
@@ -202,6 +203,7 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
         this.boldFont    = boldFont;
         this.atlasRegion = atlasRegion;
         renderEngine2D   = new RenderEngine2D<>(gameEngine, camera2D);
+        renderEngine25D  = new RenderEngine25D<>(gameEngine, camera2D);
         if (testCase == 1) {
             renderutils2Dxz = new Render2Dxz<>(gameEngine, camera);
         }
@@ -1022,9 +1024,9 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
     private void render3DText() {
         Gdx.gl.glEnable(GL20.GL_DEPTH_TEST);
         if (render3D) {
-            renderEngine2D.batch.begin();
-            renderEngine2D.batch.enableBlending();
-            renderEngine2D.batch.setProjectionMatrix(camera.combined);
+            renderEngine25D.batch.begin();
+            renderEngine25D.batch.enableBlending();
+            renderEngine25D.batch.setProjectionMatrix(camera.combined);
             profiler.setStaticText3D(staticText3DList.size());
             for (final ObjectRenderer<T> renderer : staticText3DList) {
                 renderer.renderText(this, 0, false);
@@ -1047,8 +1049,8 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
                     }
                 }
             }
-            renderEngine2D.batch.end();
-            renderEngine2D.batch.setTransformMatrix(identityMatrix);// fix transformMatrix
+            renderEngine25D.batch.end();
+            renderEngine25D.batch.setTransformMatrix(identityMatrix);// fix transformMatrix
         }
     }
 

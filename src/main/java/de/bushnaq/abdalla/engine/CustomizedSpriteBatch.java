@@ -294,14 +294,14 @@ public class CustomizedSpriteBatch extends PolygonSpriteBatch {
          */
     }
 
-    public void line(final TextureRegion texture, final float x1, final float y1, final float x2, final float y2, final Color color, final float aThickness) {
+    public void line(final TextureRegion texture, final float x1, final float y1, final float z1, final float x2, final float y2, final float z2, final Color color, final float aThickness) {
         // the center of your hand
-        final Vector3 center = new Vector3(x1, y1, 0);
+        final Vector3 center = new Vector3(x1, y1, z1);
         // you need a vector from the center to your touchpoint
-        final Vector3 touchPoint = new Vector3(x2, y2, 0);
+        final Vector3 touchPoint = new Vector3(x2, y2, z2);
         touchPoint.sub(center);
         // now convert into polar angle
-        double rotation = Math.atan2(touchPoint.y, touchPoint.x);
+        double rotation = Math.atan2(touchPoint.z, touchPoint.x);
         // rotation should now be between -PI and PI
         // so scale to 0..1
         rotation = (rotation + Math.PI) / (Math.PI * 2);
@@ -311,7 +311,7 @@ public class CustomizedSpriteBatch extends PolygonSpriteBatch {
         rotation += 90;
         setColor(color);
         draw(texture, x1, // x, center of rotation
-                y1, // y, center of rotation
+                z1, // y, center of rotation
                 aThickness / 2, // origin x in the texture region
                 0, // origin y in the texture region
                 aThickness, // width
