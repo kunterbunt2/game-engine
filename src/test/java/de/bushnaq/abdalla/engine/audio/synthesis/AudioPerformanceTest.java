@@ -54,7 +54,7 @@ public class AudioPerformanceTest {
         final List<Synthesizer> synths = new ArrayList<>();
 
         final BasicAudioEngine audioEngine = new BasicAudioEngine(44100);
-        audioEngine.create();
+        audioEngine.create(null);
         createCamera();
         final int numberOfSources = audioEngine.getMaxMonoSources();
 

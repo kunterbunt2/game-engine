@@ -57,7 +57,7 @@ public class SinOscilliatorTest {
     @Test
     public void renderPerformanceTest() throws Exception {
         final SinAudioEngine audioEngine = new SinAudioEngine();
-        audioEngine.create();
+        audioEngine.create(null);
         createCamera();
         final int               numberOfSources = audioEngine.getMaxMonoSources();
         final List<Synthesizer> synths          = new ArrayList<>();
@@ -86,7 +86,7 @@ public class SinOscilliatorTest {
     @Test
     public void renderSpeedTest() throws Exception {
         final SinAudioEngine audioEngine = new SinAudioEngine();
-        audioEngine.create();
+        audioEngine.create(null);
         createCamera();
         {
             final SinSynthesizer synth = audioEngine.createAudioProducer(SinSynthesizer.class);
@@ -132,7 +132,7 @@ public class SinOscilliatorTest {
     @Test
     public void renderTest() throws Exception {
         final SinAudioEngine audioEngine = new SinAudioEngine();
-        audioEngine.create();
+        audioEngine.create(null);
         createCamera();
         {
             final Synthesizer synth = audioEngine.createAudioProducer(SinSynthesizer.class);

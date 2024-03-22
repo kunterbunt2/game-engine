@@ -14,26 +14,8 @@
  * limitations under the License.
  */
 
-package de.bushnaq.abdalla.engine.audio.synthesis.util;
+package de.bushnaq.abdalla.engine.audio;
 
-import de.bushnaq.abdalla.engine.IContextFactory;
-
-/**
- * @author kunterbunt
- */
-public class BaiscDesktopContextFactory implements IContextFactory {
-    private Context context;
-
-    @Override
-    public Context create() {
-        if (context == null) {
-            context = new BasicDesktopContext();
-        }
-        return getContext();
-    }
-
-    Context getContext() {
-        return context;
-    }
-
+public enum RadioMessageId {
+    REQUEST_TO_DOCK, APPROVE_TO_DOCK
 }

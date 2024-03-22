@@ -18,14 +18,14 @@ package de.bushnaq.abdalla.engine.audio.synthesis.util;
 
 import de.bushnaq.abdalla.engine.RenderEngine3D;
 
-public class CircularCubeRenderer extends CubeRenderer {
+public class OggCubeRenderer extends CubeRenderer {
     public float angle;
     public float angleSpeed;
     public float radius1;
     public float radius2;
 
-    public CircularCubeRenderer(CircularCubeActor cube, int mode) {
-        super(cube, mode, SynthType.SYNTH);
+    public OggCubeRenderer(OggCubeActor cube, SynthType synthType) {
+        super(cube, 0, synthType);
     }
 
     @Override

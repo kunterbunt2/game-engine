@@ -16,18 +16,18 @@
 
 package de.bushnaq.abdalla.engine.audio;
 
-import de.bushnaq.abdalla.engine.audio.synthesis.AbstractSynthesizerFactory;
+public class RadioMessage {
+    public CommunicationPartner from;
+    public RadioMessageId       id;
+    public String               message;
+    public long                 time;
+    public CommunicationPartner to;
 
-public class Mp3PlayerFactory extends AbstractSynthesizerFactory<OggPlayer> {
-
-    @Override
-    public Class<OggPlayer> handles() {
-        return OggPlayer.class;
+    public RadioMessage(long currentTime, CommunicationPartner from, CommunicationPartner to, RadioMessageId id, String message) {
+        time         = currentTime;
+        this.from    = from;
+        this.to      = to;
+        this.id      = id;
+        this.message = message;
     }
-
-    @Override
-    public OggPlayer uncacheSynth() throws OpenAlException {
-        return new OggPlayer();
-    }
-
 }

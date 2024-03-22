@@ -110,7 +110,7 @@ public class OpenAlSource extends Thread {
         AudioEngine.checkAlError("Openal error #");
         logger.trace("created source " + source);
 
-        AL10.alSourcef(source, AL10.AL_REFERENCE_DISTANCE, 1f);
+        AL10.alSourcef(source, AL10.AL_REFERENCE_DISTANCE, 0.1f);
         AudioEngine.checkAlError("Openal error #");
 
         AL10.alSourcef(source, AL10.AL_MAX_DISTANCE, Float.MAX_VALUE);

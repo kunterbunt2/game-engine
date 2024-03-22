@@ -31,7 +31,7 @@ public class LiniarCubeRenderer extends CubeRenderer {
     private              int     switchedDirection;
 
     public LiniarCubeRenderer(LiniarCubeActor cube, int mode) {
-        super(cube, mode);
+        super(cube, mode, SynthType.SYNTH);
     }
 
     @Override

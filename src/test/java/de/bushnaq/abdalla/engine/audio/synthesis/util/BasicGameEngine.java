@@ -86,7 +86,7 @@ public abstract class BasicGameEngine implements ApplicationListener, InputProce
     @Override
     public void create() {
         try {
-            BaiscDesktopContextFactory contextFactory = new BaiscDesktopContextFactory();
+            BasicDesktopContextFactory contextFactory = new BasicDesktopContextFactory();
             Context                    context        = contextFactory.create();
             createCamera();
             createInputProcessor(this);
@@ -107,7 +107,7 @@ public abstract class BasicGameEngine implements ApplicationListener, InputProce
             getRenderEngine().setSceneBoxMax(new Vector3(1000, 1000, 1000));
             getRenderEngine().setShowGraphs(true);
             createEnvironment();
-            getAudioEngine().create();
+            getAudioEngine().create(null);
         } catch (final Exception e) {
             logger.error(e.getMessage(), e);
         }
@@ -183,7 +183,7 @@ public abstract class BasicGameEngine implements ApplicationListener, InputProce
         config.setForegroundFPS(0);
         config.setResizable(false);
         config.setOpenGLEmulation(Lwjgl3ApplicationConfiguration.GLEmulation.GL30, 3, 2); // use GL 3.0 (emulated by OpenGL 3.2)
-        config.setBackBufferConfig(8, 8, 8, 8, 16, 0, 4);
+        config.setBackBufferConfig(8, 8, 8, 8, 16, 0, 16);
         config.setTitle("game-engine-test");
         {
             ShaderProgram.prependVertexCode   = "#version 150\n"//

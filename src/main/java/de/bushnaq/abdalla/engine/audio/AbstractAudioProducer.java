@@ -123,9 +123,9 @@ public abstract class AbstractAudioProducer implements AudioProducer {
             this.velocity.set(velocity[0], velocity[1], velocity[2]);
             adaptToVelocity(this.velocity.len());
         }
-        if (isEnabled()) {
-            //			source.setVelocity(position, velocity);
-        }
+//        if (isEnabled()) {
+        //			source.setVelocity(position, velocity);
+//        }
     }
 
     @Override

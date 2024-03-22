@@ -16,20 +16,21 @@
 
 package de.bushnaq.abdalla.engine.audio.synthesis;
 
-import de.bushnaq.abdalla.engine.audio.synthesis.util.CircularCubeActor;
+import de.bushnaq.abdalla.engine.audio.synthesis.util.OggCubeActor;
+import de.bushnaq.abdalla.engine.audio.synthesis.util.SynthType;
 import de.bushnaq.abdalla.engine.audio.synthesis.util.TranslationUtil;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class CircularTranslationTest extends TranslationUtil {
+public class PositionalOggStreamingTest extends TranslationUtil {
     private static final int    NUMBER_OF_SOURCES = 1;
     private final        Logger logger            = LoggerFactory.getLogger(this.getClass());
-    CircularCubeActor[] ccaa = new CircularCubeActor[NUMBER_OF_SOURCES];
+    OggCubeActor[] ccaa = new OggCubeActor[NUMBER_OF_SOURCES];
 
     @Test
     public void circularTranslatingSources() {
-        runFor = 10000;
+        runFor = 20000;
         startLwjgl();
     }
 
@@ -37,7 +38,7 @@ public class CircularTranslationTest extends TranslationUtil {
     public void create() {
         super.create();
         for (int i = 0; i < NUMBER_OF_SOURCES; i++) {
-            ccaa[i] = new CircularCubeActor(i, 0);
+            ccaa[i] = new OggCubeActor(i, SynthType.OGG);
             ccaa[i].get3DRenderer().create(getRenderEngine());
         }
     }

@@ -18,16 +18,16 @@ package de.bushnaq.abdalla.engine.audio;
 
 import de.bushnaq.abdalla.engine.audio.synthesis.AbstractSynthesizerFactory;
 
-public class Mp3PlayerFactory extends AbstractSynthesizerFactory<OggPlayer> {
+public class TTSPlayerFactory extends AbstractSynthesizerFactory<TTSPlayer> {
 
     @Override
-    public Class<OggPlayer> handles() {
-        return OggPlayer.class;
+    public Class<TTSPlayer> handles() {
+        return TTSPlayer.class;
     }
 
     @Override
-    public OggPlayer uncacheSynth() throws OpenAlException {
-        return new OggPlayer();
+    public TTSPlayer uncacheSynth() throws OpenAlException {
+        return new TTSPlayer();
     }
 
 }

@@ -19,15 +19,18 @@ package de.bushnaq.abdalla.engine.audio;
 import com.badlogic.gdx.backends.lwjgl3.audio.OggInputStream;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.utils.StreamUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.nio.ByteBuffer;
 
 import static org.lwjgl.openal.AL10.AL_FORMAT_MONO16;
 import static org.lwjgl.openal.AL10.AL_FORMAT_STEREO16;
 
-public class Mp3Player extends AbstractAudioProducer {
+public class OggPlayer extends AbstractAudioProducer {
     static private final int        bufferSize     = 4096 * 10;
     static private final int        bytesPerSample = 2;
+    private final        Logger     logger         = LoggerFactory.getLogger(this.getClass());
     //	static private final int bufferSize = 4096 * 10;
     //	static private final int bytesPerSample = 2;
     //	private Bitstream bitstream;
@@ -39,11 +42,10 @@ public class Mp3Player extends AbstractAudioProducer {
     int channels;
     private int format, sampleRate;
     private OggInputStream input;
-
     private OggInputStream previousInput;
     private float          renderedSeconds, maxSecondsPerBuffer;
 
-    public Mp3Player() {
+    public OggPlayer() {
         setAmbient(true);//always follows camera
     }
 
@@ -64,6 +66,7 @@ public class Mp3Player extends AbstractAudioProducer {
             setup(input.getChannels(), input.getSampleRate());
             previousInput = null; // release this reference
         }
+//        logger.info("buffer=" + byteBuffer.capacity());
         for (int i = 0; i < byteBuffer.capacity(); i++) {
             final int value = input.read();
             if (value == -1)
@@ -165,5 +168,6 @@ public class Mp3Player extends AbstractAudioProducer {
         this.sampleRate     = sampleRate;
         maxSecondsPerBuffer = (float) bufferSize / (bytesPerSample * channels * sampleRate);
     }
+
 
 }

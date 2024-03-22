@@ -37,31 +37,33 @@ import java.util.Map;
  * @author abdalla bushnaq
  */
 public class AudioEngine {
-    private static final int                 START_RADIUS   = 1500;
-    private static final int                 STOP_RADIUS    = 2000;
+    private static final int                 START_RADIUS     = 1500;
+    private static final int                 STOP_RADIUS      = 2000;
     private static       ALCapabilities      alCapabilities;
     private static       ALCCapabilities     alcCapabilities;
     private static       long                device;
-    private static       Logger              logger         = LoggerFactory.getLogger(AudioEngine.class);
+    private static       Logger              logger           = LoggerFactory.getLogger(AudioEngine.class);
     private final        int                 bits;
-    private final        Vector3             direction      = new Vector3();//direction of the listener (what direction is he looking to)
-    private final        float               disableRadius2 = STOP_RADIUS * STOP_RADIUS;//all audio streams that are located further away will be stopped and removed
-    private final        float               enableRadius2  = START_RADIUS * START_RADIUS;//an audio streams that gets closer will get added and started
-    private final        Vector3             position       = new Vector3();//position of the listener
+    private final        Vector3             direction        = new Vector3();//direction of the listener (what direction is he looking to)
+    private final        float               disableRadius2   = STOP_RADIUS * STOP_RADIUS;//all audio streams that are located further away will be stopped and removed
+    private final        float               enableRadius2    = START_RADIUS * START_RADIUS;//an audio streams that gets closer will get added and started
+    private final        Vector3             listenerPosition = new Vector3();//position of the listener, usually the camera
+    private final        Vector3             listenerVelocity = new Vector3();//the velocity of the listener, usually the camera
     private final        int                 samplerate;
     private final        int                 samples;
     //	private MovingCamera camera;
     //	private final SynthesizerFactory<T> synthFactory;
-    private final        List<AudioProducer> synths         = new UnsortedList<>();
-    private final        List<OpenAlSource>  unusedSources  = new ArrayList<>();
-    private final        Vector3             up             = new Vector3();//what is up direction for the listener?
-    private final        Vector3             velocity       = new Vector3();//the velocity of the listener
+    private final        List<AudioProducer> synths           = new UnsortedList<>();
+    private final        List<OpenAlSource>  unusedSources    = new ArrayList<>();
+    private final        Vector3             up               = new Vector3();//what is up direction for the listener?
+    public               RadioTTS            radioTTS;
     int                                                              auxiliaryEffectSlot;
     Map<String, AbstractSynthesizerFactory<? extends AudioProducer>> factoryMap = new HashMap<>();
     private long context;
     private int  effect;
     private int  enabledAudioSourceCount = 0;
     private int  maxMonoSources          = 0;
+    private int  numberOfSources         = 0;
 
     public AudioEngine(final int samples, final int samplerate, final int bits/*, final int channels*/) {
         this.samples    = samples;
@@ -157,17 +159,17 @@ public class AudioEngine {
         //			velocity.set(camera.velocity.x, camera.velocity.y, camera.velocity.z);
         //			updateCamera();
         //		}
-        if (!position.equals(camera.position) || !up.equals(camera.up) || !direction.equals(camera.direction) || !velocity.equals(camera.velocity)) {
-            position.set(camera.position.x, camera.position.y, camera.position.z);//isometric view with camera hight but lookat location
+        if (!listenerPosition.equals(camera.position) || !up.equals(camera.up) || !direction.equals(camera.direction) || !listenerVelocity.equals(camera.velocity)) {
+            listenerPosition.set(camera.position.x, camera.position.y, camera.position.z);//isometric view with camera hight but lookat location
             up.set(camera.up.x, camera.up.y, camera.up.z);
             direction.set(camera.direction.x, camera.direction.y, camera.direction.z);//ignore y axis in isometric game?
-            velocity.set(camera.velocity.x, camera.velocity.y, camera.velocity.z);
+            listenerVelocity.set(camera.velocity.x, camera.velocity.y, camera.velocity.z);
             updateCamera();
         }
         cullSynths();
     }
 
-    public void create() throws OpenAlException {
+    public void create(String assetFolderName) throws OpenAlException {
         //		List<String> list = ALUtil.getStringList(0, ALC10.ALC_DEVICE_SPECIFIER/*, EnumerateAllExt.ALC_DEFAULT_ALL_DEVICES_SPECIFIER*/);
         final String deviceinfo = ALC10.alcGetString(0, EnumerateAllExt.ALC_DEFAULT_ALL_DEVICES_SPECIFIER);
         logger.info("Device: " + deviceinfo);
@@ -213,10 +215,8 @@ public class AudioEngine {
         }
         setListenerOrientation(new Vector3(0, 0, -1), new Vector3(0, 1, 0));
         createAuxiliaryEffectSlot();
+        radioTTS = new RadioTTS(this, assetFolderName);
     }
-
-    //	MercatorSynthesizerFactory mercatorSynthesizerFactory = new MercatorSynthesizerFactory();
-    //	Mp3PlayerFactory mp3PlayerFactory = new Mp3PlayerFactory();
 
     public <T extends AudioProducer> T createAudioProducer(final Class<T> clazz) throws OpenAlException {
 
@@ -275,10 +275,10 @@ public class AudioEngine {
     private void cullSynths() throws OpenAlException {
         enabledAudioSourceCount = 0;
         for (final AudioProducer synth : synths) {
-            if (!synth.isAmbient() && position.dst2(synth.getPosition()) > disableRadius2) {
+            if (synth.isEnabled() && (!synth.isAmbient() && listenerPosition.dst2(synth.getPosition()) > disableRadius2)) {
                 //disable synth
                 disableSynth(synth);
-            } else if (synth.isAmbient() || position.dst2(synth.getPosition()) < enableRadius2) {
+            } else if (!synth.isEnabled() && (synth.isAmbient() || listenerPosition.dst2(synth.getPosition()) < enableRadius2)) {
                 //enable synth
                 enableSynth(synth);
             } else {
@@ -288,6 +288,9 @@ public class AudioEngine {
             }
         }
     }
+
+    //	MercatorSynthesizerFactory mercatorSynthesizerFactory = new MercatorSynthesizerFactory();
+    //	Mp3PlayerFactory mp3PlayerFactory = new Mp3PlayerFactory();
 
     public void disableHrtf(final int index) throws OpenAlException {
         int         i    = 0;
@@ -316,6 +319,7 @@ public class AudioEngine {
     }
 
     public void dispose() throws OpenAlException {
+        radioTTS.dispose();
         for (final AudioProducer synth : synths) {
             synth.dispose();
         }
@@ -371,9 +375,15 @@ public class AudioEngine {
             OpenAlSource source;
             if (unusedSources.size() > 0)
                 source = unusedSources.remove(unusedSources.size() - 1);
-            else
-                source = new OpenAlSource(samples, samplerate, bits, synth.getChannels(), auxiliaryEffectSlot);
-            synth.enable(source);
+            else {
+                if (numberOfSources < 255) {
+                    source = new OpenAlSource(samples, samplerate, bits, synth.getChannels(), auxiliaryEffectSlot);
+                    synth.enable(source);
+                    numberOfSources++;
+                } else {
+                    logger.error("Max openal source number (255) reached. Source not created!");
+                }
+            }
         }
         enabledAudioSourceCount++;
     }
@@ -389,8 +399,16 @@ public class AudioEngine {
         return enabledAudioSourceCount;
     }
 
+    public Vector3 getListenerPosition() {
+        return listenerPosition;
+    }
+
     public int getMaxMonoSources() {
         return maxMonoSources;
+    }
+
+    public int getNumberOfSources() {
+        return numberOfSources;
     }
 
     public int getSamplerate() {
@@ -433,6 +451,13 @@ public class AudioEngine {
         auxiliaryEffectSlot = 0;
     }
 
+    public void say(RadioMessage rm) {
+        if (rm.from.isSelected() || rm.to.isSelected()) {
+            radioTTS.speak(rm.message);
+            logger.info(rm.message);
+        }
+    }
+
     private void setListenerOrientation(final Vector3 direction, final Vector3 up) throws OpenAlException {
         final float[] array = new float[]{direction.x, direction.y, direction.z, up.x, up.y, up.z};
         AL10.alListenerfv(AL10.AL_ORIENTATION, array);
@@ -453,7 +478,8 @@ public class AudioEngine {
 
     private void updateCamera() throws OpenAlException {
         setListenerOrientation(direction, up);
-        setListenerPositionAndVelocity(position, velocity);
+//        logger.info(String.format("listenerPosition= %f %f %f", listenerPosition.x, listenerPosition.y, listenerPosition.z));
+        setListenerPositionAndVelocity(listenerPosition, listenerVelocity);
     }
 
 }

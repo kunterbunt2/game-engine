@@ -14,20 +14,14 @@
  * limitations under the License.
  */
 
-package de.bushnaq.abdalla.engine.audio;
+package de.bushnaq.abdalla.engine.audio.synthesis.util;
 
-import de.bushnaq.abdalla.engine.audio.synthesis.AbstractSynthesizerFactory;
+public class OggCubeActor extends CubeActor {
 
-public class Mp3PlayerFactory extends AbstractSynthesizerFactory<OggPlayer> {
-
-    @Override
-    public Class<OggPlayer> handles() {
-        return OggPlayer.class;
+    public OggCubeActor(int index, SynthType synthType) {
+        super(index);
+        set3DRenderer(new OggCubeRenderer(this, synthType));
     }
 
-    @Override
-    public OggPlayer uncacheSynth() throws OpenAlException {
-        return new OggPlayer();
-    }
 
 }

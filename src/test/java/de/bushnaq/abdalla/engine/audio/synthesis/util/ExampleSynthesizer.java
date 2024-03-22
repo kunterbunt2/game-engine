@@ -43,18 +43,18 @@ public class ExampleSynthesizer extends Synthesizer {
         saw1 = new SawOscillator();
         add(saw1);
         saw2 = new SawOscillator();
-        add(saw2);
+//        add(saw2);
         saw3 = new SawOscillator();
-        add(saw3);
+//        add(saw3);
         saw4 = new SawOscillator();
-        add(saw4);
+//        add(saw4);
         sin1 = new SinOscillator();
-        add(sin1);
+//        add(sin1);
         sin2 = new SinOscillator();
-        add(sin2);
+//        add(sin2);
 
         lfo1 = new Lfo1();
-        add(lfo1);
+//        add(lfo1);
         adaptToVelocity(15);
     }
 

@@ -181,6 +181,7 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
     private       boolean                     useDynamicCache                  = false;
     private       VfxManager                  vfxManager                       = null;
 
+
     public RenderEngine3D(final IContext context, T gameEngine, MovingCamera camera, OrthographicCamera camera2D, BitmapFont font, BitmapFont boldFont, AtlasRegion atlasRegion) throws Exception {
 //		logger.info(String.format("GL_VERSION = %s", Gdx.gl.glGetString(GL20.GL_VERSION)));
 //		logger.info(String.format("GL_ES_VERSION_2_0 = %s", Gdx.gl.glGetString(GL20.GL_ES_VERSION_2_0)));

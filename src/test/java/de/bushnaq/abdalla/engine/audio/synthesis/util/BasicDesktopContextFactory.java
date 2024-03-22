@@ -14,20 +14,26 @@
  * limitations under the License.
  */
 
-package de.bushnaq.abdalla.engine.audio;
+package de.bushnaq.abdalla.engine.audio.synthesis.util;
 
-import de.bushnaq.abdalla.engine.audio.synthesis.AbstractSynthesizerFactory;
+import de.bushnaq.abdalla.engine.IContextFactory;
 
-public class Mp3PlayerFactory extends AbstractSynthesizerFactory<OggPlayer> {
+/**
+ * @author kunterbunt
+ */
+public class BasicDesktopContextFactory implements IContextFactory {
+    private Context context;
 
     @Override
-    public Class<OggPlayer> handles() {
-        return OggPlayer.class;
+    public Context create() {
+        if (context == null) {
+            context = new BasicDesktopContext();
+        }
+        return getContext();
     }
 
-    @Override
-    public OggPlayer uncacheSynth() throws OpenAlException {
-        return new OggPlayer();
+    Context getContext() {
+        return context;
     }
 
 }

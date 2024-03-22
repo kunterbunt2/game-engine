@@ -16,10 +16,10 @@
 
 package de.bushnaq.abdalla.engine.audio.synthesis.util;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
-import com.badlogic.gdx.graphics.g2d.PolygonSpriteBatch;
 import com.badlogic.gdx.graphics.g3d.Attribute;
 import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.Model;
@@ -28,6 +28,7 @@ import com.badlogic.gdx.math.Vector3;
 import de.bushnaq.abdalla.engine.GameObject;
 import de.bushnaq.abdalla.engine.ObjectRenderer;
 import de.bushnaq.abdalla.engine.RenderEngine3D;
+import de.bushnaq.abdalla.engine.audio.OggPlayer;
 import de.bushnaq.abdalla.engine.audio.synthesis.Synthesizer;
 import de.bushnaq.abdalla.engine.util.ModelCreator;
 import net.mgsx.gltf.scene3d.attributes.PBRColorAttribute;
@@ -55,17 +56,20 @@ public class CubeRenderer extends ObjectRenderer<BasicGameEngine> {
     private final          float[]                     lastVelocityArray = new float[3];
     private final          Logger                      logger            = LoggerFactory.getLogger(this.getClass());
     private final          float[]                     positionArray     = new float[3];
+    private final          SynthType                   synthType;
     private final          float[]                     velocityArray     = new float[3];
     protected              Vector3                     origin            = new Vector3();
     protected              Vector3                     position          = new Vector3();
     protected              Vector3                     velocity          = new Vector3();
     private                GameObject<BasicGameEngine> go;
+    private                OggPlayer                   oggPlayer;
     private                Synthesizer                 synth;
 
-    public CubeRenderer(CubeActor cube, int mode) {
+    public CubeRenderer(CubeActor cube, int mode, SynthType synthType) {
         super();
-        this.cube = cube;
-        this.mode = mode;
+        this.cube      = cube;
+        this.mode      = mode;
+        this.synthType = synthType;
     }
 
     public static Color getColor(final int index) {
@@ -90,8 +94,24 @@ public class CubeRenderer extends ObjectRenderer<BasicGameEngine> {
         try {
             go = new GameObject<>(new ModelInstanceHack(createCube(getColor(cube.index))), null, this);
             renderEngine.addDynamic(go);
-            synth = renderEngine.getGameEngine().getAudioEngine().createAudioProducer(ExampleSynthesizer.class);
-            synth.play();
+            switch (synthType) {
+                case SYNTH -> {
+                    synth = renderEngine.getGameEngine().getAudioEngine().createAudioProducer(ExampleSynthesizer.class);
+                    synth.play();
+                }
+                case AMBIENT_OGG -> {
+                    oggPlayer = renderEngine.getGameEngine().getAudioEngine().createAudioProducer(OggPlayer.class);
+                    oggPlayer.setFile(Gdx.files.internal(BasicAtlasManager.getAssetsFolderName() + "/audio/06-abyss(m).ogg"));
+                    oggPlayer.setGain(150.0f);
+                    oggPlayer.setAmbient(true);
+                }
+                case OGG -> {
+                    oggPlayer = renderEngine.getGameEngine().getAudioEngine().createAudioProducer(OggPlayer.class);
+                    oggPlayer.setFile(Gdx.files.internal(BasicAtlasManager.getAssetsFolderName() + "/audio/thrusters_loopwav-14699.ogg"));
+                    oggPlayer.setGain(150.0f);
+                    oggPlayer.setAmbient(true);
+                }
+            }
         } catch (final Exception e) {
             logger.info(e.getMessage(), e);
         }
@@ -117,7 +137,6 @@ public class CubeRenderer extends ObjectRenderer<BasicGameEngine> {
 
     @Override
     public void update(final RenderEngine3D<BasicGameEngine> renderEngine, final long currentTime, final float timeOfDay, final int index, final boolean selected) throws Exception {
-        synth.play();
         go.instance.transform.setToTranslationAndScaling(position.x, position.y, position.z, CUBE_SIZE, CUBE_SIZE, CUBE_SIZE);
         positionArray[0] = position.x;
         positionArray[1] = position.y;
@@ -136,8 +155,21 @@ public class CubeRenderer extends ObjectRenderer<BasicGameEngine> {
                 break;
             }
         }
+        switch (synthType) {
+            case SYNTH -> {
+                synth.play();
+                if (update) {
+                    synth.setPositionAndVelocity(positionArray, velocityArray);
+                }
+            }
+            case AMBIENT_OGG, OGG -> {
+                oggPlayer.play();
+                if (update) {
+                    oggPlayer.setPositionAndVelocity(positionArray, velocityArray);
+                }
+            }
+        }
         if (update) {
-            synth.setPositionAndVelocity(positionArray, velocityArray);
             System.arraycopy(velocityArray, 0, lastVelocityArray, 0, 3);
             System.arraycopy(positionArray, 0, lastPositionArray, 0, 3);
         }
@@ -161,8 +193,8 @@ public class CubeRenderer extends ObjectRenderer<BasicGameEngine> {
         final float y = aY;
         final float z = aZ;
         //draw text
-        final PolygonSpriteBatch batch = renderEngine.renderEngine2D.batch;
-        final BitmapFont         font  = renderEngine.getGameEngine().getAtlasManager().modelFont;
+//        final PolygonSpriteBatch batch = renderEngine.renderEngine2D.batch;
+        final BitmapFont font = renderEngine.getGameEngine().getAtlasManager().modelFont;
         {
             final Matrix4     m        = new Matrix4();
             final float       fontSize = font.getLineHeight();
@@ -181,9 +213,10 @@ public class CubeRenderer extends ObjectRenderer<BasicGameEngine> {
                 m.scale(scaling, scaling, 1f);
 
             }
-            batch.setTransformMatrix(m);
-            font.setColor(CUBE_NAME_COLOR);
-            font.draw(batch, text, 0, 0);
+            renderEngine.renderEngine25D.setTransformMatrix(m);
+//            font.setColor(CUBE_NAME_COLOR);
+//            font.draw(batch, text, 0, 0);
+            renderEngine.renderEngine25D.text(0, 0, font, Color.BLACK, CUBE_NAME_COLOR, text);
         }
     }
 

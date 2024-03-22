@@ -16,18 +16,12 @@
 
 package de.bushnaq.abdalla.engine.audio;
 
-import de.bushnaq.abdalla.engine.audio.synthesis.AbstractSynthesizerFactory;
+public interface CommunicationPartner {
+    public static final long RADIO_ANSWER_DELAY = 1000;//ms
 
-public class Mp3PlayerFactory extends AbstractSynthesizerFactory<OggPlayer> {
+    String getName();
 
-    @Override
-    public Class<OggPlayer> handles() {
-        return OggPlayer.class;
-    }
+    boolean isSelected();
 
-    @Override
-    public OggPlayer uncacheSynth() throws OpenAlException {
-        return new OggPlayer();
-    }
-
+    void radio(RadioMessage message);
 }

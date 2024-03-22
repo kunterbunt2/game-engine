@@ -14,20 +14,8 @@
  * limitations under the License.
  */
 
-package de.bushnaq.abdalla.engine.audio;
+package de.bushnaq.abdalla.engine.audio.synthesis.util;
 
-import de.bushnaq.abdalla.engine.audio.synthesis.AbstractSynthesizerFactory;
-
-public class Mp3PlayerFactory extends AbstractSynthesizerFactory<OggPlayer> {
-
-    @Override
-    public Class<OggPlayer> handles() {
-        return OggPlayer.class;
-    }
-
-    @Override
-    public OggPlayer uncacheSynth() throws OpenAlException {
-        return new OggPlayer();
-    }
-
+public enum SynthType {
+    SYNTH, AMBIENT_OGG, OGG
 }

@@ -17,9 +17,11 @@
 package de.bushnaq.abdalla.engine.audio;
 
 import com.badlogic.gdx.backends.lwjgl3.audio.OggInputStream;
+import com.badlogic.gdx.backends.lwjgl3.audio.Wav;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.utils.StreamUtils;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 
 import static org.lwjgl.openal.AL10.AL_FORMAT_MONO16;
@@ -38,13 +40,13 @@ public class TTSPlayer extends AbstractAudioProducer {
     protected            FileHandle file;
     int channels;
     private int format, sampleRate;
-    private OggInputStream input;
+    private Wav.WavInputStream input;
 
     private OggInputStream previousInput;
     private float          renderedSeconds, maxSecondsPerBuffer;
 
     public TTSPlayer() {
-        setAmbient(true);//always follows camera
+        setAmbient(false);//always follows camera
     }
 
     @Override
@@ -60,12 +62,17 @@ public class TTSPlayer extends AbstractAudioProducer {
     @Override
     public void processBuffer(final ByteBuffer byteBuffer) {
         if (input == null) {
-            input = new OggInputStream(file.read());
-            setup(input.getChannels(), input.getSampleRate());
+            input = new Wav.WavInputStream(file);
+            setup(input.channels, input.sampleRate);
             previousInput = null; // release this reference
         }
         for (int i = 0; i < byteBuffer.capacity(); i++) {
-            final int value = input.read();
+            final int value;
+            try {
+                value = input.read();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
             if (value == -1)
                 break;
             byteBuffer.put(i, (byte) value);
@@ -155,9 +162,9 @@ public class TTSPlayer extends AbstractAudioProducer {
 
     public void setFile(final FileHandle file) throws OpenAlException {
         this.file = file;
-        input     = new OggInputStream(file.read());
-        channels  = input.getChannels();
-        setup(input.getChannels(), input.getSampleRate());
+        input     = new Wav.WavInputStream(file);
+        channels  = input.channels;
+        setup(input.channels, input.sampleRate);
     }
 
     protected void setup(final int channels, final int sampleRate) {
