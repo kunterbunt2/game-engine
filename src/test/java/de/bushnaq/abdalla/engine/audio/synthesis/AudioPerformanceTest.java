@@ -65,7 +65,7 @@ public class AudioPerformanceTest {
             synths.add(synth);
         }
 
-        audioEngine.begin(camera);
+        audioEngine.begin(camera, true);
         logger.info("start");
         final long time1 = System.currentTimeMillis();
         for (final Synthesizer synth : synths) {

@@ -51,7 +51,7 @@ public class OscillatorGainTest {
         audioEngine.create(null);
         {
             final Synthesizer synth = audioEngine.createAudioProducer(ExampleSynthesizer.class);
-            audioEngine.begin(camera);
+            audioEngine.begin(camera, true);
             for (int i = 2; i <= 25; i++) {
                 final float speed = i;
                 synth.adaptToVelocity(i);

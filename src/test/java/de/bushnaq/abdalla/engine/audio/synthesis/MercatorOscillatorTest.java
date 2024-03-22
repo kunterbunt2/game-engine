@@ -62,7 +62,7 @@ public class MercatorOscillatorTest {
             synths.add(audioEngine.createAudioProducer(ExampleSynthesizer.class));
         }
 
-        audioEngine.begin(camera);
+        audioEngine.begin(camera, true);
         final long time1 = System.currentTimeMillis();
         for (final Synthesizer synth : synths) {
             synth.renderBuffer();
@@ -84,7 +84,7 @@ public class MercatorOscillatorTest {
             final Synthesizer synth = audioEngine.createAudioProducer(ExampleSynthesizer.class);
             synth.setGain(5);
             synth.play();
-            audioEngine.begin(camera);
+            audioEngine.begin(camera, true);
             final long time1 = System.currentTimeMillis();
             do {
             } while (System.currentTimeMillis() - time1 < SECONDS_2);

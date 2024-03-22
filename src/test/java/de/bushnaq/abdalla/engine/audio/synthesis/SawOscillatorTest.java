@@ -66,7 +66,7 @@ public class SawOscillatorTest {
             synths.add(audioEngine.createAudioProducer(SawSynthesizer.class));
         }
 
-        audioEngine.begin(camera);
+        audioEngine.begin(camera, true);
         final long time1 = System.currentTimeMillis();
         for (final Synthesizer synth : synths) {
             synth.renderBuffer();
@@ -94,7 +94,7 @@ public class SawOscillatorTest {
 
             synth.setPositionAndVelocity(new float[]{frequency, 0, 0}, new float[]{speed, 0, 0});
             synth.play();
-            audioEngine.begin(camera);
+            audioEngine.begin(camera, true);
             final long time1    = System.currentTimeMillis();
             long       lastTime = 0;
             long       time2;
@@ -134,7 +134,7 @@ public class SawOscillatorTest {
             final Synthesizer synth = audioEngine.createAudioProducer(SawSynthesizer.class);
             synth.setGain(5);
             synth.play();
-            audioEngine.begin(camera);
+            audioEngine.begin(camera, true);
             final long time1 = System.currentTimeMillis();
             do {
             } while (System.currentTimeMillis() - time1 < WAIT_FOR_MS);

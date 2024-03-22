@@ -68,7 +68,7 @@ public class SinOscilliatorTest {
         }
         logger.info("End creating synths");
 
-        audioEngine.begin(camera);
+        audioEngine.begin(camera, true);
         audioEngine.end();
         logger.info("Start rendering synths");
         final long time1 = System.currentTimeMillis();
@@ -98,7 +98,7 @@ public class SinOscilliatorTest {
 
             synth.setPositionAndVelocity(new float[]{frequency, 0, 0}, new float[]{speed, 0, 0});
             synth.play();
-            audioEngine.begin(camera);
+            audioEngine.begin(camera, true);
             final long time1    = System.currentTimeMillis();
             long       lastTime = 0;
             long       time2;
@@ -138,7 +138,7 @@ public class SinOscilliatorTest {
             final Synthesizer synth = audioEngine.createAudioProducer(SinSynthesizer.class);
             synth.setGain(5);
             synth.play();
-            audioEngine.begin(camera);
+            audioEngine.begin(camera, true);
             final long time1 = System.currentTimeMillis();
             do {
             } while (System.currentTimeMillis() - time1 < SECONDS_2);

@@ -135,7 +135,7 @@ public abstract class BasicGameEngine implements ApplicationListener, InputProce
 //            getRenderEngine().renderEngine2D.batch.setTransformMatrix(identityMatrix);//fix transformMatrix
             renderStage();
             takeScreenShot = false;
-            getAudioEngine().begin(getRenderEngine().getCamera());
+            getAudioEngine().begin(getRenderEngine().getCamera(), true);
             getAudioEngine().end();
         } catch (final Exception e) {
             logger.error(e.getMessage(), e);

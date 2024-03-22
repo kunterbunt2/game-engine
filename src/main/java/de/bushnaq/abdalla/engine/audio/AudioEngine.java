@@ -149,7 +149,7 @@ public class AudioEngine {
         factoryMap.put(factory.getClass().getSimpleName(), factory);
     }
 
-    public void begin(final MovingCamera camera) throws OpenAlException {
+    public void begin(final MovingCamera camera, boolean enabled) throws OpenAlException {
         //		this.camera = camera;
         //did we move since last update?
         //		if (!position.equals(camera.position) || !up.equals(camera.up) || !direction.equals(camera.direction) || !velocity.equals(camera.velocity)) {
@@ -159,14 +159,19 @@ public class AudioEngine {
         //			velocity.set(camera.velocity.x, camera.velocity.y, camera.velocity.z);
         //			updateCamera();
         //		}
-        if (!listenerPosition.equals(camera.position) || !up.equals(camera.up) || !direction.equals(camera.direction) || !listenerVelocity.equals(camera.velocity)) {
-            listenerPosition.set(camera.position.x, camera.position.y, camera.position.z);//isometric view with camera hight but lookat location
-            up.set(camera.up.x, camera.up.y, camera.up.z);
-            direction.set(camera.direction.x, camera.direction.y, camera.direction.z);//ignore y axis in isometric game?
-            listenerVelocity.set(camera.velocity.x, camera.velocity.y, camera.velocity.z);
-            updateCamera();
+        if (!enabled) {
+            setListenerGain(0f);
+        } else {
+            setListenerGain(1f);
+            if (!listenerPosition.equals(camera.position) || !up.equals(camera.up) || !direction.equals(camera.direction) || !listenerVelocity.equals(camera.velocity)) {
+                listenerPosition.set(camera.position.x, camera.position.y, camera.position.z);//isometric view with camera hight but lookat location
+                up.set(camera.up.x, camera.up.y, camera.up.z);
+                direction.set(camera.direction.x, camera.direction.y, camera.direction.z);//ignore y axis in isometric game?
+                listenerVelocity.set(camera.velocity.x, camera.velocity.y, camera.velocity.z);
+                updateCamera();
+            }
+            cullSynths();
         }
-        cullSynths();
     }
 
     public void create(String assetFolderName) throws OpenAlException {
@@ -456,6 +461,11 @@ public class AudioEngine {
             radioTTS.speak(rm.message);
             logger.info(rm.message);
         }
+    }
+
+    private void setListenerGain(final float gain) throws OpenAlException {
+        AL10.alListenerf(AL10.AL_GAIN, gain);
+        checkAlError("Failed to set listener gain with error #");
     }
 
     private void setListenerOrientation(final Vector3 direction, final Vector3 up) throws OpenAlException {
