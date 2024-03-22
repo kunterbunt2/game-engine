@@ -107,9 +107,10 @@ public class CubeRenderer extends ObjectRenderer<BasicGameEngine> {
                 }
                 case OGG -> {
                     oggPlayer = renderEngine.getGameEngine().getAudioEngine().createAudioProducer(OggPlayer.class);
-                    oggPlayer.setFile(Gdx.files.internal(BasicAtlasManager.getAssetsFolderName() + "/audio/thrusters_loopwav-14699.ogg"));
+                    oggPlayer.setFile(Gdx.files.internal(BasicAtlasManager.getAssetsFolderName() + "/audio/bass-dropmp3.ogg"));
                     oggPlayer.setGain(150.0f);
-                    oggPlayer.setAmbient(true);
+                    oggPlayer.setLoop(true);
+                    oggPlayer.setAmbient(false);
                 }
             }
         } catch (final Exception e) {
