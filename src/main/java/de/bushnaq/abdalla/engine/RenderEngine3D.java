@@ -195,7 +195,8 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
 //				}
 //			}
 //		}
-        logger.info(String.format("width = %d height = %d", Gdx.graphics.getWidth(), Gdx.graphics.getHeight()));
+        logger.info("---");
+        logger.info(String.format("Gdx.graphics.getWidth() = %d Gdx.graphics.getHeight() = %d", Gdx.graphics.getWidth(), Gdx.graphics.getHeight()));
         this.context     = context;
         this.gameEngine  = gameEngine;
         this.camera      = camera;
@@ -226,6 +227,7 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
         logger.info(String.format("debug mode = %b", isDebugMode()));
         logger.info(String.format("sky box = %b", isSkyBox()));
         logger.info(String.format("graphs = %b", isShowGraphs()));
+        logger.info("---");
     }
 
     public void add(final PointLight pointLight, final boolean dynamic) {
@@ -1328,7 +1330,7 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
 //            camera.lookAt(camera.lookat);
             camera.update();
             camera.setDirty(true);
-            System.out.println("updateCamera");
+//            System.out.println("updateCamera");
         }
         if (testCase == 1) {
             if (camera.isDirty()) {
