@@ -18,8 +18,8 @@ package de.bushnaq.abdalla.engine.audio.synthesis.util;
 
 import com.badlogic.gdx.Gdx;
 import de.bushnaq.abdalla.engine.IApplicationProperties;
-import de.bushnaq.abdalla.engine.util.logger.Logger;
-import de.bushnaq.abdalla.engine.util.logger.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -49,6 +49,8 @@ public abstract class ApplicationProperties implements IApplicationProperties {
     private static final   String     PLUVIA_SHOW_GRAPHS           = "pluvia.showGraphs";
     private static final   String     PLUVIA_VSYNC                 = "pluvia.vsync";
     private static         String     propertyFileName;
+    //	private boolean					debugMode;																	// debug mode is allowed
+    protected final        Logger     logger                       = LoggerFactory.getLogger(this.getClass());
     //	private int						maxSceneObjects;
     public                 int        predefinedMaxPointLights[]   = {0, 5, 10, 20};
     public                 int        predefinedMaxSceneObjects[]  = {0, 25, 50, 100};
@@ -57,8 +59,6 @@ public abstract class ApplicationProperties implements IApplicationProperties {
     public                 Properties properties                   = new Properties();
     Map<String, Boolean> booleanPropertiesMap = new HashMap<>();
     Map<String, Integer> integerPropertiesMap = new HashMap<>();
-    //	private boolean					debugMode;																	// debug mode is allowed
-    private Logger logger = LoggerFactory.getLogger(this.getClass());
 
 //	private boolean					showGraphs;
 

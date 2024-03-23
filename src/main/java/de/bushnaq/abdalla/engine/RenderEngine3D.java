@@ -57,8 +57,6 @@ import de.bushnaq.abdalla.engine.shader.*;
 import de.bushnaq.abdalla.engine.shader.mirror.Mirror;
 import de.bushnaq.abdalla.engine.shader.water.Water;
 import de.bushnaq.abdalla.engine.util.ExtendedGLProfiler;
-import de.bushnaq.abdalla.engine.util.logger.Logger;
-import de.bushnaq.abdalla.engine.util.logger.LoggerFactory;
 import net.mgsx.gltf.scene3d.attributes.PBRColorAttribute;
 import net.mgsx.gltf.scene3d.attributes.PBRFloatAttribute;
 import net.mgsx.gltf.scene3d.lights.DirectionalShadowLight;
@@ -72,6 +70,8 @@ import net.mgsx.gltf.scene3d.shaders.PBRCommon;
 import net.mgsx.gltf.scene3d.shaders.PBRShaderConfig;
 import net.mgsx.gltf.scene3d.shaders.PBRShaderProvider;
 import net.mgsx.gltf.scene3d.utils.EnvironmentCache;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -99,6 +99,7 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
     private final Fog                         fog                              = new Fog(Color.BLACK, 15f, 30f, 0.5f);
     private final BitmapFont                  font;
     private final T                           gameEngine;
+    private final Logger                      logger                           = LoggerFactory.getLogger(this.getClass());
     //    private              GameObject                  lookatCube;
     private final Mirror                      mirror                           = new Mirror();
     private final PointLightsAttribute        pointLights                      = new PointLightsAttribute();
@@ -160,7 +161,6 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
     private       boolean                     enableProfiling                  = true;
     private       float                       fixedDayTime                     = 10;
     private       Graph                       fpsGraph;
-    private       Logger                      logger                           = LoggerFactory.getLogger(this.getClass());
     private       float                       nightAmbientIntensityB           = .2f;
     private       float                       nightAmbientIntensityG           = .2f;
     private       float                       nightAmbientIntensityR           = .2f;
@@ -195,7 +195,7 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
 //				}
 //			}
 //		}
-        logger.info("---");
+        logger.info("----------------------------------------------------------------------------------");
         logger.info(String.format("Gdx.graphics.getWidth() = %d Gdx.graphics.getHeight() = %d", Gdx.graphics.getWidth(), Gdx.graphics.getHeight()));
         this.context     = context;
         this.gameEngine  = gameEngine;
@@ -227,7 +227,7 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
         logger.info(String.format("debug mode = %b", isDebugMode()));
         logger.info(String.format("sky box = %b", isSkyBox()));
         logger.info(String.format("graphs = %b", isShowGraphs()));
-        logger.info("---");
+        logger.info("----------------------------------------------------------------------------------");
     }
 
     public void add(final PointLight pointLight, final boolean dynamic) {

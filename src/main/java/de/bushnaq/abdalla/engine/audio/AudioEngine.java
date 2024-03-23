@@ -175,6 +175,7 @@ public class AudioEngine {
     }
 
     public void create(String assetFolderName) throws OpenAlException {
+        logger.info("----------------------------------------------------------------------------------");
         //		List<String> list = ALUtil.getStringList(0, ALC10.ALC_DEVICE_SPECIFIER/*, EnumerateAllExt.ALC_DEFAULT_ALL_DEVICES_SPECIFIER*/);
         final String deviceinfo = ALC10.alcGetString(0, EnumerateAllExt.ALC_DEFAULT_ALL_DEVICES_SPECIFIER);
         logger.info("Device: " + deviceinfo);
@@ -221,6 +222,7 @@ public class AudioEngine {
         setListenerOrientation(new Vector3(0, 0, -1), new Vector3(0, 1, 0));
         createAuxiliaryEffectSlot();
         radioTTS = new RadioTTS(this, assetFolderName);
+        logger.info("----------------------------------------------------------------------------------");
     }
 
     public <T extends AudioProducer> T createAudioProducer(final Class<T> clazz) throws OpenAlException {

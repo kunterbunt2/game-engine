@@ -94,7 +94,7 @@ public class DepthOfFieldEffect extends ShaderVfxEffect implements ChainVfxEffec
         program.setUniformf("u_pixelSize", 1f / postFbo.getWidth(), 1f / postFbo.getHeight());
         program.setUniformf("u_cameraClipping", camera.near, camera.far);
         program.setUniformf("u_focusDistance", focusDistance);
-        System.out.println(focusDistance.x + " " + focusDistance.y);
+//        System.out.println(focusDistance.x + " " + focusDistance.y);
         program.setUniformf("u_nearDistanceBlur", nearDistanceBlur);
         program.setUniformf("u_farDistanceBlur", farDistanceBlur);
 
