@@ -154,7 +154,7 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
     private       ModelBatch                  depthBatch;
     // GaussianBlurEffect effect1;
 //	BloomEffect								effect2;
-    private       boolean                     depthOfField                     = false;
+//    private       boolean                     depthOfField                     = false;
     private       DepthOfFieldEffect          depthOfFieldEffect;
     //    private              GameObject                  depthOfFieldMeter;
     private       boolean                     dynamicDayTime                   = false;
@@ -222,7 +222,7 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
         logger.info(String.format("mirror = %b", isMirrorPresent()));
         logger.info(String.format("water = %b", isWaterPresent()));
         logger.info(String.format("shadow = %b", isShadowEnabled()));
-        logger.info(String.format("depth of field = %b", isDepthOfField()));
+        logger.info(String.format("depth of field = %b", depthOfFieldEffect.isEnabled()));
         logger.info(String.format("dynamic day= %b", isDynamicDayTime()));
         logger.info(String.format("debug mode = %b", isDebugMode()));
         logger.info(String.format("sky box = %b", isSkyBox()));
@@ -743,9 +743,9 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
         return debugMode;
     }
 
-    public boolean isDepthOfField() {
-        return depthOfField;
-    }
+//    public boolean isDepthOfField() {
+//        return depthOfField;
+//    }
 
     public boolean isDynamicDayTime() {
         return dynamicDayTime;
@@ -788,7 +788,7 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
     }
 
     public void postProcessRender() throws Exception {
-        if (isDepthOfField() && render3D) {
+        if (depthOfFieldEffect.isEnabled() && render3D) {
             // Clean up the screen.
             Gdx.gl.glClearColor(0f, 0f, 0f, 1f);
             Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
@@ -970,7 +970,7 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
             context.disableClipping();
         }
         // if (firstTime) {
-        if (isDepthOfField() && render3D) postFbo.begin();
+        if (depthOfFieldEffect.isEnabled() && render3D) postFbo.begin();
 //		createCameraCube();
 //		createLookatCube();
 //		createDepthOfFieldMeter();
@@ -978,15 +978,15 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
         render2DText();
         render3DText();
         render2Dxz();
-        if (isDepthOfField() && render3D) postFbo.end();
+        if (depthOfFieldEffect.isEnabled() && render3D) postFbo.end();
 
         camera.setDirty(false);
         staticCacheDirtyCount = 0;
         renderGraphs();
 
-        if (isDepthOfField() && render3D) postFbo.begin();
+        if (depthOfFieldEffect.isEnabled() && render3D) postFbo.begin();
         if (render3D) renderFbos(takeScreenShot);
-        if (isDepthOfField() && render3D) postFbo.end();
+        if (depthOfFieldEffect.isEnabled() && render3D) postFbo.end();
 
 //        fboToScreen();
         postProcessRender();
@@ -1230,9 +1230,9 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
         this.debugMode = debugMode;
     }
 
-    public void setDepthOfField(final boolean depthOfField) {
-        this.depthOfField = depthOfField;
-    }
+//    public void setDepthOfField(final boolean depthOfField) {
+//        this.depthOfField = depthOfField;
+//    }
 
     public void setDynamicDayTime(boolean dynamicDayTime) {
         this.dynamicDayTime = dynamicDayTime;

@@ -414,6 +414,10 @@ public class AudioEngine {
         return maxMonoSources;
     }
 
+    public int getNumberOfAudioProducers() {
+        return synths.size();
+    }
+
     public int getNumberOfSources() {
         return numberOfSources;
     }
