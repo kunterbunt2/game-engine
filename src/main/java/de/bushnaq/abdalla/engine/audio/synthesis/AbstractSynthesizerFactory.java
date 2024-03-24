@@ -17,6 +17,7 @@
 package de.bushnaq.abdalla.engine.audio.synthesis;
 
 import com.scottlogic.util.UnsortedList;
+import de.bushnaq.abdalla.engine.audio.AudioEngine;
 import de.bushnaq.abdalla.engine.audio.OpenAlException;
 
 import java.util.List;
@@ -30,12 +31,12 @@ public abstract class AbstractSynthesizerFactory<T> implements SynthesizerFactor
     }
 
     @Override
-    public T createSynth() throws OpenAlException {
+    public T createSynth(AudioEngine audioEngine) throws OpenAlException {
         if (synthsCache.size() != 0) {
             final T synth = synthsCache.remove(0);
             return synth;
         } else {
-            final T synth = uncacheSynth();
+            final T synth = uncacheSynth(audioEngine);
             return synth;
         }
     }

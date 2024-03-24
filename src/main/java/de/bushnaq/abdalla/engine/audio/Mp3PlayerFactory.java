@@ -26,7 +26,7 @@ public class Mp3PlayerFactory extends AbstractSynthesizerFactory<OggPlayer> {
     }
 
     @Override
-    public OggPlayer uncacheSynth() throws OpenAlException {
+    public OggPlayer uncacheSynth(AudioEngine audioEngine) throws OpenAlException {
         return new OggPlayer();
     }
 

@@ -16,6 +16,7 @@
 
 package de.bushnaq.abdalla.engine.audio.synthesis.util;
 
+import de.bushnaq.abdalla.engine.audio.AudioEngine;
 import de.bushnaq.abdalla.engine.audio.OpenAlException;
 import de.bushnaq.abdalla.engine.audio.synthesis.AbstractSynthesizerFactory;
 
@@ -27,7 +28,7 @@ public class SinSynthesizerFactory extends AbstractSynthesizerFactory<SinSynthes
     }
 
     @Override
-    public SinSynthesizer uncacheSynth() throws OpenAlException {
+    public SinSynthesizer uncacheSynth(AudioEngine audioEngine) throws OpenAlException {
         return new SinSynthesizer();
     }
 

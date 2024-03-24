@@ -36,16 +36,16 @@ import java.util.stream.Stream;
  * Main class to manage TTS snippets
  */
 public class RadioTTS {
-    public static final String      REQUESTING_APPROVAL_TO_DOCK_01 = "REQUESTING_APPROVAL_TO_DOCK_01";
-    public static final String      REQUEST_TO_DOCK_APPROVED_01    = "REQUEST_TO_DOCK_APPROVED_01";
-    private final       String      assetFolderName;
-    private final       AudioEngine audioEngine;
-    private final       Voice       helloVoice;
-    private final       Logger      logger                         = LoggerFactory.getLogger(this.getClass());
+    public static final String                  REQUESTING_APPROVAL_TO_DOCK_01 = "REQUESTING_APPROVAL_TO_DOCK_01";
+    public static final String                  REQUEST_TO_DOCK_APPROVED_01    = "REQUEST_TO_DOCK_APPROVED_01";
+    private final       String                  assetFolderName;
+    private final       AudioEngine             audioEngine;
+    private final       Voice                   helloVoice;
+    private final       Logger                  logger                         = LoggerFactory.getLogger(this.getClass());
+    private final       Map<String, FileHandle> mp3Map                         = new HashMap<>();
+    private final       List<String>            radioMessages                  = new ArrayList<>();
     Properties radioProperties = new Properties();
-    private Set<String>             audioFiles;
-    private Map<String, FileHandle> mp3Map        = new HashMap<>();
-    private List<String>            radioMessages = new ArrayList<>();
+    private Set<String> audioFiles;
 
     public RadioTTS(AudioEngine audioEngine, String assetFolderName) throws OpenAlException {
         this.audioEngine     = audioEngine;
@@ -72,6 +72,10 @@ public class RadioTTS {
 
     public void dispose() {
         helloVoice.deallocate();
+    }
+
+    public FileHandle getFileHandle(String name) {
+        return mp3Map.get(name);
     }
 
     private void handleTokenEnd(String token, String value) {
@@ -194,6 +198,10 @@ public class RadioTTS {
         audioPlayer.close();
     }
 
+    public String resolveString(String stringID) {
+        return radioProperties.getProperty(RadioTTS.REQUESTING_APPROVAL_TO_DOCK_01);
+    }
+
     public void speak(String message) {
         List<String>     tokens      = tokenize(message);
         List<FileHandle> fileHandles = creaetMp3List(tokens);
@@ -210,7 +218,7 @@ public class RadioTTS {
     }
 
     public void test() {
-        String string = String.format(radioProperties.getProperty(RadioTTS.REQUESTING_APPROVAL_TO_DOCK_01), "T-1", "P-81");
+        String string = String.format(resolveString(RadioTTS.REQUESTING_APPROVAL_TO_DOCK_01), "T-1", "P-81");
         audioEngine.radioTTS.speak(string);
     }
 

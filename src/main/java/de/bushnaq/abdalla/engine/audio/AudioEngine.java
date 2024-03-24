@@ -229,7 +229,7 @@ public class AudioEngine {
 
         for (final AbstractSynthesizerFactory<? extends AudioProducer> factory : factoryMap.values()) {
             if (factory.handles().isAssignableFrom(clazz)) {
-                final T audioProducer = (T) factory.createSynth();
+                final T audioProducer = (T) factory.createSynth(this);
                 synths.add(audioProducer);
                 return audioProducer;
             }
