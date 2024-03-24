@@ -143,6 +143,11 @@ public class Synthesizer extends AbstractAudioProducer {
     }
 
     @Override
+    public int getSamplerate() {
+        return samplerate;
+    }
+
+    @Override
     public void processBuffer(final ByteBuffer byteBuffer) throws OpenAlcException {
         double              f1                  = -1;
         double              f2                  = 0.0;

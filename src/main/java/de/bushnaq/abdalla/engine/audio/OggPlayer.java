@@ -18,6 +18,8 @@ package de.bushnaq.abdalla.engine.audio;
 
 import com.badlogic.gdx.backends.lwjgl3.audio.OggInputStream;
 import com.badlogic.gdx.files.FileHandle;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.nio.ByteBuffer;
 
@@ -25,15 +27,18 @@ import static org.lwjgl.openal.AL10.AL_FORMAT_MONO16;
 import static org.lwjgl.openal.AL10.AL_FORMAT_STEREO16;
 
 public class OggPlayer extends AbstractAudioProducer {
-    static private final int        bufferSize     = 4096 * 10;
-    static private final int        bytesPerSample = 2;
-    protected            FileHandle file;
-    int channels;
-    private int format, sampleRate;
-    private OggInputStream input;
-    private boolean        loop;
-    private OggInputStream previousInput;
-    private float          renderedSeconds, maxSecondsPerBuffer;
+    static private final int            bufferSize     = 4096 * 10;
+    static private final int            bytesPerSample = 2;
+    private final        Logger         logger         = LoggerFactory.getLogger(this.getClass());
+    protected            FileHandle     file;
+    private              int            channels;
+    private              int            format;
+    private              OggInputStream input;
+    private              boolean        loop;
+    private              float          maxSecondsPerBuffer;
+    private              OggInputStream previousInput;
+    private              float          renderedSeconds;
+    private              int            sampleRate;
 
     public OggPlayer() {
         setAmbient(true);//always follows camera
@@ -47,6 +52,11 @@ public class OggPlayer extends AbstractAudioProducer {
     @Override
     public int getOpenAlFormat() {
         return this.format;
+    }
+
+    @Override
+    public int getSamplerate() {
+        return sampleRate;
     }
 
     @Override

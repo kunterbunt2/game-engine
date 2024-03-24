@@ -107,7 +107,9 @@ public abstract class BasicGameEngine implements ApplicationListener, InputProce
             getRenderEngine().setSceneBoxMax(new Vector3(1000, 1000, 1000));
             getRenderEngine().setShowGraphs(true);
             createEnvironment();
-            getAudioEngine().create(null);
+            getAudioEngine().create("E:/github/game-engine/app/assets");
+            audioEngine.radioTTS.loadResource(this.getClass());
+            audioEngine.radioTTS.loadAudio();
         } catch (final Exception e) {
             logger.error(e.getMessage(), e);
         }

@@ -32,20 +32,22 @@ import static org.lwjgl.openal.AL10.AL_FORMAT_MONO16;
 import static org.lwjgl.openal.AL10.AL_FORMAT_STEREO16;
 
 public class TTSPlayer extends AbstractAudioProducer {
-    static private final int         bufferSize     = 4096 * 10;
-    static private final int         bytesPerSample = 2;
-    private final        AudioEngine audioEngine;
-    private final Logger logger = LoggerFactory.getLogger(this.getClass());
-    protected            FileHandle  file;
-    int          channels;
-    List<String> messages = new ArrayList<>();
-    private int format, sampleRate;
-    private Wav.WavInputStream input;
-    private OggInputStream     previousInput;
-    private float              renderedSeconds, maxSecondsPerBuffer;
+    static private final int                bufferSize     = 4096 * 10;
+    static private final int                bytesPerSample = 2;
+    private final        AudioEngine        audioEngine;
+    private final        Logger             logger         = LoggerFactory.getLogger(this.getClass());
+    protected            FileHandle         file;
+    private              int                channels       = 1;
+    private              int                format;
+    private              Wav.WavInputStream input;
+    private              float              maxSecondsPerBuffer;
+    private              List<String>       messages       = new ArrayList<>();
+    private              OggInputStream     previousInput;
+    private              float              renderedSeconds;
+    private              int                sampleRate     = 16000;
 
     public TTSPlayer(AudioEngine audioEngine) {
-        setAmbient(false);//always follows camera
+        setAmbient(true);//always follows camera
         this.audioEngine = audioEngine;
     }
 
@@ -72,20 +74,36 @@ public class TTSPlayer extends AbstractAudioProducer {
     }
 
     @Override
+    public int getSamplerate() {
+        return sampleRate;
+    }
+
+    @Override
     public void processBuffer(final ByteBuffer byteBuffer) {
         if (input == null) {
-            bufferNextMessage();
+            if (!bufferNextMessage()) {
+                for (int i = 0; i < byteBuffer.capacity(); i++) {
+                    byteBuffer.put(i, (byte) 0);
+                }
+                return;
+            }
         }
         for (int i = 0; i < byteBuffer.capacity(); i++) {
-            final int value;
+            int value;
             try {
                 value = input.read();
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
             if (value == -1) {
-                if (!bufferNextMessage())
-                    break;
+                if (!bufferNextMessage()) {
+                    for (int ii = i; ii < byteBuffer.capacity(); ii++) {
+                        byteBuffer.put(i, (byte) 0);
+                    }
+                    input = null;
+                    logger.info("break");
+                    return;
+                }
             }
             byteBuffer.put(i, (byte) value);
         }
@@ -97,12 +115,12 @@ public class TTSPlayer extends AbstractAudioProducer {
         input         = null;
     }
 
-    public void setFile(final FileHandle file) throws OpenAlException {
-        this.file = file;
-        input     = new Wav.WavInputStream(file);
-        channels  = input.channels;
-        setup(input.channels, input.sampleRate);
-    }
+//    public void setFile(final FileHandle file) throws OpenAlException {
+//        this.file = file;
+//        input     = new Wav.WavInputStream(file);
+//        channels  = input.channels;
+//        setup(input.channels, input.sampleRate);
+//    }
 
     protected void setup(final int channels, final int sampleRate) {
         this.format         = channels > 1 ? AL_FORMAT_STEREO16 : AL_FORMAT_MONO16;
@@ -111,6 +129,7 @@ public class TTSPlayer extends AbstractAudioProducer {
     }
 
     public void speak(String msg) {
-        messages.add(msg);
+        List<String> tokens = audioEngine.radioTTS.tokenize(msg);
+        messages.addAll(tokens);
     }
 }

@@ -17,5 +17,5 @@
 package de.bushnaq.abdalla.engine.audio.synthesis.util;
 
 public enum SynthType {
-    SYNTH, AMBIENT_OGG, OGG
+    SYNTH, AMBIENT_OGG, OGG, TTS
 }

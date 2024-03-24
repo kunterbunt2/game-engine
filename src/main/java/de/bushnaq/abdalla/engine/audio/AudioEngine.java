@@ -384,7 +384,7 @@ public class AudioEngine {
                 source = unusedSources.remove(unusedSources.size() - 1);
             else {
                 if (numberOfSources < 255) {
-                    source = new OpenAlSource(samples, samplerate, bits, synth.getChannels(), auxiliaryEffectSlot);
+                    source = new OpenAlSource(samples, synth.getSamplerate(), bits, synth.getChannels(), auxiliaryEffectSlot);
                     synth.enable(source);
                     numberOfSources++;
                 } else {
@@ -462,12 +462,12 @@ public class AudioEngine {
         auxiliaryEffectSlot = 0;
     }
 
-    public void say(RadioMessage rm) {
-        if (rm.from.isSelected() || rm.to.isSelected()) {
-            radioTTS.speak(rm.message);
-            logger.info(rm.message);
-        }
-    }
+//    public void say(RadioMessage rm) {
+//        if (rm.from.isSelected() || rm.to.isSelected()) {
+//            radioTTS.speak(rm.message);
+//            logger.info(rm.message);
+//        }
+//    }
 
     private void setListenerGain(final float gain) throws OpenAlException {
         AL10.alListenerf(AL10.AL_GAIN, gain);

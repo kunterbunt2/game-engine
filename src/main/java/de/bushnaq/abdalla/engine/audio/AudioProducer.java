@@ -37,6 +37,8 @@ public interface AudioProducer {
 
     Vector3 getPosition();
 
+    int getSamplerate();
+
     boolean isAmbient();
 
     boolean isEnabled();

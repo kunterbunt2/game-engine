@@ -202,27 +202,23 @@ public class RadioTTS {
         return radioProperties.getProperty(RadioTTS.REQUESTING_APPROVAL_TO_DOCK_01);
     }
 
-    public void speak(String message) {
-        List<String>     tokens      = tokenize(message);
-        List<FileHandle> fileHandles = creaetMp3List(tokens);
-        int              index       = 0;
-        TTSPlayer        mp3Player;
-        try {
-            mp3Player = audioEngine.createAudioProducer(TTSPlayer.class);
-            mp3Player.setFile(fileHandles.get(index));
-            mp3Player.setGain(150.0f);
-            mp3Player.play();
-        } catch (OpenAlException e) {
-            logger.info(e.getMessage(), e);
-        }
-    }
+//    public void speak(String message) {
+//        List<String>     tokens      = tokenize(message);
+//        List<FileHandle> fileHandles = creaetMp3List(tokens);
+//        int              index       = 0;
+//        TTSPlayer        mp3Player;
+//        try {
+//            mp3Player = audioEngine.createAudioProducer(TTSPlayer.class);
+//            mp3Player.speak(fileHandles.get(index));
+//            mp3Player.setGain(150.0f);
+//            mp3Player.play();
+//        } catch (OpenAlException e) {
+//            logger.info(e.getMessage(), e);
+//        }
+//    }
 
-    public void test() {
-        String string = String.format(resolveString(RadioTTS.REQUESTING_APPROVAL_TO_DOCK_01), "T-1", "P-81");
-        audioEngine.radioTTS.speak(string);
-    }
 
-    private List<String> tokenize(String msg) {
+    public List<String> tokenize(String msg) {
         String[]     tags   = {"name", "pause"};
         List<String> tokens = new ArrayList<>();
         int          start  = -1;

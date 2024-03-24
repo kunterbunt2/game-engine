@@ -29,6 +29,8 @@ import de.bushnaq.abdalla.engine.GameObject;
 import de.bushnaq.abdalla.engine.ObjectRenderer;
 import de.bushnaq.abdalla.engine.RenderEngine3D;
 import de.bushnaq.abdalla.engine.audio.OggPlayer;
+import de.bushnaq.abdalla.engine.audio.RadioTTS;
+import de.bushnaq.abdalla.engine.audio.TTSPlayer;
 import de.bushnaq.abdalla.engine.audio.synthesis.Synthesizer;
 import de.bushnaq.abdalla.engine.util.ModelCreator;
 import net.mgsx.gltf.scene3d.attributes.PBRColorAttribute;
@@ -64,6 +66,7 @@ public class CubeRenderer extends ObjectRenderer<BasicGameEngine> {
     private                GameObject<BasicGameEngine> go;
     private                OggPlayer                   oggPlayer;
     private                Synthesizer                 synth;
+    private                TTSPlayer                   ttsPlayer;
 
     public CubeRenderer(CubeActor cube, int mode, SynthType synthType) {
         super();
@@ -101,7 +104,7 @@ public class CubeRenderer extends ObjectRenderer<BasicGameEngine> {
                 }
                 case AMBIENT_OGG -> {
                     oggPlayer = renderEngine.getGameEngine().getAudioEngine().createAudioProducer(OggPlayer.class);
-                    oggPlayer.setFile(Gdx.files.internal(BasicAtlasManager.getAssetsFolderName() + "/audio/06-abyss(m).ogg"));
+                    oggPlayer.setFile(Gdx.files.internal(BasicAtlasManager.getAssetsFolderName() + "/audio/bass-dropmp3.ogg"));
                     oggPlayer.setGain(150.0f);
                     oggPlayer.setAmbient(true);
                 }
@@ -111,6 +114,15 @@ public class CubeRenderer extends ObjectRenderer<BasicGameEngine> {
                     oggPlayer.setGain(150.0f);
                     oggPlayer.setLoop(true);
                     oggPlayer.setAmbient(false);
+                }
+                case TTS -> {
+                    ttsPlayer = renderEngine.getGameEngine().getAudioEngine().createAudioProducer(TTSPlayer.class);
+//                    ttsPlayer.setFile(Gdx.files.internal(BasicAtlasManager.getAssetsFolderName() + "/audio/06-abyss(m).ogg"));
+                    ttsPlayer.setGain(150.0f);
+                    ttsPlayer.setAmbient(true);
+                    String string = String.format(renderEngine.getGameEngine().getAudioEngine().radioTTS.resolveString(RadioTTS.REQUESTING_APPROVAL_TO_DOCK_01), "T-1", "P-81");
+//                    renderEngine.getGameEngine().getAudioEngine().radioTTS.speak(string);
+                    ttsPlayer.speak(string);
                 }
             }
         } catch (final Exception e) {
@@ -167,6 +179,12 @@ public class CubeRenderer extends ObjectRenderer<BasicGameEngine> {
                 oggPlayer.play();
                 if (update) {
                     oggPlayer.setPositionAndVelocity(positionArray, velocityArray);
+                }
+            }
+            case TTS -> {
+                ttsPlayer.play();
+                if (update) {
+                    ttsPlayer.setPositionAndVelocity(positionArray, velocityArray);
                 }
             }
         }
