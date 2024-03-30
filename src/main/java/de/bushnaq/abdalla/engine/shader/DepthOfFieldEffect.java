@@ -32,17 +32,18 @@ import de.bushnaq.abdalla.engine.camera.MovingCamera;
 
 public class DepthOfFieldEffect extends ShaderVfxEffect implements ChainVfxEffect {
 
-    private static final String       Texture0   = "u_sourceTexture";
-    private static final String       Texture1   = "u_depthTexture";
+    private static final String       Texture0         = "u_sourceTexture";
+    private static final String       Texture1         = "u_depthTexture";
     private final        MovingCamera camera;
     //	private float time = 0f;
     private final        FrameBuffer  postFbo;
-    private final        Vector2      resolution = new Vector2();
-    private final        int          vertical   = 0;
-    private boolean enabled          = true;
-    private float   farDistanceBlur  = 50f;
-    private Vector2 focusDistance    = new Vector2(200.0f, 700.0f);
-    private float   nearDistanceBlur = 50f;
+    private final        Vector2      resolution       = new Vector2();
+    private final        int          vertical         = 0;
+    private              boolean      enabled          = false;
+    private              float        farDistanceBlur  = 50f;
+    private              Vector2      focusDistance    = new Vector2(200.0f, 700.0f);
+    private              float        nearDistanceBlur = 50f;
+
     public DepthOfFieldEffect(final FrameBuffer postFbo, final MovingCamera camera) {
         super(MyVfxGLUtils.compileShader(Gdx.files.classpath("shader/depthOfField.vs.glsl"), Gdx.files.classpath("shader/depthOfField.fs.glsl"), ""));
         this.postFbo = postFbo;

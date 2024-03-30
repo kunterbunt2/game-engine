@@ -16,7 +16,6 @@
 
 package de.bushnaq.abdalla.engine.audio;
 
-import com.badlogic.gdx.backends.lwjgl3.audio.OggInputStream;
 import com.badlogic.gdx.backends.lwjgl3.audio.Wav;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.utils.StreamUtils;
@@ -32,19 +31,15 @@ import static org.lwjgl.openal.AL10.AL_FORMAT_MONO16;
 import static org.lwjgl.openal.AL10.AL_FORMAT_STEREO16;
 
 public class TTSPlayer extends AbstractAudioProducer {
-    static private final int                bufferSize     = 4096 * 10;
-    static private final int                bytesPerSample = 2;
-    private final        AudioEngine        audioEngine;
-    private final        Logger             logger         = LoggerFactory.getLogger(this.getClass());
-    protected            FileHandle         file;
-    private              int                channels       = 1;
-    private              int                format;
-    private              Wav.WavInputStream input;
-    private              float              maxSecondsPerBuffer;
-    private              List<String>       messages       = new ArrayList<>();
-    private              OggInputStream     previousInput;
-    private              float              renderedSeconds;
-    private              int                sampleRate     = 16000;
+    private final AudioEngine        audioEngine;
+    private final Logger             logger     = LoggerFactory.getLogger(this.getClass());
+    private final List<String>       messages   = new ArrayList<>();
+    protected     FileHandle         file;
+    private       int                channels   = 1;
+    private       int                format     = AL_FORMAT_MONO16;
+    private       Wav.WavInputStream input;
+    private       boolean            optIn      = false;//by default ttsPlayer is opting out, which means that it is disabled by  the AudioEngine
+    private       int                sampleRate = 16000;//default for tts
 
     public TTSPlayer(AudioEngine audioEngine) {
         setAmbient(true);//always follows camera
@@ -59,7 +54,6 @@ public class TTSPlayer extends AbstractAudioProducer {
         file  = audioEngine.radioTTS.getFileHandle(msg);
         input = new Wav.WavInputStream(file);
         setup(input.channels, input.sampleRate);
-        previousInput = null; // release this reference
         return true;
     }
 
@@ -82,9 +76,7 @@ public class TTSPlayer extends AbstractAudioProducer {
     public void processBuffer(final ByteBuffer byteBuffer) {
         if (input == null) {
             if (!bufferNextMessage()) {
-                for (int i = 0; i < byteBuffer.capacity(); i++) {
-                    byteBuffer.put(i, (byte) 0);
-                }
+                fastZero(byteBuffer);
                 return;
             }
         }
@@ -92,44 +84,46 @@ public class TTSPlayer extends AbstractAudioProducer {
             int value;
             try {
                 value = input.read();
+                if (value == -1) {
+                    if (!bufferNextMessage()) {
+                        input = null;
+//                    logger.info("break");
+                        fastZero(byteBuffer);
+                        return;
+                    } else {
+                        value = input.read();
+                    }
+                }
+                byteBuffer.put(i, (byte) value);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
-            if (value == -1) {
-                if (!bufferNextMessage()) {
-                    for (int ii = i; ii < byteBuffer.capacity(); ii++) {
-                        byteBuffer.put(i, (byte) 0);
-                    }
-                    input = null;
-                    logger.info("break");
-                    return;
-                }
-            }
-            byteBuffer.put(i, (byte) value);
         }
+    }
+
+
+    @Override
+    public boolean isOptIn() {
+        return optIn;
     }
 
     public void reset() {
         StreamUtils.closeQuietly(input);
-        previousInput = null;
-        input         = null;
+        input = null;
     }
 
-//    public void setFile(final FileHandle file) throws OpenAlException {
-//        this.file = file;
-//        input     = new Wav.WavInputStream(file);
-//        channels  = input.channels;
-//        setup(input.channels, input.sampleRate);
-//    }
+    public void setOptIn(boolean optIn) {
+        this.optIn = optIn;
+    }
 
     protected void setup(final int channels, final int sampleRate) {
-        this.format         = channels > 1 ? AL_FORMAT_STEREO16 : AL_FORMAT_MONO16;
-        this.sampleRate     = sampleRate;
-        maxSecondsPerBuffer = (float) bufferSize / (bytesPerSample * channels * sampleRate);
+        this.format     = channels > 1 ? AL_FORMAT_STEREO16 : AL_FORMAT_MONO16;
+        this.sampleRate = sampleRate;
     }
 
     public void speak(String msg) {
         List<String> tokens = audioEngine.radioTTS.tokenize(msg);
         messages.addAll(tokens);
     }
+
 }

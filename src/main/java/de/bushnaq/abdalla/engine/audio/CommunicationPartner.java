@@ -24,4 +24,8 @@ public interface CommunicationPartner {
     boolean isSelected();
 
     void radio(RadioMessage message);
+
+    void select() throws OpenAlException;
+
+    void unselect() throws OpenAlException;
 }

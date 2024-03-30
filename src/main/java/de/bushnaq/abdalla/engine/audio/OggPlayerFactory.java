@@ -18,7 +18,7 @@ package de.bushnaq.abdalla.engine.audio;
 
 import de.bushnaq.abdalla.engine.audio.synthesis.AbstractSynthesizerFactory;
 
-public class Mp3PlayerFactory extends AbstractSynthesizerFactory<OggPlayer> {
+public class OggPlayerFactory extends AbstractSynthesizerFactory<OggPlayer> {
 
     @Override
     public Class<OggPlayer> handles() {

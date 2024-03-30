@@ -19,15 +19,17 @@ package de.bushnaq.abdalla.engine.audio;
 import com.badlogic.gdx.math.Vector3;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 
 public abstract class AbstractAudioProducer implements AudioProducer {
-    protected final Vector3      position = new Vector3();//position of the audio source
-    protected final Vector3      velocity = new Vector3();//velocity of the audio source
-    protected       boolean      enabled  = false;//a disabled synth does not possess an audio source and any of the source attached resource like filters and buffers
-    protected       float        gain     = 1.0f;
-    protected       boolean      play     = false;//is the source playing?
-    protected       OpenAlSource source   = null;//if enabled, this will hold the attached openal source, otherwise null
-    private         boolean      ambient  = false;//position always follows camera
+    protected final Vector3      position     = new Vector3();//position of the audio source
+    protected final Vector3      velocity     = new Vector3();//velocity of the audio source
+    private final   byte[]       oneKiloBytes = new byte[1024];//used to fast zero the byte buffer in times of silence
+    protected       boolean      enabled      = false;//a disabled synth does not possess an audio source and any of the source attached resource like filters and buffers
+    protected       float        gain         = 1.0f;
+    protected       boolean      play         = false;//is the source playing?
+    protected       OpenAlSource source       = null;//if enabled, this will hold the attached openal source, otherwise null
+    private         boolean      ambient      = false;//position always follows camera
 
     /**
      * adapt synthesizer to the current source velocity
@@ -63,6 +65,10 @@ public abstract class AbstractAudioProducer implements AudioProducer {
         this.source.unparkOrStartThread();
     }
 
+    public float getGain() {
+        return gain;
+    }
+
     @Override
     public Vector3 getPosition() {
         return position;
@@ -75,6 +81,16 @@ public abstract class AbstractAudioProducer implements AudioProducer {
     @Override
     public boolean isEnabled() {
         return enabled;
+    }
+
+    /**
+     * default implementation wants to be enabled whenever possible
+     *
+     * @return true to opt in and get enabled if we are in listening distance
+     */
+    @Override
+    public boolean isOptIn() {
+        return true;
     }
 
     @Override
@@ -112,20 +128,22 @@ public abstract class AbstractAudioProducer implements AudioProducer {
 
     @Override
     public void setPositionAndVelocity(final float[] position, final float[] velocity) throws OpenAlException {
-        if (this.getPosition().x != position[0] || this.getPosition().y != position[1] || this.getPosition().z != position[2]) {
-            this.getPosition().set(position[0], position[1], position[2]);
-        }
-        if (isEnabled()) {
-            source.setPosition(position);
-            //			source.setPosition(new float[] {0,0,0});
-        }
-        if (this.velocity.x != velocity[0] || this.velocity.y != velocity[1] || this.velocity.z != velocity[2]) {
-            this.velocity.set(velocity[0], velocity[1], velocity[2]);
-            adaptToVelocity(this.velocity.len());
-        }
+        if (!ambient) {
+            if (this.getPosition().x != position[0] || this.getPosition().y != position[1] || this.getPosition().z != position[2]) {
+                this.getPosition().set(position[0], position[1], position[2]);
+            }
+            if (isEnabled()) {
+                source.setPosition(position);
+                //			source.setPosition(new float[] {0,0,0});
+            }
+            if (this.velocity.x != velocity[0] || this.velocity.y != velocity[1] || this.velocity.z != velocity[2]) {
+                this.velocity.set(velocity[0], velocity[1], velocity[2]);
+                adaptToVelocity(this.velocity.len());
+            }
 //        if (isEnabled()) {
-        //			source.setVelocity(position, velocity);
+            //			source.setVelocity(position, velocity);
 //        }
+        }
     }
 
     @Override
@@ -146,8 +164,16 @@ public abstract class AbstractAudioProducer implements AudioProducer {
         }
     }
 
-    public float getGain() {
-        return gain;
+    protected void fastZero(ByteBuffer byteBuffer) {
+        //fast zero the buffer
+        //TODO this code is causing crash, not sure why
+//        for (int i = byteBuffer.position(); i < (byteBuffer.capacity() - byteBuffer.position()) / oneKiloBytes.length; i++) {
+//            byteBuffer.put(oneKiloBytes);
+//        }
+        //zero the rest
+        for (int i = byteBuffer.position(); i < byteBuffer.capacity(); i++) {
+            byteBuffer.put(i, (byte) 0);
+        }
     }
 
     public boolean isKeepCopy() throws OpenAlcException {

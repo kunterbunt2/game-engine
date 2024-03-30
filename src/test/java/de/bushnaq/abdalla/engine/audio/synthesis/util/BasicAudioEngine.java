@@ -17,7 +17,7 @@
 package de.bushnaq.abdalla.engine.audio.synthesis.util;
 
 import de.bushnaq.abdalla.engine.audio.AudioEngine;
-import de.bushnaq.abdalla.engine.audio.Mp3PlayerFactory;
+import de.bushnaq.abdalla.engine.audio.OggPlayerFactory;
 import de.bushnaq.abdalla.engine.audio.TTSPlayerFactory;
 
 public class BasicAudioEngine extends AudioEngine {
@@ -25,14 +25,14 @@ public class BasicAudioEngine extends AudioEngine {
     public BasicAudioEngine() {
         super(4410, 44100, 16);
         add(new ExampleSynthesizerFactory());
-        add(new Mp3PlayerFactory());
+        add(new OggPlayerFactory());
         add(new TTSPlayerFactory());
     }
 
     public BasicAudioEngine(final int samples) {
         super(samples, 44100, 16);
         add(new ExampleSynthesizerFactory());
-        add(new Mp3PlayerFactory());
+        add(new OggPlayerFactory());
         add(new TTSPlayerFactory());
     }
 

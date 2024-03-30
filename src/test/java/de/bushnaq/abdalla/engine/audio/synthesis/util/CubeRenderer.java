@@ -111,17 +111,16 @@ public class CubeRenderer extends ObjectRenderer<BasicGameEngine> {
                 case OGG -> {
                     oggPlayer = renderEngine.getGameEngine().getAudioEngine().createAudioProducer(OggPlayer.class);
                     oggPlayer.setFile(Gdx.files.internal(BasicAtlasManager.getAssetsFolderName() + "/audio/bass-dropmp3.ogg"));
-                    oggPlayer.setGain(150.0f);
+                    oggPlayer.setGain(1050.0f);
                     oggPlayer.setLoop(true);
                     oggPlayer.setAmbient(false);
                 }
                 case TTS -> {
                     ttsPlayer = renderEngine.getGameEngine().getAudioEngine().createAudioProducer(TTSPlayer.class);
-//                    ttsPlayer.setFile(Gdx.files.internal(BasicAtlasManager.getAssetsFolderName() + "/audio/06-abyss(m).ogg"));
-                    ttsPlayer.setGain(150.0f);
+                    ttsPlayer.setGain(1000.0f);
                     ttsPlayer.setAmbient(true);
+                    ttsPlayer.setOptIn(true);
                     String string = String.format(renderEngine.getGameEngine().getAudioEngine().radioTTS.resolveString(RadioTTS.REQUESTING_APPROVAL_TO_DOCK_01), "T-1", "P-81");
-//                    renderEngine.getGameEngine().getAudioEngine().radioTTS.speak(string);
                     ttsPlayer.speak(string);
                 }
             }

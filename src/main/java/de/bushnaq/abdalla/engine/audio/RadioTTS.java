@@ -192,31 +192,18 @@ public class RadioTTS {
     }
 
     private void renderTTSString(String key, String value) {
-        SingleFileAudioPlayer audioPlayer = new SingleFileAudioPlayer(assetFolderName + "/radio/" + key, AudioFileFormat.Type.WAVE);
+        String                fileName    = assetFolderName + "/radio/" + key;
+        SingleFileAudioPlayer audioPlayer = new SingleFileAudioPlayer(fileName, AudioFileFormat.Type.WAVE);
         helloVoice.setAudioPlayer(audioPlayer);
         helloVoice.speak(value);
         audioPlayer.close();
+        //convert to ogg
+//        wavToOgg(fileName);
     }
 
     public String resolveString(String stringID) {
         return radioProperties.getProperty(RadioTTS.REQUESTING_APPROVAL_TO_DOCK_01);
     }
-
-//    public void speak(String message) {
-//        List<String>     tokens      = tokenize(message);
-//        List<FileHandle> fileHandles = creaetMp3List(tokens);
-//        int              index       = 0;
-//        TTSPlayer        mp3Player;
-//        try {
-//            mp3Player = audioEngine.createAudioProducer(TTSPlayer.class);
-//            mp3Player.speak(fileHandles.get(index));
-//            mp3Player.setGain(150.0f);
-//            mp3Player.play();
-//        } catch (OpenAlException e) {
-//            logger.info(e.getMessage(), e);
-//        }
-//    }
-
 
     public List<String> tokenize(String msg) {
         String[]     tags   = {"name", "pause"};
@@ -256,5 +243,39 @@ public class RadioTTS {
         }
         return tokens;
     }
+
+//    public void speak(String message) {
+//        List<String>     tokens      = tokenize(message);
+//        List<FileHandle> fileHandles = creaetMp3List(tokens);
+//        int              index       = 0;
+//        TTSPlayer        mp3Player;
+//        try {
+//            mp3Player = audioEngine.createAudioProducer(TTSPlayer.class);
+//            mp3Player.speak(fileHandles.get(index));
+//            mp3Player.setGain(150.0f);
+//            mp3Player.play();
+//        } catch (OpenAlException e) {
+//            logger.info(e.getMessage(), e);
+//        }
+//    }
+
+//    private void wavToOgg(String fileName) {
+//        FileHandle           file  = new FileHandle(fileName);
+//        Wav.WavOutputtStream input = new Wav.WavOutputtStream(file);
+//
+//
+//        OggOutputStream output     = new OggInputStream(file.read());
+//        int             channels   = input.getChannels();
+//        int             format     = channels > 1 ? AL_FORMAT_STEREO16 : AL_FORMAT_MONO16;
+//        int             sampleRate = input.getSampleRate();
+////        maxSecondsPerBuffer = (float) bufferSize / (bytesPerSample * channels * sampleRate);
+//        new Wav.WavOutputtStream(file);
+//        int value = 0;
+//        do {
+//            value = input.read();
+//        }
+//        while (value != -1);
+//
+//    }
 
 }

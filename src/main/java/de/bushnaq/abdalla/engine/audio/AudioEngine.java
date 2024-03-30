@@ -282,10 +282,10 @@ public class AudioEngine {
     private void cullSynths() throws OpenAlException {
         enabledAudioSourceCount = 0;
         for (final AudioProducer synth : synths) {
-            if (synth.isEnabled() && (!synth.isAmbient() && listenerPosition.dst2(synth.getPosition()) > disableRadius2)) {
+            if (synth.isEnabled() && (!synth.isOptIn() || (!synth.isAmbient() && listenerPosition.dst2(synth.getPosition()) > disableRadius2))) {
                 //disable synth
                 disableSynth(synth);
-            } else if (!synth.isEnabled() && (synth.isAmbient() || listenerPosition.dst2(synth.getPosition()) < enableRadius2)) {
+            } else if (!synth.isEnabled() && (synth.isOptIn() && (synth.isAmbient() || listenerPosition.dst2(synth.getPosition()) < enableRadius2))) {
                 //enable synth
                 enableSynth(synth);
             } else {
@@ -315,7 +315,7 @@ public class AudioEngine {
         //				printf("Failed to reset device: %s\n", alcGetString(device, alcGetError(device)));
     }
 
-    private void disableSynth(final AudioProducer synth) throws OpenAlException {
+    public void disableSynth(final AudioProducer synth) throws OpenAlException {
         if (synth.isEnabled()) {
             final OpenAlSource source = synth.disable();
             source.pause();
@@ -375,18 +375,22 @@ public class AudioEngine {
         queryHrtfEnabled();
     }
 
-    private void enableSynth(final AudioProducer synth) throws OpenAlException {
+    public void enableSynth(final AudioProducer synth) throws OpenAlException {
         if (synth.isEnabled()) {
             //do nothing
         } else {
             OpenAlSource source;
-            if (unusedSources.size() > 0)
+            if (unusedSources.size() > 0) {
+                logger.info("******************** reusing al source");
+                //TODO we cannot reuse sources without reconfiguring them, e.g. mono/stereo, ambient,...
                 source = unusedSources.remove(unusedSources.size() - 1);
-            else {
+                source.reset(samples, synth.getSamplerate(), bits, synth.getChannels(), synth.getGain(), auxiliaryEffectSlot, synth.isAmbient());
+                synth.enable(source);
+            } else {
                 if (numberOfSources < 255) {
-                    source = new OpenAlSource(samples, synth.getSamplerate(), bits, synth.getChannels(), auxiliaryEffectSlot);
-                    synth.enable(source);
+                    source = new OpenAlSource(samples, synth.getSamplerate(), bits, synth.getChannels(), synth.getGain(), auxiliaryEffectSlot, synth.isAmbient());
                     numberOfSources++;
+                    synth.enable(source);
                 } else {
                     logger.error("Max openal source number (255) reached. Source not created!");
                 }

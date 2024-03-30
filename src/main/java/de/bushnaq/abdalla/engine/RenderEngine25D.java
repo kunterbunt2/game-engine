@@ -181,10 +181,14 @@ public class RenderEngine25D<T> {
                 break;
 
         }
-        batch.line(textureRegion, x1, y1, -z1, x2, y1, z2, lableColor, thickness);
-        batch.line(textureRegion, x2, y1, z2, x3, y1, z2, lableColor, thickness);
+        line(textureRegion, x1, y1, -z1, x2, z2, lableColor, thickness);
+        line(textureRegion, x2, y1, z2, x3, z2, lableColor, thickness);
         renderText(translation, yRotation, x2, y1, z2 + margin, font, nameColor, nameColor, name, nameSize, textHAlignment, VAlignment.BOTTOM);
         renderText(translation, yRotation, x2, y1, z2 - margin, font, nameColor, valueColor, value, valueSize, textHAlignment, VAlignment.TOP);
+    }
+
+    public void line(TextureRegion textureRegion, float x1, float y1, float z1, float x2, float z2, Color lableColor, float thickness) {
+        batch.line(textureRegion, x1, y1, z1, x2, y1, z2, lableColor, thickness);
     }
 
     public void renderText(Vector3 translation, float yRotation, final float dx, final float dy, final float dz, BitmapFont font, final Color backgroundColor, final Color textColor, String text, final float size, HAlignment hAlignment, VAlignment vAlignment) {

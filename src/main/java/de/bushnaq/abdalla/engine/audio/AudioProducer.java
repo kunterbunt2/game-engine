@@ -33,6 +33,8 @@ public interface AudioProducer {
 
     int getChannels();
 
+    float getGain();
+
     int getOpenAlFormat();
 
     Vector3 getPosition();
@@ -42,6 +44,8 @@ public interface AudioProducer {
     boolean isAmbient();
 
     boolean isEnabled();
+
+    boolean isOptIn();// can opt out, in that case the system will keep them disabled
 
     boolean isPlaying() throws OpenAlException;
 
@@ -53,9 +57,9 @@ public interface AudioProducer {
 
     void setAmbient(boolean enabled);
 
-    void setGain(final float gain) throws OpenAlException;
-
     //	public short process(long l);
+
+    void setGain(final float gain) throws OpenAlException;
 
     void setPositionAndVelocity(final float[] position, final float[] velocity) throws OpenAlException;
 

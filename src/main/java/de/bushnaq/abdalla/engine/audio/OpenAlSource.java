@@ -37,36 +37,40 @@ import java.util.List;
 
 public class OpenAlSource extends Thread {
     private static final int                       BUFFER_COUNT         = 3;
-    private final        int                       bits;
     private final        int[]                     bufferId             = new int[BUFFER_COUNT];
     private final        List<Integer>             bufferQueue          = new ArrayList<>(); // A quick and dirty queue of buffer objects
     private final        List<Integer>             buffersUnqueued      = new ArrayList<>(); // A quick and dirty queue of buffer objects
-    private final        int                       channels;
     //	private long lastIndex = 0;
     private final        Logger                    logger               = LoggerFactory.getLogger(this.getClass());
     private final        Vector3                   position             = new Vector3();//last position submitted to openal
-    private final        int                       samplerate;
-    private final        long                      samples;
     private final        Vector3                   velocity             = new Vector3();//last velocity submitted to openal
+    private              boolean                   ambient;
     private              AudioProducer             audio;
     private              int                       auxiliaryEffectSlot  = 0;
+    private              int                       bits;
     private              long                      buffersize;
     private              ByteBuffer                byteBuffer;
     private              List<ByteBufferContainer> byteBufferCopyList   = new ArrayList<>();
+    private              int                       channels;
     private volatile     boolean                   end                  = false;
     private              int                       filter;
+    private              float                     gain;
     private              boolean                   keepCopy             = false;
     private              boolean                   play;//source should be in play state
     private              int                       restartedSourceCount = 0;
+    private              int                       samplerate;
+    private              long                      samples;
     private              boolean                   sleeping             = false;
     private              int                       source;
 
-    public OpenAlSource(final long samples, final int samplerate, final int bits, final int channels, final int auxiliaryEffectSlot) throws OpenAlException {
+    public OpenAlSource(final long samples, final int samplerate, final int bits, final int channels, float gain, final int auxiliaryEffectSlot, boolean ambient) throws OpenAlException {
         this.samples             = samples;
         this.samplerate          = samplerate;
         this.bits                = bits;
         this.channels            = channels;
+        this.gain                = gain;
         this.auxiliaryEffectSlot = auxiliaryEffectSlot;
+        this.ambient             = ambient;
         createBuffer();
         createSource();
         setName("OpenAlSource-" + source);
@@ -106,9 +110,11 @@ public class OpenAlSource extends Thread {
     }
 
     private void createSource() throws OpenAlException {
-        source = AL10.alGenSources();
-        AudioEngine.checkAlError("Openal error #");
-        logger.trace("created source " + source);
+        if (source != -1) {
+            source = AL10.alGenSources();
+            AudioEngine.checkAlError("Openal error #");
+            logger.trace("created source " + source);
+        }
 
         AL10.alSourcef(source, AL10.AL_REFERENCE_DISTANCE, 0.1f);
         AudioEngine.checkAlError("Openal error #");
@@ -119,8 +125,17 @@ public class OpenAlSource extends Thread {
         AL10.alSourcef(source, AL10.AL_ROLLOFF_FACTOR, 1f);
         AudioEngine.checkAlError("Openal error #");
 
-        //		AL10.alSourcef(source, AL10.AL_GAIN, 1.0f);
-        //		AudioEngine.checkAlError("Openal error #");
+        if (ambient) {
+            AL10.alSourcei(source, AL10.AL_SOURCE_RELATIVE, AL10.AL_TRUE);
+            AudioEngine.checkAlError("Openal error #");
+        } else {
+            AL10.alSourcei(source, AL10.AL_SOURCE_RELATIVE, AL10.AL_FALSE);
+            AudioEngine.checkAlError("Openal error #");
+        }
+
+        setGain(gain);
+//        AL10.alSourcef(source, AL10.AL_GAIN, gain);
+//        AudioEngine.checkAlError("Openal error #");
 
         AL10.alDopplerFactor(3.0f);
         AudioEngine.checkAlError("Openal error #");
@@ -170,6 +185,13 @@ public class OpenAlSource extends Thread {
     boolean isPlay() throws OpenAlException {
         return play;
     }
+
+    boolean isPlaying() throws OpenAlException {
+        int current_playing_state = 0;
+        current_playing_state = AL10.alGetSourcei(source, AL10.AL_SOURCE_STATE);
+        AudioEngine.checkAlError("Openal error #");
+        return AL10.AL_PLAYING == current_playing_state;
+    }
     //	private void unqueueAllBuffers() throws Exception {
     //		final int queuedBuffers = AL10.alGetSourcei(source, AL10.AL_BUFFERS_QUEUED);
     //
@@ -187,13 +209,6 @@ public class OpenAlSource extends Thread {
     //			}
     //		}
     //	}
-
-    boolean isPlaying() throws OpenAlException {
-        int current_playing_state = 0;
-        current_playing_state = AL10.alGetSourcei(source, AL10.AL_SOURCE_STATE);
-        AudioEngine.checkAlError("Openal error #");
-        return AL10.AL_PLAYING == current_playing_state;
-    }
 
     private synchronized void parkThread() {
         //		logger.info("parked thread");
@@ -244,13 +259,6 @@ public class OpenAlSource extends Thread {
         buffersUnqueued.clear();
     }
 
-    //	void renderBuffer() {
-    //		for (int sampleIndex = 0, bufferIndex = 0; sampleIndex < samples; sampleIndex++, bufferIndex += 2) {
-    //			byteBuffer.putShort(bufferIndex, audio.process(lastIndex + sampleIndex));
-    //		}
-    //		lastIndex += samples;
-    //	}
-
     private void removeBuffers() throws OpenAlException {
         //TODO unqueing and delete buffers fails
         //		unqueueAllBuffers();
@@ -260,6 +268,13 @@ public class OpenAlSource extends Thread {
             LibCStdlib.free(b.byteBuffer);
         LibCStdlib.free(byteBuffer);
     }
+
+    //	void renderBuffer() {
+    //		for (int sampleIndex = 0, bufferIndex = 0; sampleIndex < samples; sampleIndex++, bufferIndex += 2) {
+    //			byteBuffer.putShort(bufferIndex, audio.process(lastIndex + sampleIndex));
+    //		}
+    //		lastIndex += samples;
+    //	}
 
     private void removeFilter() throws OpenAlException {
         if (filter != 0) {
@@ -284,6 +299,22 @@ public class OpenAlSource extends Thread {
 
     public void renderBuffer() throws OpenAlcException {
         audio.processBuffer(byteBuffer);
+    }
+
+    public void reset(int samples, int samplerate, int bits, int channels, float gain, int auxiliaryEffectSlot, boolean ambient) throws OpenAlException {
+        this.samples             = samples;
+        this.samplerate          = samplerate;
+        this.bits                = bits;
+        this.channels            = channels;
+        this.gain                = gain;
+        this.auxiliaryEffectSlot = auxiliaryEffectSlot;
+        this.ambient             = ambient;
+        removeFilter();
+//        removeSource();
+        removeBuffers();
+        createBuffer();
+        createSource();
+        setName("OpenAlSource-" + source);
     }
 
     @Override

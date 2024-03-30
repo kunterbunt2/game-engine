@@ -35,9 +35,9 @@ public class OggPlayer extends AbstractAudioProducer {
     private              int            format;
     private              OggInputStream input;
     private              boolean        loop;
-    private              float          maxSecondsPerBuffer;
+    //    private              float          maxSecondsPerBuffer;
     private              OggInputStream previousInput;
-    private              float          renderedSeconds;
+    //    private              float          renderedSeconds;
     private              int            sampleRate;
 
     public OggPlayer() {
@@ -61,11 +61,6 @@ public class OggPlayer extends AbstractAudioProducer {
 
     @Override
     public void processBuffer(final ByteBuffer byteBuffer) {
-//        if (input == null) {
-//            input = new OggInputStream(file.read());
-//            setup(input.getChannels(), input.getSampleRate());
-//            previousInput = null; // release this reference
-//        }
         for (int i = 0; i < byteBuffer.capacity(); i++) {
             int value = input.read();
             if (value == -1) {
@@ -73,6 +68,7 @@ public class OggPlayer extends AbstractAudioProducer {
                     loop();
                     value = input.read();
                 } else {
+                    fastZero(byteBuffer);
                     break;
                 }
             }
@@ -83,12 +79,6 @@ public class OggPlayer extends AbstractAudioProducer {
     private void loop() {
         input = new OggInputStream(file.read(), input);
     }
-
-//    public void reset() {
-//        StreamUtils.closeQuietly(input);
-//        previousInput = null;
-//        input         = null;
-//    }
 
     public void setFile(final FileHandle file) throws OpenAlException {
         this.file = file;
@@ -102,9 +92,9 @@ public class OggPlayer extends AbstractAudioProducer {
     }
 
     protected void setup(final int channels, final int sampleRate) {
-        this.format         = channels > 1 ? AL_FORMAT_STEREO16 : AL_FORMAT_MONO16;
-        this.sampleRate     = sampleRate;
-        maxSecondsPerBuffer = (float) bufferSize / (bytesPerSample * channels * sampleRate);
+        this.format     = channels > 1 ? AL_FORMAT_STEREO16 : AL_FORMAT_MONO16;
+        this.sampleRate = sampleRate;
+//        maxSecondsPerBuffer = (float) bufferSize / (bytesPerSample * channels * sampleRate);
     }
 
 }
