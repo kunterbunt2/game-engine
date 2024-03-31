@@ -41,6 +41,7 @@ public class OggPlayer extends AbstractAudioProducer {
     private              int            sampleRate;
 
     public OggPlayer() {
+        super(44100);
         setAmbient(true);//always follows camera
     }
 

@@ -17,10 +17,10 @@
 package de.bushnaq.abdalla.engine.audio.synthesis;
 
 public class SawOscillator implements Oscilator {
-    private float  lfoDepth = 0;//cent
-    private float  lfoFreq  = 1;//Hz
-    private double oscFreq  = 440f;//Hz
-    private int    samplerate;//1/s
+    private float lfoDepth = 0;//cent
+    private float lfoFreq  = 1;//Hz
+    private float oscFreq  = 440f;//Hz
+    private int   samplerate;//1/s
 
     public SawOscillator() {
     }
@@ -38,17 +38,17 @@ public class SawOscillator implements Oscilator {
 //	}
 
     @Override
-    public double gen(long i) {
+    public float gen(long i) {
         final float oscFreqDetune      = (float) (lfoDepth / 20 * Math.sin((2 * Math.PI * lfoFreq / samplerate) * i));
         final float oscFreqWithVibrato = (float) (oscFreq * Math.pow(2, oscFreqDetune / 1200));
 
-        final double fraction = samplerate / oscFreqWithVibrato;
-        final double value    = -1 + 2 * (i % fraction) / fraction;
+        final float fraction = samplerate / oscFreqWithVibrato;
+        final float value    = -1 + 2 * (i % fraction) / fraction;
         return value;
     }
 
     //	@Override
-    public double getFrequency() {
+    public float getFrequency() {
         return oscFreq;
     }
 
@@ -77,10 +77,5 @@ public class SawOscillator implements Oscilator {
     //	@Override
     public void setSampleRate(final int samplerate) {
         this.samplerate = samplerate;
-    }
-
-    public void setFrequency(final double frequency) {
-        oscFreq = frequency;
-        //		lastOscFreq = frequency;
     }
 }

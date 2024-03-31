@@ -49,6 +49,8 @@ public interface AudioProducer {
 
     boolean isPlaying() throws OpenAlException;
 
+    boolean isRadio();
+
     void pause() throws OpenAlException;
 
     void play() throws OpenAlException;
@@ -62,6 +64,8 @@ public interface AudioProducer {
     void setGain(final float gain) throws OpenAlException;
 
     void setPositionAndVelocity(final float[] position, final float[] velocity) throws OpenAlException;
+
+    void setRadio(boolean radio);
 
     void waitForPlay() throws InterruptedException, OpenAlException;
 

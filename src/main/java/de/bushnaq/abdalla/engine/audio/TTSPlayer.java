@@ -32,18 +32,24 @@ import static org.lwjgl.openal.AL10.AL_FORMAT_STEREO16;
 
 public class TTSPlayer extends AbstractAudioProducer {
     private final AudioEngine        audioEngine;
-    private final Logger             logger     = LoggerFactory.getLogger(this.getClass());
-    private final List<String>       messages   = new ArrayList<>();
+    private final Logger             logger   = LoggerFactory.getLogger(this.getClass());
+    private final List<String>       messages = new ArrayList<>();
     protected     FileHandle         file;
-    private       int                channels   = 1;
-    private       int                format     = AL_FORMAT_MONO16;
+    private       int                channels = 1;
+    private       int                format   = AL_FORMAT_MONO16;
+    //    private       float              highGain = 0.0f;
     private       Wav.WavInputStream input;
-    private       boolean            optIn      = false;//by default ttsPlayer is opting out, which means that it is disabled by  the AudioEngine
-    private       int                sampleRate = 16000;//default for tts
+    //    private       float              lowGain  = 1.0f;
+    private       boolean            optIn    = false;//by default ttsPlayer is opting out, which means that it is disabled by  the AudioEngine
+//    private       int                sampleRate = 16000;//default for tts
 
-    public TTSPlayer(AudioEngine audioEngine) {
+    public TTSPlayer(AudioEngine audioEngine) throws OpenAlException {
+        super(16000);
         setAmbient(true);//always follows camera
+        setRadio(true);//radio effect
         this.audioEngine = audioEngine;
+        filters.highGain = 1.0f;
+        filters.lowGain  = 0.05f;
     }
 
     private boolean bufferNextMessage() {
@@ -57,6 +63,23 @@ public class TTSPlayer extends AbstractAudioProducer {
         return true;
     }
 
+    public void enable(final OpenAlSource source) throws OpenAlException {
+        enabled     = true;
+        this.source = source;
+        this.source.attach(this);
+        this.source.setGain(gain);
+        this.source.updateFilter(true, filters.lowGain, filters.highGain);
+//        filters.setFilter(true);
+        if (isPlaying())
+            this.source.play();//we should be playing
+        this.source.unparkOrStartThread();
+    }
+
+    @Override
+    public boolean isOptIn() {
+        return optIn;
+    }
+
     @Override
     public int getChannels() {
         return channels;
@@ -68,11 +91,6 @@ public class TTSPlayer extends AbstractAudioProducer {
     }
 
     @Override
-    public int getSamplerate() {
-        return sampleRate;
-    }
-
-    @Override
     public void processBuffer(final ByteBuffer byteBuffer) {
         if (input == null) {
             if (!bufferNextMessage()) {
@@ -80,31 +98,48 @@ public class TTSPlayer extends AbstractAudioProducer {
                 return;
             }
         }
-        for (int i = 0; i < byteBuffer.capacity(); i++) {
-            int value;
+        for (int i = 0; i < byteBuffer.capacity() / 2; i += 1) {
+            int byte1;
+            int byte2;
             try {
-                value = input.read();
-                if (value == -1) {
+                byte1 = input.read();
+                byte2 = input.read();
+                if (byte2 == -1) {
                     if (!bufferNextMessage()) {
                         input = null;
 //                    logger.info("break");
                         fastZero(byteBuffer);
                         return;
                     } else {
-                        value = input.read();
+                        byte1 = input.read();
+                        byte2 = input.read();
                     }
                 }
-                byteBuffer.put(i, (byte) value);
+//                if (filters.filter != null) {
+//                    int   intValue1   = byte1 + (byte2 << 8);
+//                    float floatValue1 = (float) intValue1 / 32768 - 1f;
+//                    float floatValue2 = filters.filter.process(floatValue1);
+//                    int   intValue2   = (int) ((floatValue2 + 1f) * 32768);
+//                    intValue2 = Math.max(intValue2, 0);
+//                    intValue2 = (int) Math.min((long) intValue2, 256L * 256L);
+//                    int nbyte2 = intValue2 >> 8;
+//                    int nbyte1 = intValue2 & 0xff;
+//                    if (nbyte1 != byte1)
+//                        logger.info(String.format("%d %d", byte1, nbyte1));
+//                    if (nbyte2 != byte2)
+//                        logger.info(String.format("%d %d", byte2, nbyte2));
+//                    logger.info(String.format("%d %d %d %f %f", byte1, byte2, intValue1, floatValue1, floatValue2));
+//                    byteBuffer.put(i * 2, (byte) nbyte1);
+//                    byteBuffer.put(i * 2 + 1, (byte) nbyte2);
+//                } else
+                {
+                    byteBuffer.put(i * 2, (byte) byte1);
+                    byteBuffer.put(i * 2 + 1, (byte) byte2);
+                }
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
         }
-    }
-
-
-    @Override
-    public boolean isOptIn() {
-        return optIn;
     }
 
     public void reset() {
@@ -117,8 +152,8 @@ public class TTSPlayer extends AbstractAudioProducer {
     }
 
     protected void setup(final int channels, final int sampleRate) {
-        this.format     = channels > 1 ? AL_FORMAT_STEREO16 : AL_FORMAT_MONO16;
-        this.sampleRate = sampleRate;
+        this.format = channels > 1 ? AL_FORMAT_STEREO16 : AL_FORMAT_MONO16;
+//        this.sampleRate = sampleRate;
     }
 
     public void speak(String msg) {

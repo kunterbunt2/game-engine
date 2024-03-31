@@ -43,6 +43,7 @@ public class OpenAlSource extends Thread {
     //	private long lastIndex = 0;
     private final        Logger                    logger               = LoggerFactory.getLogger(this.getClass());
     private final        Vector3                   position             = new Vector3();//last position submitted to openal
+    private final        boolean                   radio;
     private final        Vector3                   velocity             = new Vector3();//last velocity submitted to openal
     private              boolean                   ambient;
     private              AudioProducer             audio;
@@ -63,7 +64,7 @@ public class OpenAlSource extends Thread {
     private              boolean                   sleeping             = false;
     private              int                       source;
 
-    public OpenAlSource(final long samples, final int samplerate, final int bits, final int channels, float gain, final int auxiliaryEffectSlot, boolean ambient) throws OpenAlException {
+    public OpenAlSource(final long samples, final int samplerate, final int bits, final int channels, float gain, final int auxiliaryEffectSlot, boolean ambient, boolean radio) throws OpenAlException {
         this.samples             = samples;
         this.samplerate          = samplerate;
         this.bits                = bits;
@@ -71,6 +72,7 @@ public class OpenAlSource extends Thread {
         this.gain                = gain;
         this.auxiliaryEffectSlot = auxiliaryEffectSlot;
         this.ambient             = ambient;
+        this.radio               = radio;
         createBuffer();
         createSource();
         setName("OpenAlSource-" + source);
@@ -97,11 +99,21 @@ public class OpenAlSource extends Thread {
         AudioEngine.checkAlError("Failed to create filter with error #");
         logger.trace("created filter " + filter);
         if (EXTEfx.alIsFilter(filter)) {
-            // Set Filter type to Low-Pass and set parameters
-            EXTEfx.alFilteri(filter, EXTEfx.AL_FILTER_TYPE, EXTEfx.AL_FILTER_LOWPASS);
-            AudioEngine.checkAlError("Low pass filter not supported error #");
-            //			EXTEfx.alFilterf(filter, EXTEfx.AL_LOWPASS_GAIN, lowGain);
-            //			EXTEfx.alFilterf(filter, EXTEfx.AL_LOWPASS_GAINHF, highGain);
+            if (radio) {
+                // Set Filter type to Low-Pass and set parameters
+                EXTEfx.alFilteri(filter, EXTEfx.AL_FILTER_TYPE, EXTEfx.AL_FILTER_HIGHPASS);
+                AudioEngine.checkAlError("Low pass filter not supported error #");
+
+//                EXTEfx.alFilterf(filter, EXTEfx.AL_HIGHPASS_GAIN, 1.0f);
+//                AudioEngine.checkAlError("Failed to set filter lowGain with error #");
+//
+//                EXTEfx.alFilterf(filter, EXTEfx.AL_HIGHPASS_GAINLF, 0.05f);
+//                AudioEngine.checkAlError("Failed to set filter highgain with error #");
+            } else {
+                // Set Filter type to Low-Pass and set parameters
+                EXTEfx.alFilteri(filter, EXTEfx.AL_FILTER_TYPE, EXTEfx.AL_FILTER_LOWPASS);
+                AudioEngine.checkAlError("Low pass filter not supported error #");
+            }
             logger.trace("Low pass filter created.");
 
             AL10.alSourcei(source, EXTEfx.AL_DIRECT_FILTER, filter);
@@ -132,7 +144,6 @@ public class OpenAlSource extends Thread {
             AL10.alSourcei(source, AL10.AL_SOURCE_RELATIVE, AL10.AL_FALSE);
             AudioEngine.checkAlError("Openal error #");
         }
-
         setGain(gain);
 //        AL10.alSourcef(source, AL10.AL_GAIN, gain);
 //        AudioEngine.checkAlError("Openal error #");
@@ -423,11 +434,23 @@ public class OpenAlSource extends Thread {
     public void updateFilter(final boolean enableFilter, final float lowGain, final float highGain) throws OpenAlException {
         if (filter != 0) {
             if (enableFilter) {
-                EXTEfx.alFilterf(filter, EXTEfx.AL_LOWPASS_GAIN, lowGain);
-                AudioEngine.checkAlError("Failed to set filter lowGain with error #");
+                AL10.alSourcei(source, EXTEfx.AL_DIRECT_FILTER, EXTEfx.AL_FILTER_NULL);
+                AudioEngine.checkAlError("Openal error #");
+                if (radio) {
+                    EXTEfx.alFilterf(filter, EXTEfx.AL_HIGHPASS_GAIN, highGain);
+                    AudioEngine.checkAlError("Failed to set filter lowGain with error #");
 
-                EXTEfx.alFilterf(filter, EXTEfx.AL_LOWPASS_GAINHF, highGain);
-                AudioEngine.checkAlError("Failed to set filter highgain with error #");
+                    EXTEfx.alFilterf(filter, EXTEfx.AL_HIGHPASS_GAINLF, lowGain);
+                    AudioEngine.checkAlError("Failed to set filter highgain with error #");
+                } else {
+                    EXTEfx.alFilterf(filter, EXTEfx.AL_LOWPASS_GAIN, lowGain);
+                    AudioEngine.checkAlError("Failed to set filter lowGain with error #");
+
+                    EXTEfx.alFilterf(filter, EXTEfx.AL_LOWPASS_GAINHF, highGain);
+                    AudioEngine.checkAlError("Failed to set filter highgain with error #");
+                }
+                AL10.alSourcei(source, EXTEfx.AL_DIRECT_FILTER, filter);
+                AudioEngine.checkAlError("Assigning direct filter failed with error #");
             } else {
                 removeFilter();
             }
@@ -435,11 +458,25 @@ public class OpenAlSource extends Thread {
             //no filter
             if (enableFilter) {
                 createFilter();
-                EXTEfx.alFilterf(filter, EXTEfx.AL_LOWPASS_GAIN, lowGain);
-                AudioEngine.checkAlError("Failed to set filter lowGain with error #");
+                AL10.alSourcei(source, EXTEfx.AL_DIRECT_FILTER, EXTEfx.AL_FILTER_NULL);
+                AudioEngine.checkAlError("Openal error #");
+                if (radio) {
 
-                EXTEfx.alFilterf(filter, EXTEfx.AL_LOWPASS_GAINHF, highGain);
-                AudioEngine.checkAlError("Failed to set filter highgain with error #");
+                    EXTEfx.alFilterf(filter, EXTEfx.AL_HIGHPASS_GAIN, highGain);
+                    AudioEngine.checkAlError("Failed to set filter lowGain with error #");
+
+                    EXTEfx.alFilterf(filter, EXTEfx.AL_HIGHPASS_GAINLF, lowGain);
+                    AudioEngine.checkAlError("Failed to set filter highgain with error #");
+
+                } else {
+                    EXTEfx.alFilterf(filter, EXTEfx.AL_LOWPASS_GAIN, lowGain);
+                    AudioEngine.checkAlError("Failed to set filter lowGain with error #");
+
+                    EXTEfx.alFilterf(filter, EXTEfx.AL_LOWPASS_GAINHF, highGain);
+                    AudioEngine.checkAlError("Failed to set filter highgain with error #");
+                }
+                AL10.alSourcei(source, EXTEfx.AL_DIRECT_FILTER, filter);
+                AudioEngine.checkAlError("Assigning direct filter failed with error #");
             } else {
                 //ok
             }

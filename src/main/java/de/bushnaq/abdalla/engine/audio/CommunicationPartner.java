@@ -17,7 +17,7 @@
 package de.bushnaq.abdalla.engine.audio;
 
 public interface CommunicationPartner {
-    public static final long RADIO_ANSWER_DELAY = 1000;//ms
+    long RADIO_ANSWER_DELAY = 3000;//ms
 
     String getName();
 

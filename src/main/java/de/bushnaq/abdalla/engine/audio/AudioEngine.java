@@ -220,7 +220,7 @@ public class AudioEngine {
             }
         }
         setListenerOrientation(new Vector3(0, 0, -1), new Vector3(0, 1, 0));
-        createAuxiliaryEffectSlot();
+//        createAuxiliaryEffectSlot();
         radioTTS = new RadioTTS(this, assetFolderName);
         logger.info("----------------------------------------------------------------------------------");
     }
@@ -333,7 +333,7 @@ public class AudioEngine {
         for (final OpenAlSource source : unusedSources) {
             source.dispose();
         }
-        removeAuxiliaryEffectSlot();
+//        removeAuxiliaryEffectSlot();
         //		AudioEngine.checkAlError("Openal error #");
         {
             ALC10.alcSuspendContext(context);
@@ -388,7 +388,7 @@ public class AudioEngine {
                 synth.enable(source);
             } else {
                 if (numberOfSources < 255) {
-                    source = new OpenAlSource(samples, synth.getSamplerate(), bits, synth.getChannels(), synth.getGain(), auxiliaryEffectSlot, synth.isAmbient());
+                    source = new OpenAlSource(samples, synth.getSamplerate(), bits, synth.getChannels(), synth.getGain(), auxiliaryEffectSlot, synth.isAmbient(), synth.isRadio());
                     numberOfSources++;
                     synth.enable(source);
                 } else {

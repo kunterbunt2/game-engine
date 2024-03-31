@@ -30,31 +30,15 @@ public class Synthesizer extends AbstractAudioProducer {
     private final List<Oscilator> oscillators   = new ArrayList<>();
     //	private boolean play = false;//is the source playing?
     //	private final Vector3 position = new Vector3();//position of the audio source
-    private final int             samplerate;
     volatile      double          lastFrequency = 0.0;
     long lastIndex;
-    private BassBoost bassBoost          = null;
-    private float     bassBoostDbGain    = 12;
-    private float     bassBoostFrequency = 440;
-    private boolean   enableBassBoost    = false;
     //	private boolean enabled = false;//a disabled synth does not possess an audio source and any of the source attached resource like filters and buffers
-    private boolean   enableFilter;
     //	private float gain = 1.0f;
-    private float     highGain           = 0.0f;
-
-    //	/**
-    //	 * adapt synthesizer to the current source velocity
-    //	 * @param speed
-    //	 * @throws OpenAlException
-    //	 */
-    //	public void adaptToVelocity(final float speed) throws OpenAlException {
-    //	}
-    private float lowGain = 1.0f;
     //	private OpenAlSource source = null;//if enabled, this will hold the attached openal source, otherwise null
     //	private final Vector3 velocity = new Vector3();//velocity of the audio source
 
     public Synthesizer(final int samplerate) throws OpenAlException {
-        this.samplerate = samplerate;
+        super(samplerate);
     }
 
     public void add(final Lfo lfo) {
@@ -75,9 +59,6 @@ public class Synthesizer extends AbstractAudioProducer {
         oscillators.add(generator);
     }
 
-    protected void createBassBoost() {
-        bassBoost = new BassBoost(bassBoostFrequency, bassBoostDbGain, samplerate);
-    }
 
     //	public Vector3 getPosition() {
     //		return position;
@@ -126,7 +107,7 @@ public class Synthesizer extends AbstractAudioProducer {
         this.source = source;
         this.source.attach(this);
         this.source.setGain(gain);
-        this.source.updateFilter(enableFilter, lowGain, highGain);
+        this.source.updateFilter(filters.enableFilter, filters.lowGain, filters.highGain);
         if (isPlaying())
             this.source.play();//we should be playing
         this.source.unparkOrStartThread();
@@ -140,11 +121,6 @@ public class Synthesizer extends AbstractAudioProducer {
     @Override
     public int getOpenAlFormat() {
         return AL10.AL_FORMAT_MONO16;
-    }
-
-    @Override
-    public int getSamplerate() {
-        return samplerate;
     }
 
     @Override
@@ -187,7 +163,7 @@ public class Synthesizer extends AbstractAudioProducer {
     //	}
 
     public short process(final long i) {
-        double value = 0;
+        float value = 0;
         for (final Oscilator osc : oscillators) {
             value += osc.gen(i) / oscillators.size();
             lastFrequency = osc.getFrequency();
@@ -196,28 +172,14 @@ public class Synthesizer extends AbstractAudioProducer {
             value *= (1 + lfo.gen(i)) / (1 + lfo.getFactor());
         }
 
-        if (bassBoost != null)
-            value = bassBoost.process(value, 1);
+        if (filters.bassBoost != null)
+            value = filters.bassBoost.process(value);
 
         //Short.MAX_VALUE;
         return (short) (32760 * value);
 
     }
 
-    private void removeBasBoost() {
-        bassBoost = null;
-    }
-
-    public void setBassBoost(final boolean enableBassBoost) throws OpenAlException {
-        this.enableBassBoost = enableBassBoost;
-        if (isEnabled())
-            this.updateBassBoost(enableFilter, lowGain, highGain);
-    }
-
-    public void setBassBoostGain(final float bassBoostFrequency, final float bassBoostDbGain) {
-        this.bassBoostFrequency = bassBoostFrequency;
-        this.bassBoostDbGain    = bassBoostDbGain;
-    }
 
     //	public void setGain(final float gain) throws OpenAlException {
     //		if (this.gain != gain && isEnabled()) {
@@ -245,34 +207,18 @@ public class Synthesizer extends AbstractAudioProducer {
     //	}
 
     public void setFilter(final boolean enableFilter) throws OpenAlException {
-        this.enableFilter = enableFilter;
+        this.filters.enableFilter = enableFilter;
         if (isEnabled())
-            this.source.updateFilter(enableFilter, lowGain, highGain);
+            this.source.updateFilter(enableFilter, filters.lowGain, filters.highGain);
     }
 
     public void setFilterGain(final float lowGain, final float highGain) throws OpenAlException {
-        this.lowGain  = lowGain;
-        this.highGain = highGain;
+        this.filters.lowGain  = lowGain;
+        this.filters.highGain = highGain;
         if (isEnabled())
-            this.source.updateFilter(enableFilter, lowGain, highGain);
+            this.source.updateFilter(filters.enableFilter, lowGain, highGain);
     }
 
-    void updateBassBoost(final boolean enableBassBostr, final float bassBoostFrequency, final float bassBoostDbGain) throws OpenAlException {
-        if (bassBoost != null) {
-            if (enableBassBoost) {
-                bassBoost.set(bassBoostFrequency, bassBoostDbGain, samplerate);
-            } else {
-                removeBasBoost();
-            }
-        } else {
-            //no filter
-            if (enableBassBoost) {
-                createBassBoost();
-            } else {
-                //ok
-            }
-        }
-    }
 
     //	public void waitForPlay() throws InterruptedException, OpenAlException {
     //		if (isEnabled()) {

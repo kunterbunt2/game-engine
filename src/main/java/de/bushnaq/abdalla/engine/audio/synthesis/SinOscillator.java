@@ -37,18 +37,18 @@ public class SinOscillator implements Oscilator {
     }
 
     @Override
-    public double gen(final long i) {
+    public float gen(final long i) {
         final float oscFreqDetune      = (float) (lfoDepth / 10 * Math.sin((2 * Math.PI * lfoFreq / samplerate) * i));
         final float oscFreqWithVibrato = (float) (oscFreq * Math.pow(2, oscFreqDetune / 1200));
         minFrequency = Math.min(minFrequency, oscFreqWithVibrato);
         maxFrequency = Math.max(maxFrequency, oscFreqWithVibrato);
 
-        final double value = Math.sin(((2 * Math.PI * oscFreqWithVibrato) / samplerate) * i);
+        final float value = (float) Math.sin(((2 * Math.PI * oscFreqWithVibrato) / samplerate) * i);
         return value;
     }
 
     @Override
-    public double getFrequency() {
+    public float getFrequency() {
         return oscFreq;
     }
 

@@ -23,13 +23,21 @@ import java.nio.ByteBuffer;
 
 public abstract class AbstractAudioProducer implements AudioProducer {
     protected final Vector3      position     = new Vector3();//position of the audio source
+    protected final int          samplerate;
     protected final Vector3      velocity     = new Vector3();//velocity of the audio source
     private final   byte[]       oneKiloBytes = new byte[1024];//used to fast zero the byte buffer in times of silence
     protected       boolean      enabled      = false;//a disabled synth does not possess an audio source and any of the source attached resource like filters and buffers
+    protected       Filters      filters;
     protected       float        gain         = 1.0f;
     protected       boolean      play         = false;//is the source playing?
     protected       OpenAlSource source       = null;//if enabled, this will hold the attached openal source, otherwise null
     private         boolean      ambient      = false;//position always follows camera
+    private         boolean      radio        = false;
+
+    public AbstractAudioProducer(int samplerate) {
+        this.samplerate = samplerate;
+        filters         = new Filters(samplerate, this);
+    }
 
     /**
      * adapt synthesizer to the current source velocity
@@ -74,6 +82,11 @@ public abstract class AbstractAudioProducer implements AudioProducer {
         return position;
     }
 
+    @Override
+    public int getSamplerate() {
+        return samplerate;
+    }
+
     public boolean isAmbient() {
         return ambient;
     }
@@ -96,6 +109,11 @@ public abstract class AbstractAudioProducer implements AudioProducer {
     @Override
     public boolean isPlaying() throws OpenAlException {
         return play;
+    }
+
+    @Override
+    public boolean isRadio() {
+        return radio;
     }
 
     @Override
@@ -147,6 +165,11 @@ public abstract class AbstractAudioProducer implements AudioProducer {
     }
 
     @Override
+    public void setRadio(boolean radio) {
+        this.radio = radio;
+    }
+
+    @Override
     public void waitForPlay() throws InterruptedException, OpenAlException {
         if (isEnabled()) {
             do {
@@ -183,6 +206,7 @@ public abstract class AbstractAudioProducer implements AudioProducer {
             throw new OpenAlcException("Synth is disabled");
         }
     }
+
 
     /**
      * Convenience method used for debugging

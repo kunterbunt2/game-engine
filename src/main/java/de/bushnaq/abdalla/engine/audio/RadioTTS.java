@@ -202,7 +202,7 @@ public class RadioTTS {
     }
 
     public String resolveString(String stringID) {
-        return radioProperties.getProperty(RadioTTS.REQUESTING_APPROVAL_TO_DOCK_01);
+        return radioProperties.getProperty(stringID);
     }
 
     public List<String> tokenize(String msg) {

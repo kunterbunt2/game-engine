@@ -107,12 +107,12 @@ public class ExampleSynthesizer extends Synthesizer {
         setFilterGain(lowGain, highGain);
         if (lowGain < 0.5f) {
             setFilter(false);
-            setBassBoost(false);
+            filters.setBassBoost(false);
         } else {
             setFilter(true);
-            setBassBoost(true);
+            filters.setBassBoost(true);
         }
-        setBassBoostGain(frequency / 2, bassGain * (24));
+        filters.setBassBoostGain(frequency / 2, bassGain * (24));
     }
     //	public void init(float speed) throws OpenAlException {
     //		speed = Math.min(MAX_SPEED, speed);
