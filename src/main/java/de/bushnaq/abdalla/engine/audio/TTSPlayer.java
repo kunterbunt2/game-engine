@@ -48,8 +48,8 @@ public class TTSPlayer extends AbstractAudioProducer {
         setAmbient(true);//always follows camera
         setRadio(true);//radio effect
         this.audioEngine = audioEngine;
-        filters.highGain = 1.0f;
-        filters.lowGain  = 0.05f;
+//        filters.highGain = 1.0f;
+//        filters.lowGain  = 0.05f;
     }
 
     private boolean bufferNextMessage() {
@@ -68,7 +68,7 @@ public class TTSPlayer extends AbstractAudioProducer {
         this.source = source;
         this.source.attach(this);
         this.source.setGain(gain);
-        this.source.updateFilter(true, filters.lowGain, filters.highGain);
+        this.source.updateFilter(true, 0.02f, 1.0f);
 //        filters.setFilter(true);
         if (isPlaying())
             this.source.play();//we should be playing

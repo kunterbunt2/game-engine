@@ -40,6 +40,7 @@ public class OpenAlSource extends Thread {
     private final        int[]                     bufferId             = new int[BUFFER_COUNT];
     private final        List<Integer>             bufferQueue          = new ArrayList<>(); // A quick and dirty queue of buffer objects
     private final        List<Integer>             buffersUnqueued      = new ArrayList<>(); // A quick and dirty queue of buffer objects
+    private final        List<ByteBufferContainer> byteBufferCopyList   = new ArrayList<>();
     //	private long lastIndex = 0;
     private final        Logger                    logger               = LoggerFactory.getLogger(this.getClass());
     private final        Vector3                   position             = new Vector3();//last position submitted to openal
@@ -51,7 +52,6 @@ public class OpenAlSource extends Thread {
     private              int                       bits;
     private              long                      buffersize;
     private              ByteBuffer                byteBuffer;
-    private              List<ByteBufferContainer> byteBufferCopyList   = new ArrayList<>();
     private              int                       channels;
     private volatile     boolean                   end                  = false;
     private              int                       filter;
@@ -109,6 +109,8 @@ public class OpenAlSource extends Thread {
 //
 //                EXTEfx.alFilterf(filter, EXTEfx.AL_HIGHPASS_GAINLF, 0.05f);
 //                AudioEngine.checkAlError("Failed to set filter highgain with error #");
+                EXTEfx.alFilteri(filter, EXTEfx.AL_FILTER_TYPE, EXTEfx.AL_FILTER_HIGHPASS);
+                AudioEngine.checkAlError("Low pass filter not supported error #");
             } else {
                 // Set Filter type to Low-Pass and set parameters
                 EXTEfx.alFilteri(filter, EXTEfx.AL_FILTER_TYPE, EXTEfx.AL_FILTER_LOWPASS);
@@ -154,7 +156,8 @@ public class OpenAlSource extends Thread {
         AL10.alDopplerVelocity(1.0f);
         AudioEngine.checkAlError("Openal error #");
 
-        AL11.alSource3i(source, EXTEfx.AL_AUXILIARY_SEND_FILTER, auxiliaryEffectSlot, 1, 0);
+//        alSource3i(source, AL_AUXILIARY_SEND_FILTER, distortionEffectSlot, 0, AL_FILTER_NULL);
+        AL11.alSource3i(source, EXTEfx.AL_AUXILIARY_SEND_FILTER, auxiliaryEffectSlot, 1, filter);
     }
 
     void dispose() throws OpenAlException {

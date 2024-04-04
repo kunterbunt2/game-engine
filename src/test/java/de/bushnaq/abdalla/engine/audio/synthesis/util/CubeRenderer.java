@@ -100,6 +100,7 @@ public class CubeRenderer extends ObjectRenderer<BasicGameEngine> {
             switch (synthType) {
                 case SYNTH -> {
                     synth = renderEngine.getGameEngine().getAudioEngine().createAudioProducer(ExampleSynthesizer.class);
+                    synth.setGain(100.0f);
                     synth.play();
                 }
                 case AMBIENT_OGG -> {
@@ -117,7 +118,7 @@ public class CubeRenderer extends ObjectRenderer<BasicGameEngine> {
                 }
                 case TTS -> {
                     ttsPlayer = renderEngine.getGameEngine().getAudioEngine().createAudioProducer(TTSPlayer.class);
-                    ttsPlayer.setGain(1000.0f);
+                    ttsPlayer.setGain(1.0f);
                     ttsPlayer.setAmbient(true);
                     ttsPlayer.setOptIn(true);
                     String string = String.format(renderEngine.getGameEngine().getAudioEngine().radioTTS.resolveString(RadioTTS.REQUESTING_APPROVAL_TO_DOCK_01), "T-1", "P-81");

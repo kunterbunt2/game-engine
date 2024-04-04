@@ -29,6 +29,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.lwjgl.openal.EXTEfx.*;
+
 /**
  * SoundEngine manages Synthesizer instances and caches them when they are not used
  * Synthesizer need to be all of the same type
@@ -57,11 +59,11 @@ public class AudioEngine {
     private final        List<OpenAlSource>  unusedSources    = new ArrayList<>();
     private final        Vector3             up               = new Vector3();//what is up direction for the listener?
     public               RadioTTS            radioTTS;
-    int                                                              auxiliaryEffectSlot;
+    int                                                              distortionEffectSlot;
     Map<String, AbstractSynthesizerFactory<? extends AudioProducer>> factoryMap = new HashMap<>();
     private long context;
-    private int  effect;
     private int  enabledAudioSourceCount = 0;
+    private int  mainEffectSlot;
     private int  maxMonoSources          = 0;
     private int  numberOfSources         = 0;
 
@@ -220,7 +222,7 @@ public class AudioEngine {
             }
         }
         setListenerOrientation(new Vector3(0, 0, -1), new Vector3(0, 1, 0));
-//        createAuxiliaryEffectSlot();
+        createAuxiliaryEffectSlots();
         radioTTS = new RadioTTS(this, assetFolderName);
         logger.info("----------------------------------------------------------------------------------");
     }
@@ -247,27 +249,67 @@ public class AudioEngine {
         return null;
     }
 
-    private void createAuxiliaryEffectSlot() throws OpenAlException {
-        auxiliaryEffectSlot = EXTEfx.alGenAuxiliaryEffectSlots();
+    private void createAuxiliaryEffectSlots() throws OpenAlException {
+        distortionEffectSlot = alGenAuxiliaryEffectSlots();
         checkAlError("Failed to create auxiliary effect slot with error #");
-        logger.trace("created  auxiliary effect slot " + auxiliaryEffectSlot);
 
+        mainEffectSlot = alGenAuxiliaryEffectSlots();
+        checkAlError("Failed to create auxiliary effect slot with error #");
+
+        createDistortionEffect(distortionEffectSlot);
+//        createReverbEffect(mainEffectSlot);
+    }
+
+    private void createDistortionEffect(int auxiliaryEffectSlot) throws OpenAlException {
         if (EXTEfx.alIsAuxiliaryEffectSlot(auxiliaryEffectSlot)) {
-            effect = EXTEfx.alGenEffects();
-            checkAlError("Failed to create auxiliary effect slot with error #");
+            int distortionEffect = alGenEffects();
+            checkAlError("Failed to create auxiliary AL_EFFECT_DISTORTION slot with error #");
+            if (EXTEfx.alIsEffect(distortionEffect)) {
+                alEffecti(distortionEffect, AL_EFFECT_TYPE, AL_EFFECT_DISTORTION);
+                alEffectf(distortionEffect, AL_DISTORTION_EDGE, .2f);
+                alEffectf(distortionEffect, AL_DISTORTION_GAIN, .5f);
+                alEffectf(distortionEffect, AL_DISTORTION_LOWPASS_CUTOFF, 3000f);
+                alEffectf(distortionEffect, AL_DISTORTION_EQCENTER, 3000f);
+                alEffectf(distortionEffect, AL_DISTORTION_EQBANDWIDTH, 300f);
+                alAuxiliaryEffectSloti(auxiliaryEffectSlot, AL_EFFECTSLOT_EFFECT, distortionEffect);
+            }
+//            int ringModulatorEffect = alGenEffects();
+//            checkAlError("Failed to create auxiliary AL_EFFECT_PITCH_SHIFTER slot with error #");
+//            if (EXTEfx.alIsEffect(ringModulatorEffect)) {
+//                alEffecti(ringModulatorEffect, AL_EFFECT_TYPE, AL_EFFECT_RING_MODULATOR);
+//                alEffectf(ringModulatorEffect, AL_RING_MODULATOR_FREQUENCY, 2000);
+//                alEffectf(ringModulatorEffect, AL_RING_MODULATOR_HIGHPASS_CUTOFF, 2000);
+////                alEffectf(ringModulatorEffect, AL_RING_MODULATOR_WAVEFORM, 0);
+//                alAuxiliaryEffectSloti(auxiliaryEffectSlot, AL_EFFECTSLOT_EFFECT, ringModulatorEffect);
+//            }
+//            int pitchShiftEffect = alGenEffects();
+//            checkAlError("Failed to create auxiliary AL_EFFECT_PITCH_SHIFTER slot with error #");
+//            if (EXTEfx.alIsEffect(pitchShiftEffect)) {
+//                alEffecti(pitchShiftEffect, AL_EFFECT_TYPE, AL_EFFECT_PITCH_SHIFTER);
+//                alEffectf(pitchShiftEffect, AL_PITCH_SHIFTER_COARSE_TUNE, 12q);
+//                alAuxiliaryEffectSloti(auxiliaryEffectSlot, AL_EFFECTSLOT_EFFECT, pitchShiftEffect);
+//            }
+        }
+    }
 
-            if (EXTEfx.alIsEffect(effect)) {
-                EXTEfx.alEffecti(effect, EXTEfx.AL_EFFECT_TYPE, EXTEfx.AL_EFFECT_REVERB);
-                checkAlError("Failed to create auxiliary effect slot with error #");
+    private void createReverbEffect(int auxiliaryEffectSlot) throws OpenAlException {
+        if (EXTEfx.alIsAuxiliaryEffectSlot(auxiliaryEffectSlot)) {
+            int reverbEffect = EXTEfx.alGenEffects();
+            checkAlError("Failed to create auxiliary reverbEffect slot with error #");
 
-                EXTEfx.alEffectf(effect, EXTEfx.AL_REVERB_DECAY_TIME, 8.0f);
-                checkAlError("Failed to create auxiliary effect slot with error #");
+            if (EXTEfx.alIsEffect(reverbEffect)) {
+                //reverb reverbEffect
+                EXTEfx.alEffecti(reverbEffect, EXTEfx.AL_EFFECT_TYPE, EXTEfx.AL_EFFECT_REVERB);
+                checkAlError("Failed to create auxiliary reverbEffect slot with error #");
 
-                EXTEfx.alEffectf(effect, EXTEfx.AL_REVERB_GAIN, 0.02f);
-                checkAlError("Failed to create auxiliary effect slot with error #");
+                EXTEfx.alEffectf(reverbEffect, EXTEfx.AL_REVERB_DECAY_TIME, 8.0f);
+                checkAlError("Failed to create auxiliary reverbEffect slot with error #");
 
-                EXTEfx.alAuxiliaryEffectSloti(auxiliaryEffectSlot, EXTEfx.AL_EFFECTSLOT_EFFECT, effect);
-                checkAlError("Failed to create auxiliary effect slot with error #");
+                EXTEfx.alEffectf(reverbEffect, EXTEfx.AL_REVERB_GAIN, 0.02f);
+                checkAlError("Failed to create auxiliary reverbEffect slot with error #");
+
+                EXTEfx.alAuxiliaryEffectSloti(auxiliaryEffectSlot, EXTEfx.AL_EFFECTSLOT_EFFECT, reverbEffect);
+                checkAlError("Failed to create auxiliary reverbEffect slot with error #");
             }
         }
     }
@@ -384,11 +426,19 @@ public class AudioEngine {
                 logger.info("******************** reusing al source");
                 //TODO we cannot reuse sources without reconfiguring them, e.g. mono/stereo, ambient,...
                 source = unusedSources.remove(unusedSources.size() - 1);
-                source.reset(samples, synth.getSamplerate(), bits, synth.getChannels(), synth.getGain(), auxiliaryEffectSlot, synth.isAmbient());
+                if (synth instanceof TTSPlayer) {
+                    source.reset(samples, synth.getSamplerate(), bits, synth.getChannels(), synth.getGain(), distortionEffectSlot, synth.isAmbient());
+                } else {
+                    source.reset(samples, synth.getSamplerate(), bits, synth.getChannels(), synth.getGain(), mainEffectSlot, synth.isAmbient());
+                }
                 synth.enable(source);
             } else {
                 if (numberOfSources < 255) {
-                    source = new OpenAlSource(samples, synth.getSamplerate(), bits, synth.getChannels(), synth.getGain(), auxiliaryEffectSlot, synth.isAmbient(), synth.isRadio());
+                    if (synth instanceof TTSPlayer) {
+                        source = new OpenAlSource(samples, synth.getSamplerate(), bits, synth.getChannels(), synth.getGain(), distortionEffectSlot, synth.isAmbient(), synth.isRadio());
+                    } else {
+                        source = new OpenAlSource(samples, synth.getSamplerate(), bits, synth.getChannels(), synth.getGain(), mainEffectSlot, synth.isAmbient(), synth.isRadio());
+                    }
                     numberOfSources++;
                     synth.enable(source);
                 } else {
@@ -461,9 +511,12 @@ public class AudioEngine {
     }
 
     private void removeAuxiliaryEffectSlot() throws OpenAlException {
-        EXTEfx.alDeleteAuxiliaryEffectSlots(auxiliaryEffectSlot);
+        EXTEfx.alDeleteAuxiliaryEffectSlots(mainEffectSlot);
         AudioEngine.checkAlError("Failed to delete auxiliary effect slot with error #");
-        auxiliaryEffectSlot = 0;
+        mainEffectSlot = 0;
+        EXTEfx.alDeleteAuxiliaryEffectSlots(distortionEffectSlot);
+        AudioEngine.checkAlError("Failed to delete auxiliary effect slot with error #");
+        distortionEffectSlot = 0;
     }
 
 //    public void say(RadioMessage rm) {

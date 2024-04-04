@@ -20,6 +20,7 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
+import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
@@ -189,6 +190,62 @@ public class RenderEngine25D<T> {
 
     public void line(TextureRegion textureRegion, float x1, float y1, float z1, float x2, float z2, Color lableColor, float thickness) {
         batch.line(textureRegion, x1, y1, z1, x2, y1, z2, lableColor, thickness);
+    }
+
+    public void renderRose(TextureAtlas.AtlasRegion textureRegion, BitmapFont font, Vector3 translation, float radius, float z) {
+        float         sectors = 36;
+        final Matrix4 m       = new Matrix4();
+        //move to the top and back on engine
+        //rotate into the xz layer
+        float a     = 360f / sectors;
+        float r     = (float) Math.sqrt(2 * radius * radius);
+        float scale = .05f;// text
+        for (int i = 0; i < sectors; i++) {
+            float             angle  = i * a;
+            final GlyphLayout layout = new GlyphLayout();
+            String            text   = String.format("%.0f", angle);
+            layout.setText(font, text);
+            {
+                float rad = (float) Math.toRadians(angle);
+                float ry  = -r * (float) Math.cos(rad);
+                float rx  = r * (float) Math.sin(rad);
+                m.setToTranslation(translation.x, translation.y, translation.z);
+//                        m.rotate(yVector, rotation);
+                m.translate(rx, z, ry);
+                m.rotate(yVector, -angle + 90 + 90);
+                m.rotate(xVector, -90);
+                m.scale(scale, scale, scale);
+                setTransformMatrix(m);
+                Color color = new Color(1f, 1f, 1f, 0.5f);
+                text(-layout.width / 2, 0, font, Color.WHITE, color, text);
+            }
+        }
+        m.setToTranslation(translation.x, translation.y, translation.z);
+        m.translate(0, z, 0);
+        m.rotate(xVector, -90);
+        setTransformMatrix(m);
+        sectors = 360;
+        a       = 360f / sectors;
+        float averageThickness = radius / (96 * 4);
+        float start            = 1f - .05f * 67.88f / r;
+        float end              = 1f - .02f * 67.88f / r;
+        for (int i = 0; i < sectors; i++) {
+            float startAngle = i * a;
+            float angle      = startAngle;
+            {
+                float rad = (float) Math.toRadians(angle);
+                float rx  = r * (float) Math.cos(rad);
+                float ry  = r * (float) Math.sin(rad);
+
+                float thickness = averageThickness;
+                Color color     = new Color(1f, 1f, 1f, 0.5f);
+                if (i / 10 * 10 == i) {
+                    thickness = averageThickness * 2;
+                    color     = new Color(1, 1, 1, 0.5f);
+                }
+                line(textureRegion, rx * start, 0, ry * start, rx * end, ry * end, color, thickness);
+            }
+        }
     }
 
     public void renderText(Vector3 translation, float yRotation, final float dx, final float dy, final float dz, BitmapFont font, final Color backgroundColor, final Color textColor, String text, final float size, HAlignment hAlignment, VAlignment vAlignment) {

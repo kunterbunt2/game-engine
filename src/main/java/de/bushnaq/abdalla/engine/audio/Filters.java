@@ -56,7 +56,7 @@ public class Filters {
     public void setBassBoost(final boolean enableBassBoost) throws OpenAlException {
         this.enableBassBoost = enableBassBoost;
         if (producer.isEnabled())
-            this.updateBassBoost(enableFilter, lowGain, highGain);
+            this.updateBassBoost(enableFilter, bassBoostFrequency, bassBoostDbGain);
     }
 
     public void setBassBoostGain(final float bassBoostFrequency, final float bassBoostDbGain) {

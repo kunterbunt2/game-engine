@@ -33,6 +33,7 @@ public abstract class AbstractAudioProducer implements AudioProducer {
     protected       OpenAlSource source       = null;//if enabled, this will hold the attached openal source, otherwise null
     private         boolean      ambient      = false;//position always follows camera
     private         boolean      radio        = false;
+    private         float        sourceGain;
 
     public AbstractAudioProducer(int samplerate) {
         this.samplerate = samplerate;
@@ -138,7 +139,8 @@ public abstract class AbstractAudioProducer implements AudioProducer {
 
     @Override
     public void setGain(final float gain) throws OpenAlException {
-        if (Math.abs(this.gain - gain) > 0.1f && isEnabled()) {
+        if (Math.abs(this.sourceGain - gain) > 0.1f && isEnabled()) {
+            sourceGain = gain;
             source.setGain(gain);
         }
         this.gain = gain;
