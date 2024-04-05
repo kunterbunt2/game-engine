@@ -48,7 +48,7 @@ public abstract class Context extends ApplicationProperties implements IContext 
     private                OperatingSystem operatingSystem;
 
     public Context() {
-        homeFolderName  = ".mercator";
+        homeFolderName  = "app/";
         operatingSystem = getOeratingSystemType();
         switch (operatingSystem) {
             case windows:
@@ -57,12 +57,12 @@ public abstract class Context extends ApplicationProperties implements IContext 
                     logger.info("Detected 'Windows' system and we are running inside of 'IDE'.");
                     installationFolder = cleanupPath(getInstallationFolder() + "/../..");
                     appFolderName      = installationFolder + "/app";
-                    configFolderName   = homeFolderName + "/config";
+                    configFolderName   = homeFolderName;
                 } else {
                     logger.info("Detected 'Windows' system.");
                     installationFolder = cleanupPath(getInstallationFolder() + "/../..");
                     appFolderName      = installationFolder + "/app";
-                    configFolderName   = homeFolderName + "/config";
+                    configFolderName   = homeFolderName;
                 }
                 break;
             case linux:
@@ -70,12 +70,12 @@ public abstract class Context extends ApplicationProperties implements IContext 
                     logger.info("Detected 'Linux' system and we are running inside of 'Eclipse'.");
                     installationFolder = cleanupPath(getInstallationFolder() + "/../../..");
                     appFolderName      = installationFolder + "/app";
-                    configFolderName   = homeFolderName + "/config";
+                    configFolderName   = homeFolderName;
                 } else {
                     logger.info("Detected 'Linux' system.");
                     installationFolder = cleanupPath(getInstallationFolder() + "/../../../bin");
                     appFolderName      = cleanupPath(installationFolder + "/../lib/app");
-                    configFolderName   = homeFolderName + "/config";
+                    configFolderName   = homeFolderName;
                 }
                 break;
             case osx:
@@ -83,12 +83,12 @@ public abstract class Context extends ApplicationProperties implements IContext 
                     logger.info("Detected 'macOS' system and we are running inside of 'Eclipse'.");
                     installationFolder = cleanupPath(getInstallationFolder() + "/../../..");
                     appFolderName      = installationFolder + "/app";
-                    configFolderName   = homeFolderName + "/config";
+                    configFolderName   = homeFolderName;
                 } else {
                     logger.info("Detected 'macOS' system.");
                     installationFolder = cleanupPath(getInstallationFolder() + "/../../MacOS");
                     appFolderName      = cleanupPath(installationFolder + "/../app");
-                    configFolderName   = homeFolderName + "/config";
+                    configFolderName   = homeFolderName;
                 }
                 break;
             case iosSimulator: {
@@ -96,7 +96,7 @@ public abstract class Context extends ApplicationProperties implements IContext 
                 homeFolderName     = ".";
                 installationFolder = ".";
                 appFolderName      = installationFolder;
-                configFolderName   = getHomeFolderName() + "/config";
+                configFolderName   = homeFolderName;
             }
             break;
             case ios: {
@@ -104,7 +104,7 @@ public abstract class Context extends ApplicationProperties implements IContext 
                 homeFolderName     = ".";
                 installationFolder = ".";
                 appFolderName      = installationFolder;
-                configFolderName   = homeFolderName + "/config";
+                configFolderName   = homeFolderName;
             }
             break;
 

@@ -63,7 +63,10 @@ public class AtlasGenerator {
         File aggregatedInputFolderFile = new File(aggregatedInputFolder);
         logger.info("----------------------------------------------------------------------------------");
         logger.info(generationReason);
-        FileUtils.cleanDirectory(aggregatedInputFolderFile);
+        if (!aggregatedInputFolderFile.exists())
+            aggregatedInputFolderFile.mkdir();
+        else
+            FileUtils.cleanDirectory(aggregatedInputFolderFile);
         atlasFile.delete();
         (new File(atlasAtlasFileName)).delete();
         generateFonts();
