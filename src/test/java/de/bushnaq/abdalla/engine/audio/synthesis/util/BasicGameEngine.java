@@ -211,7 +211,7 @@ public abstract class BasicGameEngine implements ApplicationListener, InputProce
     private void createEnvironment() {
         // setup IBL (image based lighting)
         if (getRenderEngine().isPbr()) {
-            setupImageBasedLightingByFaceNames("clouds", "jpg", "jpg", "jpg", 10);
+            setupImageBasedLightingByFaceNames();
             getRenderEngine().environment.set(PBRCubemapAttribute.createDiffuseEnv(diffuseCubemap));
             getRenderEngine().environment.set(PBRCubemapAttribute.createSpecularEnv(specularCubemap));
             getRenderEngine().environment.set(new PBRTextureAttribute(PBRTextureAttribute.BRDFLUTTexture, brdfLUT));
@@ -366,9 +366,7 @@ public abstract class BasicGameEngine implements ApplicationListener, InputProce
         this.simulateBassBoost = simulateBassBoost;
     }
 
-    private void setupImageBasedLightingByFaceNames(final String name, final String diffuseExtension, final String environmentExtension, final String specularExtension, final int specularIterations) {
-//        diffuseCubemap  = EnvironmentUtil.createCubemap(new InternalFileHandleResolver(), BasicAtlasManager.getAssetsFolderName() + "/textures/" + name + "/diffuse/diffuse_", "_0." + diffuseExtension, EnvironmentUtil.FACE_NAMES_FULL);
-//        specularCubemap = EnvironmentUtil.createCubemap(new InternalFileHandleResolver(), BasicAtlasManager.getAssetsFolderName() + "/textures/" + name + "/specular/specular_", "_", "." + specularExtension, specularIterations, EnvironmentUtil.FACE_NAMES_FULL);
+    private void setupImageBasedLightingByFaceNames() {
         brdfLUT = new Texture(Gdx.files.classpath("net/mgsx/gltf/shaders/brdfLUT.png"));
 
         DirectionalLightEx light = new DirectionalLightEx();
@@ -379,8 +377,6 @@ public abstract class BasicGameEngine implements ApplicationListener, InputProce
         diffuseCubemap  = iblBuilder.buildIrradianceMap(256);
         specularCubemap = iblBuilder.buildRadianceMap(10);
         iblBuilder.dispose();
-//        environmentDayCubemap   = environmentCubemap;
-//        environmentNightCubemap = environmentCubemap;
     }
 
     protected void startLwjgl() {

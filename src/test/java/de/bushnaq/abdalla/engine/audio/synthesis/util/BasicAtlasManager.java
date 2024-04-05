@@ -26,12 +26,15 @@ import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas.AtlasRegion;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator.FreeTypeFontParameter;
+import de.bushnaq.abdalla.engine.util.AtlasGenerator;
 import de.bushnaq.abdalla.engine.util.FontData;
+
+import java.io.File;
 
 public class BasicAtlasManager {
     private static String       assetsFolderName;
     public         TextureAtlas atlas;
-    public         FontData[]   fontDataList = {new FontData("menu-font", Context.getAppFolderName() + "/assets/fonts/Roboto-Regular.ttf", 12),//
+    public         FontData[]   fontData = {new FontData("menu-font", Context.getAppFolderName() + "/assets/fonts/Roboto-Regular.ttf", 12),//
             new FontData("menu-font-bold", Context.getAppFolderName() + "/assets/fonts/Roboto-bold.ttf", 12),//
             new FontData("model-font", Context.getAppFolderName() + "/assets/fonts/Roboto-Bold.ttf", 64),//
     };
@@ -48,21 +51,21 @@ public class BasicAtlasManager {
     }
 
     public void dispose() {
-        for (final FontData fontData : fontDataList) {
+        for (final FontData fontData : fontData) {
             fontData.font.dispose();
         }
         atlas.dispose();
     }
 
-    public void init() {
-        assetsFolderName = Context.getAppFolderName() + "/assets";
+    public void init() throws Exception {
+        assetsFolderName = Context.getAppFolderName() + "/assets/";
         initTextures();
         initFonts();
     }
 
     private void initFonts() {
-        for (int index = 0; index < fontDataList.length; index++) {
-            final FontData    fontData    = fontDataList[index];
+        for (int index = 0; index < fontData.length; index++) {
+            final FontData    fontData    = this.fontData[index];
             final AtlasRegion atlasRegion = atlas.findRegion(fontData.name);
             atlasRegion.getRegionWidth();
             atlasRegion.getRegionHeight();
@@ -77,12 +80,17 @@ public class BasicAtlasManager {
             packer.dispose();
             fontData.font.setUseIntegerPositions(false);
         }
-        menuFont     = fontDataList[0].font;
-        menuBoldFont = fontDataList[1].font;
-        modelFont    = fontDataList[2].font;
+        menuFont     = fontData[0].font;
+        menuBoldFont = fontData[1].font;
+        modelFont    = fontData[2].font;
     }
 
-    private void initTextures() {
+    private void initTextures() throws Exception {
+        AtlasGenerator atlasGenerator = new AtlasGenerator();
+        atlasGenerator.setOutputFolder(getAssetsFolderName() + "atlas/");
+        atlasGenerator.setInputFolders(new File[]{new File(getAssetsFolderName() + "textures/")});
+        atlasGenerator.setFontData(fontData);
+        atlasGenerator.generateIfNeeded();
         atlas               = new TextureAtlas(Gdx.files.internal(Context.getAppFolderName() + "/assets/atlas/atlas.atlas"));
         systemTextureRegion = atlas.findRegion("system");
         Colors.put("BOLD", new Color(0x1BA1E2FF));
