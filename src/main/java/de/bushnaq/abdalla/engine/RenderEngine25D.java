@@ -35,10 +35,10 @@ import com.scottlogic.util.ShaderCompatibilityHelper;
  * @param <T>
  */
 public class RenderEngine25D<T> {
-    final static Vector3               xVector = new Vector3(1, 0, 0);
-    final static Vector3               yVector = new Vector3(0, 1, 0);
-    public       CustomizedSpriteBatch batch;
-    public       OrthographicCamera    camera;
+    //    final static Vector3               xVector = new Vector3(1, 0, 0);
+//    final static Vector3               yVector = new Vector3(0, 1, 0);
+    public CustomizedSpriteBatch batch;
+    public OrthographicCamera    camera;
     //    public       int                   height;
 //    public       int                   width;
     T           gameEngine;
@@ -143,11 +143,11 @@ public class RenderEngine25D<T> {
         final Matrix4 m         = new Matrix4();
         //move center of text to center of trader
         m.setToTranslation(translation.x, translation.y, translation.z);
-        m.rotate(yVector, yRotation);
+        m.rotate(Vector3.Y, yRotation);
         //move to the top and back on engine
         m.translate(0, y1, 0);
         //rotate into the xz layer
-        m.rotate(xVector, -90);
+        m.rotate(Vector3.X, -90);
         batch.setTransformMatrix(m);
         final float      angle   = (float) (Math.PI / 6.0);//30deg
         final float      x2;
@@ -212,8 +212,8 @@ public class RenderEngine25D<T> {
                 m.setToTranslation(translation.x, translation.y, translation.z);
 //                        m.rotate(yVector, rotation);
                 m.translate(rx, z, ry);
-                m.rotate(yVector, -angle + 90 + 90);
-                m.rotate(xVector, -90);
+                m.rotate(Vector3.Y, -angle + 90 + 90);
+                m.rotate(Vector3.X, -90);
                 m.scale(scale, scale, scale);
                 setTransformMatrix(m);
                 Color color = new Color(1f, 1f, 1f, 0.5f);
@@ -222,7 +222,7 @@ public class RenderEngine25D<T> {
         }
         m.setToTranslation(translation.x, translation.y, translation.z);
         m.translate(0, z, 0);
-        m.rotate(xVector, -90);
+        m.rotate(Vector3.X, -90);
         setTransformMatrix(m);
         sectors = 360;
         a       = 360f / sectors;
@@ -266,11 +266,11 @@ public class RenderEngine25D<T> {
             {
                 //move center of text to center of trader
                 m.setToTranslation(x, y, z);
-                m.rotate(yVector, yRotation);
+                m.rotate(Vector3.Y, yRotation);
                 //move to the top and back on engine
                 m.translate(hShift + dx, dy, vShift - dz);
                 //rotate into the xz layer
-                m.rotate(xVector, -90);
+                m.rotate(Vector3.X, -90);
                 //scale to fit trader engine
                 m.scale(scaling, scaling, 1f);
             }
@@ -296,11 +296,11 @@ public class RenderEngine25D<T> {
             {
                 //move center of text to center of trader
                 m.setToTranslation(x, y, z);
-                m.rotate(yVector, yRotation);
+                m.rotate(Vector3.Y, yRotation);
                 //move to the top and back on engine
                 m.translate(-width * scaling / 2 - dx, dy, -height * scaling / 2 - dz);
                 //rotate into the xz layer
-                m.rotate(xVector, -90);
+                m.rotate(Vector3.X, -90);
                 //scale to fit trader engine
                 m.scale(scaling, scaling, 1f);
             }

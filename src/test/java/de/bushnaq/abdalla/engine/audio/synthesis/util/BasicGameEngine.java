@@ -54,19 +54,19 @@ public abstract class BasicGameEngine implements ApplicationListener, InputProce
     private final        Logger               logger          = LoggerFactory.getLogger(this.getClass());
     private final        BasicRandomGenerator randomGenerator = new BasicRandomGenerator(1);
     public               MovingCamera         camera;
+    protected            Cubemap              diffuseCubemap;
+    protected            Cubemap              specularCubemap;
     InputMultiplexer inputMultiplexer = new InputMultiplexer();
     private BasicAtlasManager               atlasManager;
     private Texture                         brdfLUT;
     private CameraInputController           camController;
     private OrthographicCamera              camera2D;
     private long                            currentTime       = 0L;
-    private Cubemap                         diffuseCubemap;
     //    private              BitmapFont                      font;
     private boolean                         hrtfEnabled       = true;
     private long                            lastTime          = 0;
     private RenderEngine3D<BasicGameEngine> renderEngine;
     private boolean                         simulateBassBoost = true;
-    private Cubemap                         specularCubemap;
     private Stage                           stage;
     private StringBuilder                   stringBuilder;
     private boolean                         takeScreenShot    = false;
@@ -97,6 +97,7 @@ public abstract class BasicGameEngine implements ApplicationListener, InputProce
 //            renderEngine.setPbr(false);
             renderEngine.setDayAmbientLight(.1f, .1f, .1f, 1f);
             renderEngine.setNightAmbientLight(.01f, .01f, .01f, 1f);
+            renderEngine.setAlwaysDay(true);
             getRenderEngine().getWater().setPresent(false);
             getRenderEngine().getMirror().setPresent(false);
             getRenderEngine().setShadowEnabled(true);
@@ -337,6 +338,11 @@ public abstract class BasicGameEngine implements ApplicationListener, InputProce
 
     }
 
+    @Override
+    public boolean updateEnvironment(float timeOfDay) {
+        return false;
+    }
+
 //    protected abstract void renderText();
 
     private void renderStage() {
@@ -366,12 +372,12 @@ public abstract class BasicGameEngine implements ApplicationListener, InputProce
         this.simulateBassBoost = simulateBassBoost;
     }
 
-    private void setupImageBasedLightingByFaceNames() {
+    protected void setupImageBasedLightingByFaceNames() {
         brdfLUT = new Texture(Gdx.files.classpath("net/mgsx/gltf/shaders/brdfLUT.png"));
 
         DirectionalLightEx light = new DirectionalLightEx();
-        light.direction.set(1, -3, 1).nor();
-        light.color.set(Color.GRAY);
+        light.direction.set(1, -1, 1).nor();
+        light.color.set(Color.WHITE);
         IBLBuilder iblBuilder         = IBLBuilder.createOutdoor(light);
         Cubemap    environmentCubemap = iblBuilder.buildEnvMap(1024);
         diffuseCubemap  = iblBuilder.buildIrradianceMap(256);

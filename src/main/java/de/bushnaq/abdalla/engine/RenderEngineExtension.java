@@ -18,4 +18,6 @@ package de.bushnaq.abdalla.engine;
 
 public interface RenderEngineExtension {
     void render2Dxz();
+
+    boolean updateEnvironment(final float timeOfDay);
 }

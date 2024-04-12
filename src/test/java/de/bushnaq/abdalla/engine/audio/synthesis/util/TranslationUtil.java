@@ -19,16 +19,11 @@ package de.bushnaq.abdalla.engine.audio.synthesis.util;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.VertexAttributes;
-import com.badlogic.gdx.graphics.g2d.BitmapFont;
-import com.badlogic.gdx.graphics.g2d.GlyphLayout;
-import com.badlogic.gdx.graphics.g2d.PolygonSpriteBatch;
 import com.badlogic.gdx.graphics.g3d.Attribute;
 import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.environment.PointLight;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
-import com.badlogic.gdx.math.Matrix4;
-import com.badlogic.gdx.math.Vector3;
 import de.bushnaq.abdalla.engine.GameObject;
 import de.bushnaq.abdalla.engine.util.ModelCreator;
 import net.mgsx.gltf.scene3d.attributes.PBRColorAttribute;
@@ -63,20 +58,6 @@ public abstract class TranslationUtil extends BasicGameEngine {
             cityGameObject.instance.transform.setToTranslationAndScaling(0, -CUBE_SIZE / 2, 0, MAX_CITY_SIZE, CUBE_SIZE, MAX_CITY_SIZE);
             getRenderEngine().addStatic(cityGameObject);
             time1 = System.currentTimeMillis();
-//            {
-//                SceneAsset                  traderAsset = new GLBLoader().load(Gdx.files.internal(String.format(BasicAtlasManager.getAssetsFolderName() + "/models/container.glb")));
-//                GameObject<BasicGameEngine> gameObject  = new GameObject<BasicGameEngine>(new ModelInstanceHack(traderAsset.scene.model), null, null);
-//                gameObject.instance.transform.setToTranslationAndScaling(0, 0, 0, CUBE_SIZE / 2, CUBE_SIZE / 2, CUBE_SIZE / 2);
-//                getRenderEngine().addDynamic(gameObject);
-//            }
-
-//            {
-//                float SPACE_SHIP_SIZE = 64;
-//                SceneAsset                  traderAsset = new GLBLoader().load(Gdx.files.internal(String.format(BasicAtlasManager.getAssetsFolderName() + "/models/space-ship.glb")));
-//                GameObject<BasicGameEngine> gameObject  = new GameObject<BasicGameEngine>(new ModelInstanceHack(traderAsset.scene.model), null, null);
-//                gameObject.instance.transform.setToTranslationAndScaling(0, 0, 0, SPACE_SHIP_SIZE, SPACE_SHIP_SIZE, SPACE_SHIP_SIZE);
-//                getRenderEngine().addDynamic(gameObject);
-//            }
         } catch (final Exception e) {
             logger.error(e.getMessage(), e);
         }
@@ -118,35 +99,35 @@ public abstract class TranslationUtil extends BasicGameEngine {
         }
     }
 
-    private void renderTextOnTop(final float aX, final float aY, final float aZ, final float dx, final float dy, final String text, final float size) {
-        final float x = aX;
-        final float y = aY;
-        final float z = aZ;
-        //draw text
-        final PolygonSpriteBatch batch = getRenderEngine().renderEngine2D.batch;
-        final BitmapFont         font  = getAtlasManager().modelFont;
-        {
-            final Matrix4     m        = new Matrix4();
-            final float       fontSize = font.getLineHeight();
-            final float       scaling  = size / fontSize;
-            final GlyphLayout layout   = new GlyphLayout();
-            layout.setText(font, text);
-            final float width  = layout.width;// contains the width of the current set text
-            final float height = layout.height; // contains the height of the current set text
-            //on top
-            {
-                final Vector3 xVector = new Vector3(1, 0, 0);
-                final Vector3 yVector = new Vector3(0, 1, 0);
-                m.setToTranslation(x - height * scaling / 2.0f - dy, y + CUBE_SIZE / 2.0f + 0.2f, z + width * scaling / 2.0f - dx);
-                m.rotate(yVector, 90);
-                m.rotate(xVector, -90);
-                m.scale(scaling, scaling, 1f);
-
-            }
-            batch.setTransformMatrix(m);
-            font.setColor(CUBE_NAME_COLOR);
-            font.draw(batch, text, 0, 0);
-        }
-    }
+//    private void renderTextOnTop(final float aX, final float aY, final float aZ, final float dx, final float dy, final String text, final float size) {
+//        final float x = aX;
+//        final float y = aY;
+//        final float z = aZ;
+//        //draw text
+//        final PolygonSpriteBatch batch = getRenderEngine().renderEngine2D.batch;
+//        final BitmapFont         font  = getAtlasManager().modelFont;
+//        {
+//            final Matrix4     m        = new Matrix4();
+//            final float       fontSize = font.getLineHeight();
+//            final float       scaling  = size / fontSize;
+//            final GlyphLayout layout   = new GlyphLayout();
+//            layout.setText(font, text);
+//            final float width  = layout.width;// contains the width of the current set text
+//            final float height = layout.height; // contains the height of the current set text
+//            //on top
+//            {
+//                final Vector3 xVector = new Vector3(1, 0, 0);
+//                final Vector3 yVector = new Vector3(0, 1, 0);
+//                m.setToTranslation(x - height * scaling / 2.0f - dy, y + CUBE_SIZE / 2.0f + 0.2f, z + width * scaling / 2.0f - dx);
+//                m.rotate(yVector, 90);
+//                m.rotate(xVector, -90);
+//                m.scale(scaling, scaling, 1f);
+//
+//            }
+//            batch.setTransformMatrix(m);
+//            font.setColor(CUBE_NAME_COLOR);
+//            font.draw(batch, text, 0, 0);
+//        }
+//    }
 
 }

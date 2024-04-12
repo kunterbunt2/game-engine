@@ -49,11 +49,11 @@ public class renderLightTest extends TranslationUtil {
 
     private void assesPerformanceCounters() {
         if (getRenderEngine().isShowGraphs()) {
-            assertEquals(49, performanceCounters.get(TEXTURE_BINDINGS));
-            assertEquals(69, performanceCounters.get(DRAW_CALLS));
-            assertEquals(9, performanceCounters.get(SHADER_SWITCHES));
-            assertEquals(1210, performanceCounters.get(CALLS));
-            assertEquals(4, performanceCounters.get(TEXTURE_GET_NUM_MANAGED_TEXTURES));
+            assertEquals(18, performanceCounters.get(TEXTURE_BINDINGS));
+            assertEquals(20, performanceCounters.get(DRAW_CALLS));
+            assertEquals(10, performanceCounters.get(SHADER_SWITCHES));
+            assertEquals(439, performanceCounters.get(CALLS));
+            assertEquals(5, performanceCounters.get(TEXTURE_GET_NUM_MANAGED_TEXTURES));
             assertEquals(120, performanceCounters.get(FPS));
         } else {
             assertEquals(45, performanceCounters.get(TEXTURE_BINDINGS));
@@ -87,8 +87,8 @@ public class renderLightTest extends TranslationUtil {
 
     @Override
     public void dispose() {
-//        printPerformanceCounters();
-//        assesPerformanceCounters();
+        printPerformanceCounters();
+        assesPerformanceCounters();
         super.dispose();
     }
 
@@ -98,6 +98,7 @@ public class renderLightTest extends TranslationUtil {
             ccaa[i].get3DRenderer().update(getRenderEngine(), 0, 0, 0, false);
         }
         super.update();
+        updateCounters(getRenderEngine().getProfiler());
     }
 
     private void printPerformanceCounters() {

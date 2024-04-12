@@ -160,6 +160,7 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
     private       boolean                     dynamicDayTime                   = false;
     private       boolean                     enableProfiling                  = true;
     private       float                       fixedDayTime                     = 10;
+    private       boolean                     fixedShadowDirection             = false;
     private       Graph                       fpsGraph;
     private       float                       nightAmbientIntensityB           = .2f;
     private       float                       nightAmbientIntensityG           = .2f;
@@ -168,8 +169,8 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
     private       boolean                     pbr;
     private       FrameBuffer                 postFbo;
     private       ExtendedGLProfiler          profiler;
-    private       Vector3                     sceneBoxMax                      = new Vector3(2000, 2000, 1000);
-    private       Vector3                     sceneBoxMin                      = new Vector3(-2000, -2000, -1000);
+    private       Vector3                     sceneBoxMax                      = new Vector3(1000, 1000, 1000);
+    private       Vector3                     sceneBoxMin                      = new Vector3(-1000, -1000, -1000);
     private final BoundingBox                 sceneBox                         = new BoundingBox(sceneBoxMin, sceneBoxMax);
     private       boolean                     shadowEnabled                    = true;
     private       DirectionalShadowLight      shadowLight                      = null;
@@ -180,7 +181,6 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
     private       float                       timeOfDay                        = 8;                                                                    // 24h time
     private       boolean                     useDynamicCache                  = false;
     private       VfxManager                  vfxManager                       = null;
-
 
     public RenderEngine3D(final IContext context, T gameEngine, MovingCamera camera, OrthographicCamera camera2D, BitmapFont font, BitmapFont boldFont, AtlasRegion atlasRegion) throws Exception {
 //		logger.info(String.format("GL_VERSION = %s", Gdx.gl.glGetString(GL20.GL_VERSION)));
@@ -538,6 +538,13 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
         depthBatch.dispose();
     }
 
+    private void disposeStage() {
+        stage.dispose();
+    }
+
+    public void end() {
+    }
+
 //	private void createDepthOfFieldMeter() {
 //		if (isDebugMode()) {
 //
@@ -578,15 +585,16 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
 //		}
 //	}
 
-    private void disposeStage() {
-        stage.dispose();
-    }
-
-    public void end() {
-    }
-
     public MovingCamera getCamera() {
         return camera;
+    }
+
+    public float getCurrentDayTime() {
+        return currentDayTime;
+    }
+
+    public DepthOfFieldEffect getDepthOfFieldEffect() {
+        return depthOfFieldEffect;
     }
 
 //    private void fboToScreen() {
@@ -621,14 +629,6 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
 //		}
 //	}
 
-    public float getCurrentDayTime() {
-        return currentDayTime;
-    }
-
-    public DepthOfFieldEffect getDepthOfFieldEffect() {
-        return depthOfFieldEffect;
-    }
-
     public float getFixedDayTime() {
         return fixedDayTime;
     }
@@ -643,7 +643,7 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
 
     public GameObject<T> getGameObject(final int screenX, final int screenY) {
         final Ray ray = camera.getPickRay(screenX, screenY);
-//		createRay(ray);
+//        createRay(ray, null);
         GameObject<T> result   = null;
         float         distance = -1;
         for (int i = 0; i < dynamicGameObjects.size; ++i) {
@@ -743,16 +743,20 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
         return debugMode;
     }
 
-//    public boolean isDepthOfField() {
-//        return depthOfField;
-//    }
-
     public boolean isDynamicDayTime() {
         return dynamicDayTime;
     }
 
     public boolean isEnableProfiling() {
         return enableProfiling;
+    }
+
+//    public boolean isDepthOfField() {
+//        return depthOfField;
+//    }
+
+    public boolean isFixedShadowDirection() {
+        return fixedShadowDirection;
     }
 
     public boolean isMirrorPresent() {
@@ -888,7 +892,8 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
         } else {
             setCurrentDayTime(getFixedDayTime());
         }
-        if (render3D) updateEnvironment(getCurrentDayTime());
+        if (render3D)
+            updateEnvironment(getCurrentDayTime());
         renderableProviders.clear();
         if (render3D) {
             updateDynamicModelInstanceCache();
@@ -1190,7 +1195,7 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
         this.alwaysDay = alwaysDay;
     }
 
-    private void setAmbientLight(final float rLum, final float gLum, final float bLum) {
+    public void setAmbientLight(final float rLum, final float gLum, final float bLum) {
         ambientLight.color.set(rLum, gLum, bLum, 1f);
     }
 
@@ -1230,13 +1235,13 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
         this.debugMode = debugMode;
     }
 
-//    public void setDepthOfField(final boolean depthOfField) {
-//        this.depthOfField = depthOfField;
-//    }
-
     public void setDynamicDayTime(boolean dynamicDayTime) {
         this.dynamicDayTime = dynamicDayTime;
     }
+
+//    public void setDepthOfField(final boolean depthOfField) {
+//        this.depthOfField = depthOfField;
+//    }
 
     public void setEnableProfiling(boolean enableProfiling) {
         this.enableProfiling = enableProfiling;
@@ -1244,6 +1249,10 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
 
     public void setFixedDayTime(float fixedDayTime) {
         this.fixedDayTime = fixedDayTime;
+    }
+
+    public void setFixedShadowDirection(boolean fixedShadowDirection) {
+        this.fixedShadowDirection = fixedShadowDirection;
     }
 
     public void setNightAmbientLight(float r, float g, float b, float shadowIntensity) {
@@ -1283,7 +1292,7 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
         this.shadowEnabled = shadowEnabled;
     }
 
-    private void setShadowLight(final float lum) {
+    public void setShadowLight(final float lum) {
         shadowLight.intensity = lum;
     }
 
@@ -1429,6 +1438,8 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
     }
 
     public void updateEnvironment(final float timeOfDay) {
+        if (gameEngine.updateEnvironment(timeOfDay))
+            return;
         if (Math.abs(this.timeOfDay - timeOfDay) > 0.01) {
             angle                  = (float) (Math.PI * (timeOfDay - 6) / 12);
             shadowLightDirection.x = (float) Math.cos(angle);
