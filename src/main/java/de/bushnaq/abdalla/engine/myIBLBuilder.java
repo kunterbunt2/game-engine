@@ -17,14 +17,13 @@
 package de.bushnaq.abdalla.engine;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.Cubemap;
+import com.badlogic.gdx.assets.loaders.resolvers.InternalFileHandleResolver;
+import com.badlogic.gdx.graphics.*;
 import com.badlogic.gdx.graphics.Cubemap.CubemapSide;
-import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Pixmap.Format;
 import com.badlogic.gdx.graphics.Texture.TextureFilter;
-import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.glutils.FrameBuffer;
 import com.badlogic.gdx.graphics.glutils.FrameBufferCubemap;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
@@ -36,7 +35,15 @@ import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Disposable;
 import com.badlogic.gdx.utils.GdxRuntimeException;
 import com.badlogic.gdx.utils.ScreenUtils;
+import net.mgsx.gltf.scene3d.utils.EnvironmentUtil;
 import net.mgsx.gltf.scene3d.utils.FacedMultiCubemapData;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.zip.Deflater;
 
 /**
  * Quick procedural IBL environment generation.
@@ -52,19 +59,26 @@ import net.mgsx.gltf.scene3d.utils.FacedMultiCubemapData;
  * @author mgsx
  */
 public class myIBLBuilder implements Disposable {
-    public final  Color         farGroundColor  = new Color();
-    public final  Color         farSkyColor     = new Color();
-    public final  Array<Light>  lights          = new Array<Light>();
-    public final  Color         nearGroundColor = new Color();
-    public final  Color         nearSkyColor    = new Color();
-    private final ShaderProgram sunShader;
-    public        boolean       renderGradient  = true;
-    public        boolean       renderSun       = true;
-    private       ShapeRenderer shapes;
-    private       ShapeRenderer sunShapes;
+    private static final Matrix4       matrix          = new Matrix4();
+    public final         Color         farGroundColor  = new Color();
+    public final         Color         farSkyColor     = new Color();
+    public final         Array<Light>  lights          = new Array<Light>();
+    public final         Color         nearGroundColor = new Color();
+    public final         Color         nearSkyColor    = new Color();
+    private final        Logger        logger          = LoggerFactory.getLogger(this.getClass());
+    private final        String        outputDirectory;
+    private final        ShaderProgram sunShader;
+    public               boolean       renderGradient  = true;
+    public               boolean       renderSun       = true;
+    String              folder;
+    File                folderFile;
+    Map<String, String> sideNameMap = new HashMap<>();
+    private ShapeRenderer shapes;
+    private ShapeRenderer sunShapes;
 
-    public myIBLBuilder() {
-        shapes = new ShapeRenderer(20);
+    public myIBLBuilder(String outputDirectory) {
+        this.outputDirectory = outputDirectory;
+        shapes               = new ShapeRenderer(20);
         shapes.getProjectionMatrix().setToOrtho2D(0, 0, 1, 1);
 
         sunShader = new ShaderProgram(
@@ -74,108 +88,104 @@ public class myIBLBuilder implements Disposable {
 
         sunShapes = new ShapeRenderer(20, sunShader);
         sunShapes.getProjectionMatrix().setToOrtho2D(0, 0, 1, 1);
+        sideNameMap.put("PositiveX", "posx");
+        sideNameMap.put("NegativeX", "negx");
+        sideNameMap.put("PositiveY", "posy");
+        sideNameMap.put("NegativeY", "negy");
+        sideNameMap.put("PositiveZ", "posz");
+        sideNameMap.put("NegativeZ", "negz");
     }
 
-    public static myIBLBuilder createCustom(DirectionalLight sun) {
-        myIBLBuilder ibl = new myIBLBuilder();
-
-        Light light = new Light();
-        light.direction.set(sun.direction).nor();
-        light.color.set(sun.color);
-        light.exponent = 100f;
-        ibl.lights.add(light);
-
-        return ibl;
-    }
-
-    public static myIBLBuilder createIndoor(DirectionalLight sun) {
-        myIBLBuilder ibl = new myIBLBuilder();
-
-        Color tint = new Color(1f, .9f, .8f, 1).mul(.3f);
-
-        ibl.nearGroundColor.set(tint).mul(.7f);
-        ibl.farGroundColor.set(tint);
-        ibl.farSkyColor.set(tint);
-        ibl.nearSkyColor.set(tint).mul(2f);
-
-        Light light = new Light();
-        light.direction.set(sun.direction).nor();
-        light.color.set(1f, .5f, 0f, 1f).mul(.3f);
-        light.exponent = 3f;
-        ibl.lights.add(light);
-
-        return ibl;
-    }
-
-    public static myIBLBuilder createOutdoor(DirectionalLight sun) {
-        myIBLBuilder ibl = new myIBLBuilder();
-
-        ibl.nearGroundColor.set(.5f, .45f, .4f, 1);
-        ibl.farGroundColor.set(.3f, .25f, .2f, 1);
-        ibl.nearSkyColor.set(.7f, .8f, 1f, 1);
-        ibl.farSkyColor.set(.9f, .95f, 1f, 1);
-
-        Light light = new Light();
-        light.direction.set(sun.direction).nor();
-        light.color.set(sun.color);
-        light.exponent = 30f;
-        ibl.lights.add(light);
-
-        return ibl;
+    private static void renderName(int size, CustomizedSpriteBatch batch, BitmapFont font, CubemapSide side) {
+        batch.setProjectionMatrix(new OrthographicCamera(size, size).combined);
+        batch.begin();
+        final GlyphLayout layout = new GlyphLayout();
+        String            text   = side.name();
+        layout.setText(font, text);
+        font.setColor(Color.WHITE);
+        font.draw(batch, text, -layout.width / 2, -layout.height / 2);
+        batch.end();
     }
 
     /**
      * Create an environment map, to be used with {@link net.mgsx.gltf.scene3d.scene.SceneSkybox}
      *
-     * @param size base size (width and height) for generated cubemap
+     * @param size  base size (width and height) for generated cubemap
+     * @param batch
+     * @param font
      * @return generated cubemap, caller is responsible to dispose it when no longer used.
      */
-    public Cubemap buildEnvMap(int size) {
-        FrameBufferCubemap fbo = new FrameBufferCubemap(Format.RGBA8888, size, size, false) {
-            @Override
-            protected void disposeColorTexture(Cubemap colorTexture) {
+    public Cubemap buildEnvMap(int size, CustomizedSpriteBatch batch, BitmapFont font) {
+        folder     = outputDirectory + "environment/";
+        folderFile = new File(folder);
+        if (folderFile.exists()) {
+            logger.info("Loading IBL env map.");
+            Cubemap map = EnvironmentUtil.createCubemap(new InternalFileHandleResolver(), folder + "/environment_", "_0.png", EnvironmentUtil.FACE_NAMES_NEG_POS);
+            return map;
+        } else {
+            logger.info("Generating IBL env map.");
+            FrameBufferCubemap fbo = new FrameBufferCubemap(Format.RGBA8888, size, size, false) {
+                @Override
+                protected void disposeColorTexture(Cubemap colorTexture) {
+                }
+            };
+            fbo.begin();
+            while (fbo.nextSide()) {
+                Gdx.gl.glClearColor(0, 0, 0, 0);
+                Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+                CubemapSide side = fbo.getSide();
+                renderGradient(side, 0);
+                renderLights(side, false);
+//                renderName(size, batch, font, side);
+                String fileName = String.format(folder + "environment_%s_0.png", sideNameMap.get(side.name()));
+                PixmapIO.writePNG(Gdx.files.local(fileName), ScreenUtils.getFrameBufferPixmap(0, 0, size, size), Deflater.DEFAULT_COMPRESSION, false);
             }
-        };
-        fbo.begin();
-        while (fbo.nextSide()) {
-            Gdx.gl.glClearColor(0, 0, 0, 0);
-            Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-            CubemapSide side = fbo.getSide();
-            renderGradient(side, 0);
-            renderLights(side, false);
+            fbo.end();
+
+            Cubemap map = fbo.getColorBufferTexture();
+            fbo.dispose();
+            return map;
         }
-        fbo.end();
-        Cubemap map = fbo.getColorBufferTexture();
-        fbo.dispose();
-        return map;
     }
 
     /**
      * Creates an irradiance map, to be used with {@link net.mgsx.gltf.scene3d.attributes.PBRCubemapAttribute#DiffuseEnv}
      *
-     * @param size base size (width and height) for generated cubemap
+     * @param size  base size (width and height) for generated cubemap
+     * @param batch
+     * @param font
      * @return generated cubemap, caller is responsible to dispose it when no longer used.
      */
-    public Cubemap buildIrradianceMap(int size) {
-
-        FrameBufferCubemap fbo = new FrameBufferCubemap(Format.RGBA8888, size, size, false) {
-            @Override
-            protected void disposeColorTexture(Cubemap colorTexture) {
+    public Cubemap buildIrradianceMap(int size, CustomizedSpriteBatch batch, BitmapFont font) {
+        folder     = outputDirectory + "irradiance/";
+        folderFile = new File(folder);
+        if (folderFile.exists()) {
+            logger.info("Loading IBL irradiance map.");
+            Cubemap map = EnvironmentUtil.createCubemap(new InternalFileHandleResolver(), folder + "/irradiance_", "_0.png", EnvironmentUtil.FACE_NAMES_NEG_POS);
+            return map;
+        } else {
+            logger.info("Generating IBL irradiance map.");
+            FrameBufferCubemap fbo = new FrameBufferCubemap(Format.RGBA8888, size, size, false) {
+                @Override
+                protected void disposeColorTexture(Cubemap colorTexture) {
+                }
+            };
+            fbo.begin();
+            while (fbo.nextSide()) {
+                Gdx.gl.glClearColor(0, 0, 0, 0);
+                Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+                CubemapSide side = fbo.getSide();
+                renderGradient(side, 0.5f);
+                renderLights(side, false);
+//                renderName(size, batch, font, side);
+                String fileName = String.format(folder + "irradiance_%s_0.png", sideNameMap.get(side.name()));
+                PixmapIO.writePNG(Gdx.files.local(fileName), ScreenUtils.getFrameBufferPixmap(0, 0, size, size), Deflater.DEFAULT_COMPRESSION, false);
             }
-        };
-
-        fbo.begin();
-        while (fbo.nextSide()) {
-            Gdx.gl.glClearColor(0, 0, 0, 0);
-            Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-            CubemapSide side = fbo.getSide();
-            renderGradient(side, 0.5f);
-            renderLights(side, false);
+            fbo.end();
+            Cubemap map = fbo.getColorBufferTexture();
+            fbo.dispose();
+            return map;
         }
-        fbo.end();
-        Cubemap map = fbo.getColorBufferTexture();
-        fbo.dispose();
-        return map;
     }
 
     /**
@@ -183,36 +193,47 @@ public class myIBLBuilder implements Disposable {
      * generated cubemap contains mipmaps in order to perform roughness in PBR shading
      *
      * @param mipMapLevels how many mipmaps level, eg. 10 levels produce a 1024x1024 cubemap with mipmaps.
+     * @param batch
+     * @param font
      * @return generated cubemap, caller is responsible to dispose it when no longer used.
      */
-    public Cubemap buildRadianceMap(final int mipMapLevels) {
-        Pixmap[] maps  = new Pixmap[mipMapLevels * 6];
-        int      index = 0;
-        for (int level = 0; level < mipMapLevels; level++) {
-            int         size = 1 << (mipMapLevels - level - 1);
-            FrameBuffer fbo  = new FrameBuffer(Format.RGBA8888, size, size, false);
-            fbo.begin();
-            for (int s = 0; s < 6; s++) {
-                Gdx.gl.glClearColor(0, 0, 0, 0);
-                Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+    public Cubemap buildRadianceMap(final int mipMapLevels, CustomizedSpriteBatch batch, BitmapFont font) {
+        folder     = outputDirectory + "radiance/";
+        folderFile = new File(folder);
+        if (folderFile.exists()) {
+            logger.info("Loading IBL radiance map.");
+            Cubemap map = EnvironmentUtil.createCubemap(new InternalFileHandleResolver(), folder + "/radiance_", "_", "." + "png", mipMapLevels, EnvironmentUtil.FACE_NAMES_NEG_POS);
+            return map;
+        } else {
+            logger.info("Generating IBL radiance map.");
+            Pixmap[] maps  = new Pixmap[mipMapLevels * 6];
+            int      index = 0;
+            for (int level = 0; level < mipMapLevels; level++) {
+                int         size = 1 << (mipMapLevels - level - 1);
+                FrameBuffer fbo  = new FrameBuffer(Format.RGBA8888, size, size, false);
+                fbo.begin();
+                for (int s = 0; s < 6; s++) {
+                    Gdx.gl.glClearColor(0, 0, 0, 0);
+                    Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+                    CubemapSide side = CubemapSide.values()[s];
+                    float       blur = (float) level / (float) mipMapLevels;
+                    renderGradient(side, blur);
+                    renderLights(side, false);
+                    maps[index] = ScreenUtils.getFrameBufferPixmap(0, 0, size, size);
+//                    renderName(size, batch, font, side);
+                    String fileName = String.format(folder + "radiance_%s_%d.png", sideNameMap.get(side.name()), level);
+                    PixmapIO.writePNG(Gdx.files.local(fileName), maps[index], Deflater.DEFAULT_COMPRESSION, false);
 
-                CubemapSide side = CubemapSide.values()[s];
-
-                float blur = (float) level / (float) mipMapLevels;
-
-                renderGradient(side, blur);
-                renderLights(side, false);
-
-                maps[index] = ScreenUtils.getFrameBufferPixmap(0, 0, size, size);
-                index++;
+                    index++;
+                }
+                fbo.end();
+                fbo.dispose();
             }
-            fbo.end();
-            fbo.dispose();
+            FacedMultiCubemapData data = new FacedMultiCubemapData(maps, mipMapLevels);
+            Cubemap               map  = new Cubemap(data);
+            map.setFilter(TextureFilter.MipMap, TextureFilter.Linear);
+            return map;
         }
-        FacedMultiCubemapData data = new FacedMultiCubemapData(maps, mipMapLevels);
-        Cubemap               map  = new Cubemap(data);
-        map.setFilter(TextureFilter.MipMap, TextureFilter.Linear);
-        return map;
     }
 
     @Override
@@ -247,41 +268,6 @@ public class myIBLBuilder implements Disposable {
             this.shapes.end();
         }
     }
-
-//    private void renderGradient(CubemapSide side, float blur) {
-//        if (!renderGradient) return;
-//
-//        Color aveSky = farSkyColor.cpy().lerp(nearSkyColor, .5f);
-//        Color aveGnd = farGroundColor.cpy().lerp(nearGroundColor, .5f);
-//
-//        Color ave = aveSky.cpy().lerp(aveGnd, .5f);
-//
-//        Color aveHorizon = farGroundColor.cpy().lerp(farSkyColor, .5f);
-//
-//        // blur!
-//        float t2 = 1 - (float) Math.pow(1 - blur, 4);
-//        float t  = 1 - (float) Math.pow(1 - blur, 1);
-//
-//        Color ngc = nearGroundColor.cpy().lerp(ave, t);
-//        Color nsc = nearSkyColor.cpy().lerp(ave, t);
-//
-//        Color fgc = farGroundColor.cpy().lerp(aveHorizon, t2).lerp(ave, t);
-//        Color fsc = farSkyColor.cpy().lerp(aveHorizon, t2).lerp(ave, t);
-//
-//        shapes.begin(ShapeType.Filled);
-//        if (side == CubemapSide.PositiveY) {
-//            shapes.rect(0, 0, 1, 1, nsc, nsc, nsc, nsc);
-//        } else if (side == CubemapSide.NegativeY) {
-//            shapes.rect(0, 0, 1, 1, nsc, nsc, nsc, nsc);
-////            shapes.rect(0, 0, 1, 1, ngc, ngc, ngc, ngc);
-//        } else {
-//            // draw vertical gradient
-////            shapes.rect(0, 0, 1, .5f, nsc, nsc, fsc, fsc);
-////            shapes.rect(0, .5f, 1, .5f, fgc, fgc, ngc, ngc);
-//            shapes.rect(0, 0, 1, 1f, nsc, nsc, fsc, fsc);
-//        }
-//        shapes.end();
-//    }
 
     private void renderLights(CubemapSide side, boolean blured) {
 

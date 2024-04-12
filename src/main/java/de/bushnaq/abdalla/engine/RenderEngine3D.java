@@ -122,6 +122,7 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
     private final Array<RenderableProvider>   visibleStaticRenderableProviders = new Array<>();
     private final Water                       water                            = new Water();
     public        float                       angle;
+    public        ModelBatch                  batch;//TODO make private again
     public        CustomizedSpriteBatch       batch2D;
     public        Graph                       cpuGraph;
     public        Array<GameObject<T>>        dynamicGameObjects               = new Array<>();
@@ -142,7 +143,6 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
     public        int                         visibleStaticLightCount          = 0;
     private       boolean                     alwaysDay                        = true;
     private       ColorAttribute              ambientLight;
-    private       ModelBatch                  batch;
     //    private              GameObject                  cameraCube;
     private       float                       currentDayTime;
     private       float                       dayAmbientIntensityB             = 1f;

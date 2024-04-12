@@ -125,7 +125,7 @@ public class iblTest extends BasicGameEngine {
         DirectionalLightEx sun = new DirectionalLightEx();
         sun.direction.set(1, -1, 1).nor();
         sun.color.set(Color.WHITE);
-        myIBLBuilder       ibl   = new myIBLBuilder();
+        myIBLBuilder       ibl   = new myIBLBuilder(null);
         myIBLBuilder.Light light = new myIBLBuilder.Light();
         light.direction.set(sun.direction).nor();
         light.color.set(sun.color);
@@ -135,11 +135,11 @@ public class iblTest extends BasicGameEngine {
         ibl.farGroundColor.set(0.0F, 0.0F, .0F, 1.0F);
         ibl.nearSkyColor.set(0.0F, 0.0F, .0F, 1.0F);
         ibl.farSkyColor.set(0.0F, 0.0F, .0F, 1.0F);
-        Cubemap environmentCubemap = ibl.buildEnvMap(1024);
+        Cubemap environmentCubemap = ibl.buildEnvMap(1024, null, null);
         getRenderEngine().setDaySkyBox(new SceneSkybox(environmentCubemap));
         getRenderEngine().setNightSkyBox(new SceneSkybox(environmentCubemap));
-        diffuseCubemap  = ibl.buildIrradianceMap(256);
-        specularCubemap = ibl.buildRadianceMap(10);
+        diffuseCubemap  = ibl.buildIrradianceMap(256, null, null);
+        specularCubemap = ibl.buildRadianceMap(10, null, null);
         ibl.dispose();
     }
 
