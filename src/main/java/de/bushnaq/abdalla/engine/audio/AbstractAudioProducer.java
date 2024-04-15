@@ -156,7 +156,7 @@ public abstract class AbstractAudioProducer implements AudioProducer {
                 source.setPosition(position);
                 //			source.setPosition(new float[] {0,0,0});
             }
-            if (this.velocity.x != velocity[0] || this.velocity.y != velocity[1] || this.velocity.z != velocity[2]) {
+            if (velocity != null && (this.velocity.x != velocity[0] || this.velocity.y != velocity[1] || this.velocity.z != velocity[2])) {
                 this.velocity.set(velocity[0], velocity[1], velocity[2]);
                 adaptToVelocity(this.velocity.len());
             }
