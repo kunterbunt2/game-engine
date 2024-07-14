@@ -22,6 +22,7 @@ import com.badlogic.gdx.graphics.glutils.FrameBuffer;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.GdxRuntimeException;
+import com.crashinvaders.vfx.VfxManager;
 import com.crashinvaders.vfx.VfxRenderContext;
 import com.crashinvaders.vfx.effects.ChainVfxEffect;
 import com.crashinvaders.vfx.effects.ShaderVfxEffect;
@@ -30,24 +31,26 @@ import com.crashinvaders.vfx.framebuffer.VfxPingPongWrapper;
 import com.crashinvaders.vfx.gl.VfxGLUtils;
 import de.bushnaq.abdalla.engine.camera.MovingCamera;
 
-public class DepthOfFieldEffect extends ShaderVfxEffect implements ChainVfxEffect {
+public class DepthOfFieldEffect1 extends ShaderVfxEffect implements ChainVfxEffect {
 
     private static final String       Texture0         = "u_sourceTexture";
     private static final String       Texture1         = "u_depthTexture";
     private final        MovingCamera camera;
+    private              boolean      enabled          = false;
+    private final        float        farDistanceBlur  = 50f;
+    private              Vector2      focusDistance    = new Vector2(200.0f, 700.0f);
+    private final        float        nearDistanceBlur = 50f;
     //	private float time = 0f;
     private final        FrameBuffer  postFbo;
     private final        Vector2      resolution       = new Vector2();
     private final        int          vertical         = 0;
-    private              boolean      enabled          = false;
-    private              float        farDistanceBlur  = 50f;
-    private              Vector2      focusDistance    = new Vector2(200.0f, 700.0f);
-    private              float        nearDistanceBlur = 50f;
+    private final        VfxManager   vfxManager;
 
-    public DepthOfFieldEffect(final FrameBuffer postFbo, final MovingCamera camera) {
-        super(MyVfxGLUtils.compileShader(Gdx.files.classpath("shader/depthOfField.vs.glsl"), Gdx.files.classpath("shader/depthOfField.fs.glsl"), ""));
-        this.postFbo = postFbo;
-        this.camera  = camera;
+    public DepthOfFieldEffect1(VfxManager vfxManager, final FrameBuffer postFbo, final MovingCamera camera) {
+        super(MyVfxGLUtils1.compileShader(Gdx.files.classpath("shader/depthOfField.vs.glsl"), Gdx.files.classpath("shader/depthOfField1.fs.glsl"), ""));
+        this.vfxManager = vfxManager;
+        this.postFbo    = postFbo;
+        this.camera     = camera;
         rebind();
     }
 
@@ -57,6 +60,27 @@ public class DepthOfFieldEffect extends ShaderVfxEffect implements ChainVfxEffec
 
     public boolean isEnabled() {
         return enabled;
+    }
+
+    @Override
+    public void rebind() {
+        super.rebind();
+        program.begin();
+        program.setUniformf("u_pixelSize", 1f / postFbo.getWidth(), 1f / postFbo.getHeight());
+        program.setUniformf("u_cameraClipping", camera.near, camera.far);
+        program.setUniformf("u_focusDistance", focusDistance);
+//        System.out.println(focusDistance.x + " " + focusDistance.y);
+        program.setUniformf("u_nearDistanceBlur", nearDistanceBlur);
+        program.setUniformf("u_farDistanceBlur", farDistanceBlur);
+
+        program.setUniformi(Texture0, TEXTURE_HANDLE0);
+        program.setUniformi(Texture1, TEXTURE_HANDLE1);
+        program.end();
+    }
+
+    @Override
+    public void render(final VfxRenderContext context, final VfxPingPongWrapper buffers) {
+        render(context, buffers.getSrcBuffer(), buffers.getDstBuffer());
     }
 
     public void render(final VfxRenderContext context, final VfxFrameBuffer src, final VfxFrameBuffer dst) {
@@ -81,44 +105,27 @@ public class DepthOfFieldEffect extends ShaderVfxEffect implements ChainVfxEffec
     }
 
     @Override
-    public void render(final VfxRenderContext context, final VfxPingPongWrapper buffers) {
-        render(context, buffers.getSrcBuffer(), buffers.getDstBuffer());
-    }
-
-    @Override
     public void resize(final int width, final int height) {
         super.resize(width, height);
         this.resolution.set(width, height);
         rebind();
     }
 
-    @Override
-    public void rebind() {
-        super.rebind();
-        program.begin();
-        program.setUniformf("u_pixelSize", 1f / postFbo.getWidth(), 1f / postFbo.getHeight());
-        program.setUniformf("u_cameraClipping", camera.near, camera.far);
-        program.setUniformf("u_focusDistance", focusDistance);
-//        System.out.println(focusDistance.x + " " + focusDistance.y);
-        program.setUniformf("u_nearDistanceBlur", nearDistanceBlur);
-        program.setUniformf("u_farDistanceBlur", farDistanceBlur);
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+        if (enabled)
+            vfxManager.addEffect(this);
+        else
+            vfxManager.removeEffect(this);
+    }
 
-        program.setUniformi(Texture0, TEXTURE_HANDLE0);
-        program.setUniformi(Texture1, TEXTURE_HANDLE1);
-        program.end();
+    public void setFocusDistance(Vector2 focusDistance) {
+        this.focusDistance = focusDistance;
     }
 
     @Override
     public void update(final float delta) {
         super.update(delta);
-    }
-
-    public void setEnabled(boolean enabled) {
-        this.enabled = enabled;
-    }
-
-    public void setFocusDistance(Vector2 focusDistance) {
-        this.focusDistance = focusDistance;
     }
 
     //	public void enableDepthOfFiled(boolean enableDepthOfField) {
@@ -134,10 +141,10 @@ public class DepthOfFieldEffect extends ShaderVfxEffect implements ChainVfxEffec
     //	}
 }
 
-class MyVfxGLUtils extends VfxGLUtils {
-    private static final String  TAG            = MyVfxGLUtils.class.getSimpleName();
-    private static       boolean blurBackground = true;
-    private static       int     maxBlur        = 50;
+class MyVfxGLUtils1 extends VfxGLUtils {
+    private static final String  TAG            = MyVfxGLUtils1.class.getSimpleName();
+    private static final boolean blurBackground = true;
+    private static final int     maxBlur        = 50;
 
     public static ShaderProgram compileShader(final FileHandle vertexFile, final FileHandle fragmentFile, final String defines) {
         if (fragmentFile == null) {

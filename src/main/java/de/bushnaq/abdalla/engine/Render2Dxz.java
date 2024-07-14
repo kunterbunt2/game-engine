@@ -23,8 +23,8 @@ import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
-import com.scottlogic.util.GL32CMacIssueHandler;
-import com.scottlogic.util.ShaderCompatibilityHelper;
+import de.bushnaq.abdalla.engine.shader.util.GL32CMacIssueHandler;
+import de.bushnaq.abdalla.engine.shader.util.ShaderCompatibilityHelper;
 
 public class Render2Dxz<T> {
     public CustomizedSpriteBatch batch;

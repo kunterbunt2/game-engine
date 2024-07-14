@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.scottlogic.util;
+package de.bushnaq.abdalla.engine.shader.util;
 
 import com.badlogic.gdx.Application.ApplicationType;
 import com.badlogic.gdx.Gdx;

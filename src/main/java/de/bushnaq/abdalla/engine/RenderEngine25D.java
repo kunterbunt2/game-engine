@@ -18,14 +18,27 @@ package de.bushnaq.abdalla.engine;
 
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.VertexAttributes;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.graphics.g3d.Attribute;
+import com.badlogic.gdx.graphics.g3d.Material;
+import com.badlogic.gdx.graphics.g3d.Model;
+import com.badlogic.gdx.graphics.g3d.Renderable;
+import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
-import com.scottlogic.util.GL32CMacIssueHandler;
-import com.scottlogic.util.ShaderCompatibilityHelper;
+import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.utils.FlushablePool;
+import de.bushnaq.abdalla.engine.shader.GamePbrShaderProvider;
+import de.bushnaq.abdalla.engine.shader.util.GL32CMacIssueHandler;
+import de.bushnaq.abdalla.engine.shader.util.ShaderCompatibilityHelper;
+import net.mgsx.gltf.scene3d.attributes.PBRColorAttribute;
+import net.mgsx.gltf.scene3d.attributes.PBRFloatAttribute;
+import net.mgsx.gltf.scene3d.shaders.PBRShaderConfig;
+import net.mgsx.gltf.scene3d.shaders.PBRShaderProvider;
 
 /**
  * engine to draw 2D using 3D camera
@@ -43,6 +56,13 @@ public class RenderEngine25D<T> {
 //    public       int                   width;
     T           gameEngine;
     GlyphLayout layout = new GlyphLayout();
+    private FlushablePool<com.badlogic.gdx.graphics.g3d.Renderable> renderablesPool = new FlushablePool<com.badlogic.gdx.graphics.g3d.Renderable>() {
+        @Override
+        protected com.badlogic.gdx.graphics.g3d.Renderable newObject() {
+            return new Renderable();
+        }
+    };
+    private Array<Renderable>                                       tmp             = new Array<Renderable>();
 
     public RenderEngine25D(T gameEngine, OrthographicCamera camera) {
         this.gameEngine = gameEngine;
@@ -104,9 +124,35 @@ public class RenderEngine25D<T> {
         createShader();
     }
 
+    private Model createRayCube() {
+        final Attribute    color        = new PBRColorAttribute(PBRColorAttribute.BaseColorFactor, Color.WHITE);
+        final Attribute    metallic     = PBRFloatAttribute.createMetallic(0.5f);
+        final Attribute    roughness    = PBRFloatAttribute.createRoughness(0.5f);
+        final Attribute    occlusion    = PBRFloatAttribute.createOcclusionStrength(1.0f);
+        final Material     material     = new Material(metallic, roughness, color, occlusion);
+        final ModelBuilder modelBuilder = new ModelBuilder();
+        return modelBuilder.createBox(1.0f, 1.0f, 1.0f, material, VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
+    }
+
     private void createShader() {
 
         batch = new CustomizedSpriteBatch(5460, ShaderCompatibilityHelper.mustUse32CShader() ? GL32CMacIssueHandler.createSpriteBatchShader() : null);
+//        Model      rayCube    = createRayCube();
+//        GameObject gameObject = new GameObject<>(new ModelInstanceHack(rayCube), null, null);
+//        gameObject.instance.getRenderables(tmp, renderablesPool);
+//        GamePbrShaderProvider shaderProvider = createShaderProvider();
+//        shaderProvider.createShaderPublic(tmp.get(0));
+//        batch = new CustomizedSpriteBatch(5460, shaderProvider.pbrShader.program);
+
+    }
+
+    private GamePbrShaderProvider createShaderProvider() {
+        final PBRShaderConfig config = PBRShaderProvider.createDefaultConfig();
+        config.numBones             = 0;
+        config.numDirectionalLights = 1;
+        config.numPointLights       = 20;
+        config.numSpotLights        = 0;
+        return new GamePbrShaderProvider(config, null, null);
     }
 
     public void dispose() {

@@ -35,14 +35,14 @@ import org.slf4j.LoggerFactory;
 public abstract class TranslationUtil extends BasicGameEngine {
     public static final  Color  CUBE_NAME_COLOR  = Color.WHITE;
     public static final  float  CUBE_SIZE        = 64;
+    private static final float  MAX_CITY_SIZE    = 3000f + CUBE_SIZE;
     public static final  int    MAX_ENGINE_SPEED = 20;
     public static final  int    MIN_ENGINE_SPEED = 2;
-    private static final float  MAX_CITY_SIZE    = 3000f + CUBE_SIZE;
-    private final        Logger logger           = LoggerFactory.getLogger(this.getClass());
-    protected            long   runFor           = 30000;//ms
     private              Model  buildingModel;
     private              Model  cityModel;
-    private              long   time1;
+    private final        Logger logger           = LoggerFactory.getLogger(this.getClass());
+    protected            long   runFor           = 30000;//ms
+    protected            long   time1;
 
     public void create() {
         super.create();
@@ -61,17 +61,6 @@ public abstract class TranslationUtil extends BasicGameEngine {
         } catch (final Exception e) {
             logger.error(e.getMessage(), e);
         }
-    }
-
-    @Override
-    public void dispose() {
-        super.dispose();
-    }
-
-    @Override
-    protected void update() throws Exception {
-        if (System.currentTimeMillis() - time1 > runFor) Gdx.app.exit();
-
     }
 
     private void createCube() {
@@ -97,6 +86,17 @@ public abstract class TranslationUtil extends BasicGameEngine {
             final Material  material  = new Material(metallic, roughness, color);
             cityModel = modelCreator.createBox(material);
         }
+    }
+
+    @Override
+    public void dispose() {
+        super.dispose();
+    }
+
+    @Override
+    protected void update() throws Exception {
+        if (System.currentTimeMillis() - time1 > runFor) Gdx.app.exit();
+
     }
 
 //    private void renderTextOnTop(final float aX, final float aY, final float aZ, final float dx, final float dy, final String text, final float size) {

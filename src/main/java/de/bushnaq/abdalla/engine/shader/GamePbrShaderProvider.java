@@ -100,6 +100,11 @@ public class GamePbrShaderProvider extends PBRShaderProvider implements GameShad
         return prefix;
     }
 
+    //TODO remove
+    public Shader createShaderPublic(final Renderable renderable) {
+        return createShader(renderable);
+    }
+
     private Shader createWaterShader(final Renderable renderable) {
         final String prefix = createPrefixBase(renderable, config);
         final Config config = new Config();
@@ -152,9 +157,9 @@ public class GamePbrShaderProvider extends PBRShaderProvider implements GameShad
 
     @Override
     protected Shader createShader(final Renderable renderable) {
-        if (renderable.material.id.equals("water")) {
+        if (renderable.material.id.equals("water") && water != null) {
             return createWaterShader(renderable);
-        } else if (renderable.material.id.equals("mirror")) {
+        } else if (renderable.material.id.equals("mirror") && mirror != null) {
             return createMirrorShader(renderable);
         } else
             return createPBRShader(renderable);
