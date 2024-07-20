@@ -56,9 +56,10 @@ public class DepthOfFieldTest extends BasicGameEngine {
     public static final  String VISIBLE_DYNAMIC_GAME_OBJECTS     = "visibleDynamicGameObjects";
     private static final String VISIBLE_STATIC_GAME_OBJECTS      = "visibleStaticGameObjects";
     CircularCubeActor[] ccaa = new CircularCubeActor[DIMENSION_SIZE_X];
-    private final Logger               logger              = LoggerFactory.getLogger(this.getClass());
-    private final Map<String, Integer> performanceCounters = new HashMap<>();
-    private final long                 started             = System.currentTimeMillis();
+    private final Logger                 logger              = LoggerFactory.getLogger(this.getClass());
+    private final Meter<BasicGameEngine> meter               = new Meter();
+    private final Map<String, Integer>   performanceCounters = new HashMap<>();
+    private final long                   started             = System.currentTimeMillis();
 
 //    private void assesPerformanceCounters() {
 //        if (getRenderEngine().isShowGraphs()) {
@@ -96,29 +97,34 @@ public class DepthOfFieldTest extends BasicGameEngine {
         getRenderEngine().getDepthOfFieldEffect1().setEnabled(false);
         getRenderEngine().getDepthOfFieldEffect2().setEnabled(true);
 //        getRenderEngine().getDepthOfFieldEffect().setEnabled(true);
-        Vector3 position = new Vector3(0, 0, CUBE_SIZE);
-        Vector3 lookat   = new Vector3(0, 0, -CUBE_SIZE * 2);
+        float focalDepth = CUBE_DISTANCE * 2;
+        getRenderEngine().getDepthOfFieldEffect2().setFocalDepth(focalDepth);
+        Vector3 position = new Vector3(0, 0, CUBE_DISTANCE);
+        Vector3 lookat   = new Vector3(0, 0, -CUBE_SIZE * 4);
         camera.position.set(position);
         camera.up.set(0, 1, 0);
+        camera.near = 1f;
+        camera.far  = 8000f;
         camera.lookAt(lookat);
         camera.update();
+        meter.createFocusCross(getRenderEngine(), focalDepth);
 //        time1 = System.currentTimeMillis();
         for (int z = -DIMENSION_SIZE_Z; z <= DIMENSION_SIZE_Z; z++) {
             for (int y = -DIMENSION_SIZE_Y; y <= DIMENSION_SIZE_Y; y++) {
                 for (int x = -DIMENSION_SIZE_X; x <= DIMENSION_SIZE_X; x++) {
-                    float tx = x * CUBE_DISTANCE - CUBE_SIZE;
-                    float ty = y * CUBE_DISTANCE - CUBE_SIZE;
+                    float tx = x * CUBE_DISTANCE;
+                    float ty = y * CUBE_DISTANCE;
                     float tz = z * CUBE_DISTANCE - DIMENSION_SIZE_Z * CUBE_DISTANCE;
                     {
                         GameObject<BasicGameEngine> go = new GameObject<>(new ModelInstanceHack(createCube()), null, null);
                         go.instance.transform.setToTranslationAndScaling(tx, ty, tz, CUBE_SIZE, CUBE_SIZE, CUBE_SIZE);
                         getRenderEngine().addStatic(go);
                     }
-                    {
-                        GameObject<BasicGameEngine> go = new GameObject<>(new ModelInstanceHack(createRedEmissiveBohkeyModel()), null, null);
-                        go.instance.transform.setToTranslationAndScaling(tx - CUBE_SIZE / 2, ty + CUBE_SIZE / 2, tz + CUBE_SIZE / 2, LIGHT_SIZE, LIGHT_SIZE, LIGHT_SIZE);
-                        getRenderEngine().addStatic(go);
-                    }
+//                    {
+//                        GameObject<BasicGameEngine> go = new GameObject<>(new ModelInstanceHack(createRedEmissiveBohkeyModel()), null, null);
+//                        go.instance.transform.setToTranslationAndScaling(tx - CUBE_SIZE / 2, ty + CUBE_SIZE / 2, tz + CUBE_SIZE / 2, LIGHT_SIZE, LIGHT_SIZE, LIGHT_SIZE);
+//                        getRenderEngine().addStatic(go);
+//                    }
                 }
             }
         }
@@ -155,6 +161,7 @@ public class DepthOfFieldTest extends BasicGameEngine {
 //    }
     @Override
     public boolean keyDown(final int keycode) {
+        float speed = 20.0f;
         super.keyDown(keycode);
         switch (keycode) {
             case Input.Keys.NUM_3:
@@ -168,6 +175,31 @@ public class DepthOfFieldTest extends BasicGameEngine {
                     getRenderEngine().getDepthOfFieldEffect2().setEnabled(false);
                 }
                 return true;
+            case Input.Keys.W:
+                camera.position.add(0, 0, -1 * speed);
+                camera.update();
+                return true;
+            case Input.Keys.S:
+                camera.position.add(0, 0, 1 * speed);
+                camera.update();
+                return true;
+            case Input.Keys.A:
+                camera.position.add(-1 * speed, 0, 0);
+                camera.update();
+                return true;
+            case Input.Keys.D:
+                camera.position.add(1 * speed, 0, 0);
+                camera.update();
+                return true;
+            case Input.Keys.Q:
+                camera.position.add(0, 1 * speed, 0);
+                camera.update();
+                return true;
+            case Input.Keys.E:
+                camera.position.add(0, -1 * speed, 0);
+                camera.update();
+                return true;
+
         }
         return false;
     }
@@ -183,6 +215,7 @@ public class DepthOfFieldTest extends BasicGameEngine {
 //            ccaa[i].get3DRenderer().update(getRenderEngine(), 0, 0, 0, false);
 //        }
 //        super.update();
+        meter.update();
         updateCounters(getRenderEngine().getProfiler());
     }
 

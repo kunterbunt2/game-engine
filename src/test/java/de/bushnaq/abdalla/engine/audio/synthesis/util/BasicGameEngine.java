@@ -45,32 +45,32 @@ import java.util.ArrayList;
 import java.util.List;
 
 public abstract class BasicGameEngine implements ApplicationListener, InputProcessor, RenderEngineExtension {
-    private static final float                CAMERA_OFFSET_X = 300f;
-    private static final float                CAMERA_OFFSET_Y = 500f;
-    private static final float                CAMERA_OFFSET_Z = 400f;
-    private final        AudioEngine          audioEngine     = new BasicAudioEngine();
-    private final        Matrix4              identityMatrix  = new Matrix4();
-    private final        List<Label>          labels          = new ArrayList<>();
-    private final        Logger               logger          = LoggerFactory.getLogger(this.getClass());
-    private final        BasicRandomGenerator randomGenerator = new BasicRandomGenerator(1);
-    public               MovingCamera         camera;
-    protected            Cubemap              diffuseCubemap;
-    protected            Cubemap              specularCubemap;
-    InputMultiplexer inputMultiplexer = new InputMultiplexer();
-    private BasicAtlasManager               atlasManager;
-    private Texture                         brdfLUT;
-    private CameraInputController           camController;
-    private OrthographicCamera              camera2D;
-    private long                            currentTime       = 0L;
+    private static final float                 CAMERA_OFFSET_X = 300f;
+    private static final float                 CAMERA_OFFSET_Y = 500f;
+    private static final float                 CAMERA_OFFSET_Z = 400f;
+    private              BasicAtlasManager     atlasManager;
+    private final        AudioEngine           audioEngine     = new BasicAudioEngine();
+    private              Texture               brdfLUT;
+    private              CameraInputController camController;
+    public               MovingCamera          camera;
+    private              OrthographicCamera    camera2D;
+    private              long                  currentTime     = 0L;
+    protected            Cubemap               diffuseCubemap;
     //    private              BitmapFont                      font;
-    private boolean                         hrtfEnabled       = true;
-    private long                            lastTime          = 0;
-    private RenderEngine3D<BasicGameEngine> renderEngine;
-    private boolean                         simulateBassBoost = true;
-    private Stage                           stage;
-    private StringBuilder                   stringBuilder;
-    private boolean                         takeScreenShot    = false;
-    private long                            timeDelta         = 0L;
+    private              boolean               hrtfEnabled     = true;
+    private final        Matrix4               identityMatrix  = new Matrix4();
+    InputMultiplexer inputMultiplexer = new InputMultiplexer();
+    private final List<Label>                     labels            = new ArrayList<>();
+    private       long                            lastTime          = 0;
+    private final Logger                          logger            = LoggerFactory.getLogger(this.getClass());
+    private final BasicRandomGenerator            randomGenerator   = new BasicRandomGenerator(1);
+    private       RenderEngine3D<BasicGameEngine> renderEngine;
+    private       boolean                         simulateBassBoost = true;
+    protected     Cubemap                         specularCubemap;
+    private       Stage                           stage;
+    private       StringBuilder                   stringBuilder;
+    private       boolean                         takeScreenShot    = false;
+    private       long                            timeDelta         = 0L;
 
     public void advanceInTime() {
         long fixedDelta = 20L;
@@ -111,56 +111,6 @@ public abstract class BasicGameEngine implements ApplicationListener, InputProce
             getAudioEngine().create("E:/github/game-engine/app/assets");
             audioEngine.radioTTS.loadResource(this.getClass());
             audioEngine.radioTTS.loadAudio();
-        } catch (final Exception e) {
-            logger.error(e.getMessage(), e);
-        }
-    }
-
-    @Override
-    public void resize(final int width, final int height) {
-    }
-
-    @Override
-    public void render() {
-        try {
-            advanceInTime();
-            update();
-            if (renderEngine.getProfiler().isEnabled()) {
-                renderEngine.getProfiler().reset();// reset on each frame
-            }
-            getRenderEngine().render(currentTime, Gdx.graphics.getDeltaTime(), takeScreenShot);
-//            getRenderEngine().postProcessRender();
-            Gdx.gl.glEnable(GL20.GL_DEPTH_TEST);
-//            getRenderEngine().renderEngine2D.batch.enableBlending();
-//            getRenderEngine().renderEngine2D.batch.begin();
-//            getRenderEngine().renderEngine2D.batch.setProjectionMatrix(getRenderEngine().getCamera().combined);
-//            getRenderEngine().renderEngine2D.batch.end();
-//            getRenderEngine().renderEngine2D.batch.setTransformMatrix(identityMatrix);//fix transformMatrix
-            renderStage();
-            takeScreenShot = false;
-            getAudioEngine().begin(getRenderEngine().getCamera(), true);
-            getAudioEngine().end();
-        } catch (final Exception e) {
-            logger.error(e.getMessage(), e);
-        }
-    }
-
-    @Override
-    public void pause() {
-    }
-
-    @Override
-    public void resume() {
-    }
-
-    @Override
-    public void dispose() {
-        try {
-            stage.dispose();
-            getAudioEngine().dispose();
-//            font.dispose();
-            getRenderEngine().dispose();
-            Gdx.app.exit();
         } catch (final Exception e) {
             logger.error(e.getMessage(), e);
         }
@@ -243,6 +193,19 @@ public abstract class BasicGameEngine implements ApplicationListener, InputProce
         stringBuilder = new StringBuilder();
     }
 
+    @Override
+    public void dispose() {
+        try {
+            stage.dispose();
+            getAudioEngine().dispose();
+//            font.dispose();
+            getRenderEngine().dispose();
+            Gdx.app.exit();
+        } catch (final Exception e) {
+            logger.error(e.getMessage(), e);
+        }
+    }
+
     private void exitGame() {
     }
 
@@ -269,7 +232,7 @@ public abstract class BasicGameEngine implements ApplicationListener, InputProce
     @Override
     public boolean keyDown(final int keycode) {
         switch (keycode) {
-            case Input.Keys.Q:
+            case Input.Keys.ESCAPE:
                 Gdx.app.exit();
                 return true;
             case Input.Keys.NUM_2:
@@ -295,32 +258,12 @@ public abstract class BasicGameEngine implements ApplicationListener, InputProce
     }
 
     @Override
-    public boolean keyUp(final int keycode) {
-        return false;
-    }
-
-    @Override
     public boolean keyTyped(final char character) {
         return false;
     }
 
     @Override
-    public boolean touchDown(final int screenX, final int screenY, final int pointer, final int button) {
-        return false;
-    }
-
-    @Override
-    public boolean touchUp(final int screenX, final int screenY, final int pointer, final int button) {
-        return false;
-    }
-
-    @Override
-    public boolean touchCancelled(int screenX, int screenY, int pointer, int button) {
-        return false;
-    }
-
-    @Override
-    public boolean touchDragged(final int screenX, final int screenY, final int pointer) {
+    public boolean keyUp(final int keycode) {
         return false;
     }
 
@@ -330,20 +273,37 @@ public abstract class BasicGameEngine implements ApplicationListener, InputProce
     }
 
     @Override
-    public boolean scrolled(final float amountX, final float amountY) {
-        return false;
+    public void pause() {
+    }
+
+    @Override
+    public void render() {
+        try {
+            advanceInTime();
+            update();
+            if (renderEngine.getProfiler().isEnabled()) {
+                renderEngine.getProfiler().reset();// reset on each frame
+            }
+            getRenderEngine().render(currentTime, Gdx.graphics.getDeltaTime(), takeScreenShot);
+//            getRenderEngine().postProcessRender();
+            Gdx.gl.glEnable(GL20.GL_DEPTH_TEST);
+//            getRenderEngine().renderEngine2D.batch.enableBlending();
+//            getRenderEngine().renderEngine2D.batch.begin();
+//            getRenderEngine().renderEngine2D.batch.setProjectionMatrix(getRenderEngine().getCamera().combined);
+//            getRenderEngine().renderEngine2D.batch.end();
+//            getRenderEngine().renderEngine2D.batch.setTransformMatrix(identityMatrix);//fix transformMatrix
+            renderStage();
+            takeScreenShot = false;
+            getAudioEngine().begin(getRenderEngine().getCamera(), true);
+            getAudioEngine().end();
+        } catch (final Exception e) {
+            logger.error(e.getMessage(), e);
+        }
     }
 
     public void render2Dxz() {
 
     }
-
-    @Override
-    public boolean updateEnvironment(float timeOfDay) {
-        return false;
-    }
-
-//    protected abstract void renderText();
 
     private void renderStage() {
         int labelIndex = 0;
@@ -359,6 +319,12 @@ public abstract class BasicGameEngine implements ApplicationListener, InputProce
             stringBuilder.append(" camera height: ").append(camera.position.y);
             labels.get(labelIndex++).setText(stringBuilder);
         }
+        //depth of field
+        {
+            stringBuilder.setLength(0);
+            stringBuilder.append(String.format(" focal depth: [%f]", renderEngine.getDepthOfFieldEffect2().getFocalDepth()));
+            labels.get(labelIndex++).setText(stringBuilder);
+        }
         //audio sources
         {
             stringBuilder.setLength(0);
@@ -366,6 +332,19 @@ public abstract class BasicGameEngine implements ApplicationListener, InputProce
             labels.get(labelIndex++).setText(stringBuilder);
         }
         stage.draw();
+    }
+
+    @Override
+    public void resize(final int width, final int height) {
+    }
+
+    @Override
+    public void resume() {
+    }
+
+    @Override
+    public boolean scrolled(final float amountX, final float amountY) {
+        return false;
     }
 
     public void setSimulateBassBoost(boolean simulateBassBoost) {
@@ -390,5 +369,32 @@ public abstract class BasicGameEngine implements ApplicationListener, InputProce
         new Lwjgl3Application(this, config);
     }
 
+    @Override
+    public boolean touchCancelled(int screenX, int screenY, int pointer, int button) {
+        return false;
+    }
+
+//    protected abstract void renderText();
+
+    @Override
+    public boolean touchDown(final int screenX, final int screenY, final int pointer, final int button) {
+        return false;
+    }
+
+    @Override
+    public boolean touchDragged(final int screenX, final int screenY, final int pointer) {
+        return false;
+    }
+
+    @Override
+    public boolean touchUp(final int screenX, final int screenY, final int pointer, final int button) {
+        return false;
+    }
+
     protected abstract void update() throws Exception;
+
+    @Override
+    public boolean updateEnvironment(float timeOfDay) {
+        return false;
+    }
 }

@@ -38,6 +38,7 @@ public class DepthOfFieldEffect2 extends ShaderVfxEffect implements ChainVfxEffe
     private final        MovingCamera camera;
     private              boolean      enabled          = false;
     private final        float        farDistanceBlur  = 50f;
+    private              float        focalDepth       = 100f;
     private              Vector2      focusDistance    = new Vector2(200.0f, 700.0f);
     private final        float        nearDistanceBlur = 50f;
     //	private float time = 0f;
@@ -52,6 +53,14 @@ public class DepthOfFieldEffect2 extends ShaderVfxEffect implements ChainVfxEffe
         this.postFbo    = postFbo;
         this.camera     = camera;
         rebind();
+    }
+
+    public MovingCamera getCamera() {
+        return camera;
+    }
+
+    public float getFocalDepth() {
+        return focalDepth;
     }
 
     public Vector2 getFocusDistance() {
@@ -90,15 +99,20 @@ public class DepthOfFieldEffect2 extends ShaderVfxEffect implements ChainVfxEffe
 //        program.setUniformi("u_vertical", 0);
         postFbo.getColorBufferTexture().bind(TEXTURE_HANDLE0);
         postFbo.getTextureAttachments().get(1).bind(TEXTURE_HANDLE1);
+        program.setUniformf("focalDepth", focalDepth);
+
+
 //        program.setUniformf("u_focusDistance", focusDistance);
 //        program.setUniformf("focalDepth", 1.5f);
 //        program.setUniformf("focalDepth", 700f);
 //        program.setUniformf("focalLength", 12.0f);
 //        program.setUniformf("fstop", 2.0f);
-//        program.setUniformf("znear", 0.1f);
-//        program.setUniformf("znear", camera.near);
-//        program.setUniformf("zfar", 100.0f);
-//        program.setUniformf("zfar", camera.far);
+        program.setUniformf("ndofstart", focalDepth / 20f);
+        program.setUniformf("ndofdist", focalDepth * 1.5f);
+        program.setUniformf("fdofstart", focalDepth / 20f);
+        program.setUniformf("fdofdist", focalDepth * 1.5f);
+        program.setUniformf("znear", camera.near);
+        program.setUniformf("zfar", camera.far);
 //        program.setUniformf("CoC", 0.03f);
 //        program.setUniformi("samples", 3);
 //        program.setUniformi("rings", 3);
@@ -134,6 +148,10 @@ public class DepthOfFieldEffect2 extends ShaderVfxEffect implements ChainVfxEffe
             vfxManager.addEffect(this);
         else
             vfxManager.removeEffect(this);
+    }
+
+    public void setFocalDepth(float focalDepth) {
+        this.focalDepth = focalDepth;
     }
 
     public void setFocusDistance(Vector2 focusDistance) {

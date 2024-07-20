@@ -69,10 +69,14 @@ varying vec2 v_texCoords;
 
 #define PI  3.14159265
 
+ivec2 textureSize2d = textureSize(u_sourceTexture, 0);
+float width = float(textureSize2d.x);
+float height = float(textureSize2d.y);
+
 //float width = renderTexWidth; //texture width
 //float height = renderTexHeight; //texture height
-float width = 600;//texture width
-float height = 600;//texture height
+//float width = 600;//texture width
+//float height = 600;//texture height
 
 vec2 texel = vec2(1.0/width, 1.0/height);
 
@@ -84,18 +88,14 @@ uniform float focalLength; //focal length in mm
 uniform float fstop; //f-stop value
 uniform bool showFocus; //show debug focus point and focal range (red = focal point, green = focal range)
 */
-//float focalDepth = 1.5;
-float focalDepth = 1.5;
-float focalLength = 12.0;
-float fstop = 2.0;
-bool showFocus = false;
+uniform float focalDepth = 1.5;//1.5
+float focalLength = 12.0;//12
+float fstop = 2.0;//2.0
+bool showFocus = false;//false
 
-/*
-make sure that these two values are the same for your camera, otherwise distances will be wrong.
-*/
-
-float znear = 0.1;//camera clipping start
-float zfar = 100.0;//camera clipping end
+//make sure that these two values are the same for your camera, otherwise distances will be wrong.
+uniform float znear = 0.1;//camera clipping start
+uniform float zfar = 100.0;//camera clipping end
 
 //------------------------------------------
 //user variables
@@ -103,11 +103,11 @@ float zfar = 100.0;//camera clipping end
 int samples = 3;//samples on the first ring
 int rings = 3;//ring count
 
-bool manualdof = false;//manual dof calculation
-float ndofstart = 1.0;//near dof blur start
-float ndofdist = 2.0;//near dof blur falloff distance
-float fdofstart = 1.0;//far dof blur start
-float fdofdist = 3.0;//far dof blur falloff distance
+bool manualdof = true;//manual dof calculation
+uniform float ndofstart = 1.0;//near dof blur start
+uniform float ndofdist = 32.0;//near dof blur falloff distance
+uniform float fdofstart = 32.0;//far dof blur start
+uniform float fdofdist = 300.0;//far dof blur falloff distance
 
 float CoC = 0.03;//circle of confusion size in mm (35mm film = 0.03mm)
 
@@ -179,39 +179,39 @@ float penta(vec2 coords)//pentagonal shape
     return clamp(inorout, 0.0, 1.0);
 }
 
-float bdepth(vec2 coords)//blurring depth
-{
-    float d = 0.0;
-    float kernel[9];
-    vec2 offset[9];
-
-    vec2 wh = vec2(texel.x, texel.y) * dbsize;
-
-    offset[0] = vec2(-wh.x, -wh.y);
-    offset[1] = vec2(0.0, -wh.y);
-    offset[2] = vec2(wh.x -wh.y);
-
-    offset[3] = vec2(-wh.x, 0.0);
-    offset[4] = vec2(0.0, 0.0);
-    offset[5] = vec2(wh.x, 0.0);
-
-    offset[6] = vec2(-wh.x, wh.y);
-    offset[7] = vec2(0.0, wh.y);
-    offset[8] = vec2(wh.x, wh.y);
-
-    kernel[0] = 1.0/16.0;   kernel[1] = 2.0/16.0;   kernel[2] = 1.0/16.0;
-    kernel[3] = 2.0/16.0;   kernel[4] = 4.0/16.0;   kernel[5] = 2.0/16.0;
-    kernel[6] = 1.0/16.0;   kernel[7] = 2.0/16.0;   kernel[8] = 1.0/16.0;
-
-
-    for (int i=0; i<9; i++)
-    {
-        float tmp = texture2D(u_depthTexture, coords + offset[i]).r;
-        d += tmp * kernel[i];
-    }
-
-    return d;
-}
+//float bdepth(vec2 coords)//blurring depth
+//{
+//    float d = 0.0;
+//    float kernel[9];
+//    vec2 offset[9];
+//
+//    vec2 wh = vec2(texel.x, texel.y) * dbsize;
+//
+//    offset[0] = vec2(-wh.x, -wh.y);
+//    offset[1] = vec2(0.0, -wh.y);
+//    offset[2] = vec2(wh.x -wh.y);
+//
+//    offset[3] = vec2(-wh.x, 0.0);
+//    offset[4] = vec2(0.0, 0.0);
+//    offset[5] = vec2(wh.x, 0.0);
+//
+//    offset[6] = vec2(-wh.x, wh.y);
+//    offset[7] = vec2(0.0, wh.y);
+//    offset[8] = vec2(wh.x, wh.y);
+//
+//    kernel[0] = 1.0/16.0;   kernel[1] = 2.0/16.0;   kernel[2] = 1.0/16.0;
+//    kernel[3] = 2.0/16.0;   kernel[4] = 4.0/16.0;   kernel[5] = 2.0/16.0;
+//    kernel[6] = 1.0/16.0;   kernel[7] = 2.0/16.0;   kernel[8] = 1.0/16.0;
+//
+//
+//    for (int i=0; i<9; i++)
+//    {
+//        float tmp = texture2D(u_depthTexture, coords + offset[i]).r;
+//        d += tmp * kernel[i];
+//    }
+//
+//    return d;
+//}
 
 
 vec3 color(vec2 coords, float blur)//processing the sample
@@ -243,19 +243,30 @@ vec2 rand(vec2 coord)//generating noise/pattern texture for dithering
 
 vec3 debugFocus(vec3 col, float blur, float depth)
 {
+    //    if (blur < 0.02f)
+    //    return vec3(0.0, 1.0, 1.0);
+
+    //    if (depth < focalDepth)
+    //    return vec3(0.0, clamp(depth/focalDepth, 0f, 1f), 0.0);
+
     float edge = 0.002*depth;//distance based edge smoothing
     float m = clamp(smoothstep(0.0, edge, blur), 0.0, 1.0);
     float e = clamp(smoothstep(1.0-edge, 1.0, blur), 0.0, 1.0);
 
-    col = mix(col, vec3(1.0, 0.5, 0.0), (1.0-m)*0.6);
-    col = mix(col, vec3(0.0, 0.5, 1.0), ((1.0-e)-(1.0-m))*0.2);
-
+    col = mix(col, vec3(1.0, 0.0, 0.0), (1.0-m)*0.6);
+    col = mix(col, vec3(0.0, 0.0, 1.0), ((1.0-e)-(1.0-m))*0.2);
+    col = vec3(blur, 0f, 0f);
     return col;
 }
 
-float linearize(float depth)
+//float linearize(float depth)
+//{
+//    return -zfar * znear / (depth * (zfar - znear) - zfar);
+//}
+float linearize(float d)
 {
-    return -zfar * znear / (depth * (zfar - znear) - zfar);
+    float z_n = 2.0 * d - 1.0;
+    return 2.0 * znear * zfar / (zfar + znear - z_n * (zfar - znear));
 }
 
 float vignette()
@@ -269,21 +280,21 @@ void main()
 {
     //scene depth calculation
 
-    float depth = linearize(texture2D(u_depthTexture, v_texCoords.xy).x);
+    float depth = linearize(texture(u_depthTexture, v_texCoords.xy).r);
 
-    if (depthblur)
-    {
-        depth = linearize(bdepth(v_texCoords.xy));
-    }
+    //    if (depthblur)
+    //    {
+    //        depth = linearize(bdepth(v_texCoords.xy));
+    //    }
 
     //focal plane calculation
 
     float fDepth = focalDepth;
 
-    if (autofocus)
-    {
-        fDepth = linearize(texture2D(u_depthTexture, focus).x);
-    }
+    //    if (autofocus)
+    //    {
+    //        fDepth = linearize(texture2D(u_depthTexture, focus).x);
+    //    }
 
     //dof blur factor calculation
 
@@ -291,12 +302,40 @@ void main()
 
     if (manualdof)
     {
-        float a = depth-fDepth;//focal plane
-        float b = (a-fdofstart)/fdofdist;//far DoF
-        float c = (-a-ndofstart)/ndofdist;//near Dof
-        blur = (a>0.0)?b:c;
-    }
+        /*
+            focalDepth = 32
+            ndofstart = 1.0;//near dof blur start
+            ndofdist = 32.0;//near dof blur falloff distance
+            fdofstart = 32.0;//far dof blur start
+            fdofdist = 300.0;//far dof blur falloff distance
 
+            depth = 30
+            a = -2
+            b = (-2-1)/32
+            c = (2-1)/32
+
+            depth = 16
+            a = -16
+            b = (-16-1)/32
+            c = (16-1)/32
+        */
+
+        if (depth < fDepth+fdofstart && depth > fDepth-ndofstart)
+        {
+            blur = 0.0;//sharp
+        }
+        else
+        {
+            float a = depth-fDepth;//focal plane
+            float b = (a-fdofstart)/fdofdist;//far DoF
+            float c = (-a-ndofstart)/ndofdist;//near Dof
+            blur = (a>0.0)?b:c;
+        }
+        //        float a = depth-fDepth;//focal plane
+        //        float b = (a-fdofstart)/fdofdist;//far DoF
+        //        float c = (-a-ndofstart)/ndofdist;//near Dof
+        //        blur = (a>0.0)?b:c;
+    }
     else
     {
         float f = focalLength;//focal length in mm
@@ -325,13 +364,14 @@ void main()
 
     vec3 col = vec3(0.0);
 
-    if (blur < 0.05)//some optimization thingy
+    if (blur < 0.05)
     {
+        //sharp
         col = texture2D(u_sourceTexture, v_texCoords.xy).rgb;
     }
-
     else
     {
+        //blurry
         col = texture2D(u_sourceTexture, v_texCoords.xy).rgb;
         float s = 1.0;
         int ringsamples;
@@ -355,6 +395,8 @@ void main()
             }
         }
         col /= s;//divide by sample count
+
+        //        col = vec3(blur, 0, 0);
     }
 
     if (showFocus)

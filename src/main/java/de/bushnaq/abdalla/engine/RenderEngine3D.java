@@ -38,7 +38,10 @@ import com.badlogic.gdx.graphics.g3d.utils.ShaderProvider;
 import com.badlogic.gdx.graphics.glutils.FrameBuffer;
 import com.badlogic.gdx.graphics.glutils.GLFrameBuffer;
 import com.badlogic.gdx.graphics.profiling.GLErrorListener;
-import com.badlogic.gdx.math.*;
+import com.badlogic.gdx.math.Intersector;
+import com.badlogic.gdx.math.Matrix4;
+import com.badlogic.gdx.math.Plane;
+import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.math.collision.Ray;
 import com.badlogic.gdx.scenes.scene2d.Stage;
@@ -340,9 +343,9 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
         final Ray     rayX     = new Ray(position, xVector);
         final Ray     rayY     = new Ray(position, yVector);
         final Ray     rayZ     = new Ray(position, zVector);
-        createRay(rayX, null);
-        createRay(rayY, null);
-        createRay(rayZ, null);
+        createRay(rayX, null, false);
+        createRay(rayY, null, false);
+        createRay(rayZ, null, false);
     }
 
     private void createEnvironment() {
@@ -388,19 +391,25 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
         fpsGraph = new FpsGraph("FPS", new Color(0f, 0f, 1f, 1f), new Color(0f, 0f, 1f, 0.6f), new Color(0f, 0f, 0f, .6f), Gdx.graphics.getWidth(), Gdx.graphics.getHeight() / 3, font, boldFont, atlasRegion);
     }
 
-    private GameObject<T> createRay(final Ray ray, Float length) {
+    private GameObject<T> createRay(final Ray ray, Float length, boolean center) {
         if (length == null) length = 10000f;
 //		final float			length		= 10000f;
         final Vector3       direction = new Vector3(ray.direction.x, ray.direction.y, ray.direction.z);
         final Vector3       position  = ray.origin.cpy();
         final GameObject<T> instance  = new GameObject<T>(new ModelInstanceHack(rayCube), null);
         instance.instance.materials.get(0).set(ColorAttribute.createDiffuse(Color.RED));
-        addDynamic(instance);
+        addStatic(instance);
         final Vector3 xVector = new Vector3(1, 0, 0);
         direction.nor();
-        position.x += direction.x * length / 2;
-        position.y += direction.y * length / 2;
-        position.z += direction.z * length / 2;
+        if (center) {
+            position.x += direction.x /** length / 2*/;
+            position.y += direction.y /** length / 2*/;
+            position.z += direction.z /** length / 2*/;
+        } else {
+            position.x += direction.x * length / 2;
+            position.y += direction.y * length / 2;
+            position.z += direction.z * length / 2;
+        }
         instance.instance.transform.setToTranslation(position);
         instance.instance.transform.rotate(xVector, direction);
         instance.instance.transform.scale(length, 0.5f, 0.5f);
@@ -410,7 +419,7 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
     }
 
     private void createRayCube() {
-        if (isPbr()) {
+        if (isPbr() && rayCube == null) {
             final Attribute    color        = new PBRColorAttribute(PBRColorAttribute.BaseColorFactor, Color.WHITE);
             final Attribute    metallic     = PBRFloatAttribute.createMetallic(0.5f);
             final Attribute    roughness    = PBRFloatAttribute.createRoughness(0.5f);
@@ -1063,11 +1072,11 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
                 }
             }
             if (getDepthOfFieldEffect1().isEnabled() || getDepthOfFieldEffect2().isEnabled()) {
-                Vector2 focusDistance;
+                float focalDepth;
                 if (getDepthOfFieldEffect1().isEnabled())
-                    focusDistance = getDepthOfFieldEffect1().getFocusDistance();
+                    focalDepth = getDepthOfFieldEffect1().getFocusDistance().y;
                 else
-                    focusDistance = getDepthOfFieldEffect2().getFocusDistance();
+                    focalDepth = getDepthOfFieldEffect2().getFocalDepth();
                 for (PointLight light : pointLights.lights) {
                     {
                         final Matrix4 m = new Matrix4();
@@ -1079,9 +1088,13 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
 //                        m.rotate(Vector3.X, camera.direction.x);
                         renderEngine25D.setTransformMatrix(m);
                     }
-                    if (light.position.z < focusDistance.y) {
-                        float size = light.position.dst(camera.position) / 100;
-                        Color c    = light.color;
+//                    if (renderEngine25D.camera.frustum.pointInFrustum(light.position.x, light.position.y, light.position.z))
+                    {
+//                        && light.position.dst(camera.position) > focalDepth
+                        float size = 4 * (1 - (light.position.dst(camera.position)) / camera.far);
+                        System.out.println(" size=" + size + "dist=" + light.position.dst(camera.position));
+//                        float size = light.position.dst(camera.position) / 100;
+                        Color c = light.color;
                         c.a = 0.5f;
                         renderEngine25D.fillCircle(atlasRegion, 0, 0, size - 0.4f, 32, c);
                         c.a = .3f;
