@@ -322,7 +322,7 @@ public abstract class BasicGameEngine implements ApplicationListener, InputProce
         //depth of field
         {
             stringBuilder.setLength(0);
-            stringBuilder.append(String.format(" focal depth: [%f]", renderEngine.getDepthOfFieldEffect2().getFocalDepth()));
+            stringBuilder.append(String.format(" focal depth: [%f]", renderEngine.getDepthOfFieldEffect().getFocalDepth()));
             labels.get(labelIndex++).setText(stringBuilder);
         }
         //audio sources

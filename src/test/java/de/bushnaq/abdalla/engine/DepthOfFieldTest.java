@@ -94,11 +94,10 @@ public class DepthOfFieldTest extends BasicGameEngine {
         super.create();
         getRenderEngine().setShowGraphs(false);
         getRenderEngine().setShadowEnabled(true);
-        getRenderEngine().getDepthOfFieldEffect1().setEnabled(false);
-        getRenderEngine().getDepthOfFieldEffect2().setEnabled(true);
+        getRenderEngine().getDepthOfFieldEffect().setEnabled(true);
 //        getRenderEngine().getDepthOfFieldEffect().setEnabled(true);
         float focalDepth = CUBE_DISTANCE * 2;
-        getRenderEngine().getDepthOfFieldEffect2().setFocalDepth(focalDepth);
+        getRenderEngine().getDepthOfFieldEffect().setFocalDepth(focalDepth);
         Vector3 position = new Vector3(0, 0, CUBE_DISTANCE);
         Vector3 lookat   = new Vector3(0, 0, -CUBE_SIZE * 4);
         camera.position.set(position);
@@ -165,15 +164,7 @@ public class DepthOfFieldTest extends BasicGameEngine {
         super.keyDown(keycode);
         switch (keycode) {
             case Input.Keys.NUM_3:
-                if (!getRenderEngine().getDepthOfFieldEffect1().isEnabled() && !getRenderEngine().getDepthOfFieldEffect2().isEnabled()) {
-                    getRenderEngine().getDepthOfFieldEffect1().setEnabled(true);
-                } else if (getRenderEngine().getDepthOfFieldEffect1().isEnabled()) {
-                    getRenderEngine().getDepthOfFieldEffect1().setEnabled(false);
-                    getRenderEngine().getDepthOfFieldEffect2().setEnabled(true);
-                } else if (getRenderEngine().getDepthOfFieldEffect2().isEnabled()) {
-                    getRenderEngine().getDepthOfFieldEffect1().setEnabled(false);
-                    getRenderEngine().getDepthOfFieldEffect2().setEnabled(false);
-                }
+                getRenderEngine().getDepthOfFieldEffect().setEnabled(!getRenderEngine().getDepthOfFieldEffect().isEnabled());
                 return true;
             case Input.Keys.W:
                 camera.position.add(0, 0, -1 * speed);

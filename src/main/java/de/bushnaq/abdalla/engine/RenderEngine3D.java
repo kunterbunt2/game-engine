@@ -106,13 +106,8 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
     private       SceneSkybox                 daySkyBox;
     private       boolean                     debugMode                        = false;
     private       ModelBatch                  depthBatch;
-    // GaussianBlurEffect effect1;
-//	BloomEffect								effect2;
-//    private       boolean                     depthOfField                     = false;
-    private       DepthOfFieldEffect1         depthOfFieldEffect1;
-    private       DepthOfFieldEffect2         depthOfFieldEffect2;
+    private       DepthOfFieldEffect          depthOfFieldEffect;
     private final ModelCache                  dynamicCache                     = new ModelCache();
-    //    private              GameObject                  depthOfFieldMeter;
     private       boolean                     dynamicDayTime                   = false;
     public        Array<GameObject<T>>        dynamicGameObjects               = new Array<>();
     private final Set<ObjectRenderer<T>>      dynamicText3DList                = new HashSet<>();
@@ -223,8 +218,7 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
         logger.info(String.format("mirror = %b", isMirrorPresent()));
         logger.info(String.format("water = %b", isWaterPresent()));
         logger.info(String.format("shadow = %b", isShadowEnabled()));
-        logger.info(String.format("depth of field 1 = %b", depthOfFieldEffect1.isEnabled()));
-        logger.info(String.format("depth of field 2 = %b", depthOfFieldEffect2.isEnabled()));
+        logger.info(String.format("depth of field 2 = %b", depthOfFieldEffect.isEnabled()));
         logger.info(String.format("dynamic day= %b", isDynamicDayTime()));
         logger.info(String.format("debug mode = %b", isDebugMode()));
         logger.info(String.format("sky box = %b", isSkyBox()));
@@ -312,11 +306,10 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
 //		vfxManager.addEffect(new FxaaEffect());
 //		vfxManager.addEffect(new FilmGrainEffect());
 //		vfxManager.addEffect(new OldTvEffect());
-        vfxManager          = new VfxManager(Pixmap.Format.RGBA8888);
-        depthOfFieldEffect1 = new DepthOfFieldEffect1(vfxManager, postFbo, camera);
-//        vfxManager.addEffect(depthOfFieldEffect1);
-        depthOfFieldEffect2 = new DepthOfFieldEffect2(vfxManager, postFbo, camera);
-//        vfxManager.addEffect(depthOfFieldEffect2);
+        vfxManager         = new VfxManager(Pixmap.Format.RGBA8888);
+        depthOfFieldEffect = new DepthOfFieldEffect(vfxManager, postFbo, camera);
+        depthOfFieldEffect.setEnabled(true);
+        vfxManager.addEffect(depthOfFieldEffect);
 //		vfxManager.addEffect(new FxaaEffect());
         createGraphs();
     }
@@ -511,8 +504,7 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
         staticCache.dispose();
         dynamicCache.dispose();
         vfxManager.dispose();
-        depthOfFieldEffect1.dispose();
-        depthOfFieldEffect2.dispose();
+        depthOfFieldEffect.dispose();
         disposeGraphs();
         disposeStage();
         disposeEnvironment();
@@ -603,12 +595,8 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
         return currentDayTime;
     }
 
-    public DepthOfFieldEffect1 getDepthOfFieldEffect1() {
-        return depthOfFieldEffect1;
-    }
-
-    public DepthOfFieldEffect2 getDepthOfFieldEffect2() {
-        return depthOfFieldEffect2;
+    public DepthOfFieldEffect getDepthOfFieldEffect() {
+        return depthOfFieldEffect;
     }
 
 //    private void fboToScreen() {
@@ -806,7 +794,7 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
     }
 
     public void postProcessRender() throws Exception {
-        if ((depthOfFieldEffect1.isEnabled() || depthOfFieldEffect2.isEnabled()) && render3D) {
+        if (depthOfFieldEffect.isEnabled() && render3D) {
             // Clean up the screen.
             Gdx.gl.glClearColor(0f, 0f, 0f, 1f);
             Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
@@ -988,7 +976,7 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
             context.disableClipping();
         }
         // if (firstTime) {
-        if ((depthOfFieldEffect1.isEnabled() || depthOfFieldEffect2.isEnabled()) && render3D) postFbo.begin();
+        if (depthOfFieldEffect.isEnabled() && render3D) postFbo.begin();
 //		createCameraCube();
 //		createLookatCube();
 //		createDepthOfFieldMeter();
@@ -996,15 +984,15 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
         render2DText();
         render3DText();
         render2Dxz();
-        if ((depthOfFieldEffect1.isEnabled() || depthOfFieldEffect2.isEnabled()) && render3D) postFbo.end();
+        if (depthOfFieldEffect.isEnabled() && render3D) postFbo.end();
 
         camera.setDirty(false);
         staticCacheDirtyCount = 0;
         renderGraphs();
 
-        if ((depthOfFieldEffect1.isEnabled() || depthOfFieldEffect2.isEnabled()) && render3D) postFbo.begin();
+        if (depthOfFieldEffect.isEnabled() && render3D) postFbo.begin();
         if (render3D) renderFbos(takeScreenShot);
-        if ((depthOfFieldEffect1.isEnabled() || depthOfFieldEffect2.isEnabled()) && render3D) postFbo.end();
+        if (depthOfFieldEffect.isEnabled() && render3D) postFbo.end();
 
 //        fboToScreen();
         postProcessRender();
@@ -1071,34 +1059,36 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
                     }
                 }
             }
-            if (getDepthOfFieldEffect1().isEnabled() || getDepthOfFieldEffect2().isEnabled()) {
+            if (getDepthOfFieldEffect().isEnabled()) {
                 float focalDepth;
-                if (getDepthOfFieldEffect1().isEnabled())
-                    focalDepth = getDepthOfFieldEffect1().getFocusDistance().y;
-                else
-                    focalDepth = getDepthOfFieldEffect2().getFocalDepth();
+                focalDepth = getDepthOfFieldEffect().getFocalDepth();
                 for (PointLight light : pointLights.lights) {
-                    {
-                        final Matrix4 m = new Matrix4();
-                        m.setToTranslation(light.position.x, light.position.y, light.position.z);
-                        m.rotateTowardTarget(camera.position, camera.up);
-//                        m.rotate(Vector3.Y, camera.direction.z);
-//                        m.rotate(Vector3.Y, camera.direction.y);
-                        //rotate into the xz layer
-//                        m.rotate(Vector3.X, camera.direction.x);
-                        renderEngine25D.setTransformMatrix(m);
-                    }
-//                    if (renderEngine25D.camera.frustum.pointInFrustum(light.position.x, light.position.y, light.position.z))
-                    {
+                    float depth = light.position.dst(camera.position);
+                    if (!depthOfFieldEffect.isInFocus(depth)) {
+                        {
+                            final Matrix4 m = new Matrix4();
+                            m.setToTranslation(light.position.x, light.position.y, light.position.z);
+                            m.rotateTowardTarget(camera.position, camera.up);
+                            renderEngine25D.setTransformMatrix(m);
+                        }
+                        if (camera.frustum.pointInFrustum(light.position.x, light.position.y, light.position.z)) {
 //                        && light.position.dst(camera.position) > focalDepth
-                        float size = 4 * (1 - (light.position.dst(camera.position)) / camera.far);
-                        System.out.println(" size=" + size + "dist=" + light.position.dst(camera.position));
-//                        float size = light.position.dst(camera.position) / 100;
-                        Color c = light.color;
-                        c.a = 0.5f;
-                        renderEngine25D.fillCircle(atlasRegion, 0, 0, size - 0.4f, 32, c);
-                        c.a = .3f;
-                        renderEngine25D.circle(atlasRegion, 0, 0, size, 0.8f, c, 32);
+                            //the further the light, the bigger the bokeh
+                            float size;
+                            if (depth > focalDepth)
+                                size = 8 * ((depth - focalDepth - depthOfFieldEffect.getFarDofStart()) / (depthOfFieldEffect.getFarDofDist() - depthOfFieldEffect.getFarDofStart()));
+                            else
+                                size = 8 * ((focalDepth - depth - depthOfFieldEffect.getNearDofStart()) / (depthOfFieldEffect.getNearDofDist() - depthOfFieldEffect.getNearDofStart()));
+                            if (camera.frustum.pointInFrustum(light.position))
+                                if (light.position.z < -1000)
+                                    if (size < 0)
+                                        System.out.println(" size=" + size + "dist=" + light.position.dst(camera.position));
+                            Color c = light.color;
+                            c.a = 0.5f;
+                            renderEngine25D.fillCircle(atlasRegion, 0, 0, size - 0.4f, 32, c);
+                            c.a = .3f;
+                            renderEngine25D.circle(atlasRegion, 0, 0, size, 0.8f, c, 32);
+                        }
                     }
                 }
             }
@@ -1241,6 +1231,7 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
 
     public void setAmbientLight(final float rLum, final float gLum, final float bLum) {
         ambientLight.color.set(rLum, gLum, bLum, 1f);
+        environment.set(ambientLight);
     }
 
     public void setCamera(final Vector3 position, final Vector3 up, final Vector3 LookAt) throws Exception {

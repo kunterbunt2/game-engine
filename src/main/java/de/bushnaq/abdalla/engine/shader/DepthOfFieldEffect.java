@@ -31,23 +31,22 @@ import com.crashinvaders.vfx.framebuffer.VfxPingPongWrapper;
 import com.crashinvaders.vfx.gl.VfxGLUtils;
 import de.bushnaq.abdalla.engine.camera.MovingCamera;
 
-public class DepthOfFieldEffect2 extends ShaderVfxEffect implements ChainVfxEffect {
+public class DepthOfFieldEffect extends ShaderVfxEffect implements ChainVfxEffect {
 
-    private static final String       Texture0         = "u_sourceTexture";
-    private static final String       Texture1         = "u_depthTexture";
+    private static final String       Texture0     = "u_sourceTexture";
+    private static final String       Texture1     = "u_depthTexture";
     private final        MovingCamera camera;
-    private              boolean      enabled          = false;
-    private final        float        farDistanceBlur  = 50f;
-    private              float        focalDepth       = 100f;
-    private              Vector2      focusDistance    = new Vector2(200.0f, 700.0f);
-    private final        float        nearDistanceBlur = 50f;
-    //	private float time = 0f;
+    private              boolean      enabled      = false;
+    private              float        focalDepth   = 100f;
+    private              float        farDofStart  = focalDepth / 20f;
+    private              float        farDofDist   = focalDepth * 1.5f;
+    private              float        nearDofDist  = focalDepth * 1.5f;
+    private              float        nearDofStart = focalDepth / 20f;
     private final        FrameBuffer  postFbo;
-    private final        Vector2      resolution       = new Vector2();
-    private final        int          vertical         = 0;
+    private final        Vector2      resolution   = new Vector2();
     private final        VfxManager   vfxManager;
 
-    public DepthOfFieldEffect2(VfxManager vfxManager, final FrameBuffer postFbo, final MovingCamera camera) {
+    public DepthOfFieldEffect(VfxManager vfxManager, final FrameBuffer postFbo, final MovingCamera camera) {
         super(MyVfxGLUtils2.compileShader(Gdx.files.classpath("shader/depthOfField.vs.glsl"), Gdx.files.classpath("shader/depthOfField2.fs.glsl"), ""));
         this.vfxManager = vfxManager;
         this.postFbo    = postFbo;
@@ -59,29 +58,42 @@ public class DepthOfFieldEffect2 extends ShaderVfxEffect implements ChainVfxEffe
         return camera;
     }
 
+    public float getFarDofDist() {
+        return farDofDist;
+    }
+
+    public float getFarDofStart() {
+        return farDofStart;
+    }
+
     public float getFocalDepth() {
         return focalDepth;
     }
 
-    public Vector2 getFocusDistance() {
-        return focusDistance;
+    public float getNearDofDist() {
+        return nearDofDist;
     }
+
+    public float getNearDofStart() {
+        return nearDofStart;
+    }
+
+//    public Vector2 getFocusDistance() {
+//        return focusDistance;
+//    }
 
     public boolean isEnabled() {
         return enabled;
+    }
+
+    public boolean isInFocus(float depth) {
+        return depth < focalDepth + farDofStart && depth > focalDepth - nearDofStart;
     }
 
     @Override
     public void rebind() {
         super.rebind();
         program.begin();
-//        program.setUniformf("u_pixelSize", 1f / postFbo.getWidth(), 1f / postFbo.getHeight());
-//        program.setUniformf("u_cameraClipping", camera.near, camera.far);
-//        program.setUniformf("u_focusDistance", focusDistance);
-//        System.out.println(focusDistance.x + " " + focusDistance.y);
-//        program.setUniformf("u_nearDistanceBlur", nearDistanceBlur);
-//        program.setUniformf("u_farDistanceBlur", farDistanceBlur);
-
         program.setUniformi(Texture0, TEXTURE_HANDLE0);
         program.setUniformi(Texture1, TEXTURE_HANDLE1);
         program.end();
@@ -94,45 +106,20 @@ public class DepthOfFieldEffect2 extends ShaderVfxEffect implements ChainVfxEffe
 
     public void render(final VfxRenderContext context, final VfxFrameBuffer src, final VfxFrameBuffer dst) {
         // Bind src buffer's texture as a primary one.
-        //				src.getTexture().bind(TEXTURE_HANDLE0);
         program.begin();
-//        program.setUniformi("u_vertical", 0);
         postFbo.getColorBufferTexture().bind(TEXTURE_HANDLE0);
         postFbo.getTextureAttachments().get(1).bind(TEXTURE_HANDLE1);
         program.setUniformf("focalDepth", focalDepth);
-
-
-//        program.setUniformf("u_focusDistance", focusDistance);
-//        program.setUniformf("focalDepth", 1.5f);
-//        program.setUniformf("focalDepth", 700f);
-//        program.setUniformf("focalLength", 12.0f);
-//        program.setUniformf("fstop", 2.0f);
-        program.setUniformf("ndofstart", focalDepth / 20f);
-        program.setUniformf("ndofdist", focalDepth * 1.5f);
-        program.setUniformf("fdofstart", focalDepth / 20f);
-        program.setUniformf("fdofdist", focalDepth * 1.5f);
+        program.setUniformf("ndofstart", nearDofStart);
+        program.setUniformf("ndofdist", nearDofDist);
+        program.setUniformf("fdofstart", farDofStart);
+        program.setUniformf("fdofdist", farDofDist);
         program.setUniformf("znear", camera.near);
         program.setUniformf("zfar", camera.far);
-//        program.setUniformf("CoC", 0.03f);
-//        program.setUniformi("samples", 3);
-//        program.setUniformi("rings", 3);
-//        program.setUniformi("autofocus", GL_TRUE);
-//        program.setUniformf("focus", 0.5f, 0.5f);
-//        program.setUniformi("noise", GL_TRUE);
-//        program.setUniformf("namount", 0.0001f);
-
 
         program.end();
         // Apply shader effect and render result to dst buffer.
         renderShader(context, dst);
-//        program.begin();
-//        program.setUniformi("u_vertical", 1);
-//        postFbo.getColorBufferTexture().bind(TEXTURE_HANDLE0);
-//        postFbo.getTextureAttachments().get(1).bind(TEXTURE_HANDLE1);
-//        program.setUniformf("u_focusDistance", focusDistance);
-//        program.end();
-//        // Apply shader effect and render result to dst buffer.
-//        renderShader(context, dst);
     }
 
     @Override
@@ -152,11 +139,15 @@ public class DepthOfFieldEffect2 extends ShaderVfxEffect implements ChainVfxEffe
 
     public void setFocalDepth(float focalDepth) {
         this.focalDepth = focalDepth;
+        nearDofStart    = focalDepth / 20f;
+        nearDofDist     = focalDepth * 1.5f;
+        farDofStart     = focalDepth / 20f;
+        farDofDist      = focalDepth * 1.5f;
     }
 
-    public void setFocusDistance(Vector2 focusDistance) {
-        this.focusDistance = focusDistance;
-    }
+//    public void setFocusDistance(Vector2 focusDistance) {
+//        this.focusDistance = focusDistance;
+//    }
 
     @Override
     public void update(final float delta) {
