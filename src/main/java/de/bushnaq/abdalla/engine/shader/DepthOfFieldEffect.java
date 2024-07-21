@@ -78,10 +78,6 @@ public class DepthOfFieldEffect extends ShaderVfxEffect implements ChainVfxEffec
         return nearDofStart;
     }
 
-//    public Vector2 getFocusDistance() {
-//        return focusDistance;
-//    }
-
     public boolean isEnabled() {
         return enabled;
     }
@@ -145,26 +141,10 @@ public class DepthOfFieldEffect extends ShaderVfxEffect implements ChainVfxEffec
         farDofDist      = focalDepth * 1.5f;
     }
 
-//    public void setFocusDistance(Vector2 focusDistance) {
-//        this.focusDistance = focusDistance;
-//    }
-
     @Override
     public void update(final float delta) {
         super.update(delta);
     }
-
-    //	public void enableDepthOfFiled(boolean enableDepthOfField) {
-    //		if (enableDepthOfField) {
-    //			nearDistanceBlur = 100.0f;
-    //			farDistanceBlur = 100.0f;
-    //		} else {
-    //			nearDistanceBlur = 0.0f;
-    //			farDistanceBlur = 0.0f;
-    //			nearDistanceBlur = 100.0f;
-    //			farDistanceBlur = 100.0f;
-    //		}
-    //	}
 }
 
 class MyVfxGLUtils2 extends VfxGLUtils {
@@ -194,7 +174,8 @@ class MyVfxGLUtils2 extends VfxGLUtils {
         final String prependVert = prependVertexCode + defines;
         final String prependFrag = prependFragmentCode + defines;
         final String srcVert     = vertexFile.readString();
-        final String srcFrag     = exchange(fragmentFile.readString());
+        final String srcFrag     = fragmentFile.readString();
+//        exchange(fragmentFile.readString());
 
         final ShaderProgram shader = new ShaderProgram(prependVert + "\n" + srcVert, prependFrag + "\n" + srcFrag);
 
@@ -204,10 +185,10 @@ class MyVfxGLUtils2 extends VfxGLUtils {
         return shader;
     }
 
-    public static String exchange(String shader) {
-        shader = shader.replaceAll("MAX_BLUR", String.valueOf(maxBlur));
-        shader = shader.replaceAll("UNPACK_FUNCTION;", Gdx.files.classpath("shader/unpackVec3ToFloat.glsl").readString());
-        shader = shader.replaceAll("BLUR_BACKGROUND", String.valueOf(blurBackground));
-        return shader;
-    }
+//    public static String exchange(String shader) {
+//        shader = shader.replaceAll("MAX_BLUR", String.valueOf(maxBlur));
+//        shader = shader.replaceAll("UNPACK_FUNCTION;", Gdx.files.classpath("shader/unpackVec3ToFloat.glsl").readString());
+//        shader = shader.replaceAll("BLUR_BACKGROUND", String.valueOf(blurBackground));
+//        return shader;
+//    }
 }

@@ -27,7 +27,7 @@
     <properties>
         <file.encoding>utf-8</file.encoding>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <libgdxVersion>1.12.1</libgdxVersion>
+        <libgdxVersion>1.12.2-SNAPSHOT</libgdxVersion>
         <gdx.vfx.version>0.5.4</gdx.vfx.version>
         <!-- Java Code Compliance Level -->
         <source.level>17</source.level>

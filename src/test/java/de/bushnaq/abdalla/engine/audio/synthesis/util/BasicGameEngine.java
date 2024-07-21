@@ -135,7 +135,7 @@ public abstract class BasicGameEngine implements ApplicationListener, InputProce
         config.useVsync(true);
         config.setForegroundFPS(0);
         config.setResizable(false);
-        config.setOpenGLEmulation(Lwjgl3ApplicationConfiguration.GLEmulation.GL30, 3, 2); // use GL 3.0 (emulated by OpenGL 3.2)
+        config.setOpenGLEmulation(Lwjgl3ApplicationConfiguration.GLEmulation.GL32, 3, 2); // use GL 3.0 (emulated by OpenGL 3.2)
         config.setBackBufferConfig(8, 8, 8, 8, 16, 0, 16);
         config.setTitle("game-engine-test");
         {

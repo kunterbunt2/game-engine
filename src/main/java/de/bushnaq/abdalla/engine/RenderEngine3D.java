@@ -134,6 +134,7 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
     private final PointLightsAttribute        pointLights                      = new PointLightsAttribute();
     private final Vector3                     position                         = new Vector3();
     private       FrameBuffer                 postFbo;
+    private       FrameBuffer                 postMSFbo;
     private       ExtendedGLProfiler          profiler;
     public        Model                       rayCube;
     // private final Ray ray = new Ray(new Vector3(), new Vector3());
@@ -375,8 +376,15 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
             frameBufferBuilder.addColorTextureAttachment(GL30.GL_RGBA8, GL20.GL_RGBA, GL20.GL_UNSIGNED_BYTE);
             frameBufferBuilder.addDepthTextureAttachment(GL30.GL_DEPTH_COMPONENT24, GL20.GL_UNSIGNED_BYTE);
             postFbo = frameBufferBuilder.build();
+            postFbo.getColorBufferTexture().setFilter(Texture.TextureFilter.Nearest, Texture.TextureFilter.Nearest);
+        }
+        {
+            final GLFrameBuffer.FrameBufferBuilder frameBufferBuilder = new GLFrameBuffer.FrameBufferBuilder(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), context.getMSAASamples());
+            frameBufferBuilder.addColorRenderBuffer(GL30.GL_RGBA8).addDepthRenderBuffer(GL30.GL_DEPTH_COMPONENT24).build();
+            postMSFbo = frameBufferBuilder.build();
         }
     }
+
 
     private void createGraphs() {
         cpuGraph = new TimeGraph("CPU", new Color(1f, 0f, 0f, 1f), new Color(1f, 0, 0, 0.6f), new Color(0f, 0f, 0f, .6f), Gdx.graphics.getWidth(), Gdx.graphics.getHeight() / 3, font, boldFont, atlasRegion);
@@ -523,7 +531,7 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
     }
 
     private void disposeFrameBuffer() {
-        postFbo.dispose();
+        postMSFbo.dispose();
         mirror.dispose();
         water.dispose();
     }
@@ -798,10 +806,13 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
             // Clean up the screen.
             Gdx.gl.glClearColor(0f, 0f, 0f, 1f);
             Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+            postMSFbo.transfer(postFbo);
             // Clean up internal buffers, as we don't need any information from the last render.
             vfxManager.cleanUpBuffers();
             vfxManager.applyEffects();
             // Render result to the screen.
+            postFbo.begin();
+            postFbo.end();
             vfxManager.renderToScreen();
         } else {
 //            clearViewport();
@@ -976,26 +987,26 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
             context.disableClipping();
         }
         // if (firstTime) {
-        if (depthOfFieldEffect.isEnabled() && render3D) postFbo.begin();
+        if (depthOfFieldEffect.isEnabled() && render3D) postMSFbo.begin();
 //		createCameraCube();
 //		createLookatCube();
 //		createDepthOfFieldMeter();
         renderColors(takeScreenShot);
-        render2DText();
         render3DText();
+        renderBokeh();
         render2Dxz();
-        if (depthOfFieldEffect.isEnabled() && render3D) postFbo.end();
+        if (depthOfFieldEffect.isEnabled() && render3D) postMSFbo.end();
 
         camera.setDirty(false);
         staticCacheDirtyCount = 0;
         renderGraphs();
 
-        if (depthOfFieldEffect.isEnabled() && render3D) postFbo.begin();
+        if (depthOfFieldEffect.isEnabled() && render3D) postMSFbo.begin();
         if (render3D) renderFbos(takeScreenShot);
-        if (depthOfFieldEffect.isEnabled() && render3D) postFbo.end();
+        if (depthOfFieldEffect.isEnabled() && render3D) postMSFbo.end();
 
-//        fboToScreen();
         postProcessRender();
+        render2DText();
     }
 
     private void render2DText() {
@@ -1059,6 +1070,20 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
                     }
                 }
             }
+            renderEngine25D.batch.end();
+            renderEngine25D.batch.setTransformMatrix(identityMatrix);// fix transformMatrix
+        }
+    }
+
+    /**
+     * render a bokeh for every visible light source.
+     */
+    private void renderBokeh() {
+        Gdx.gl.glEnable(GL20.GL_DEPTH_TEST);
+        if (render3D) {
+            renderEngine25D.batch.begin();
+            renderEngine25D.batch.enableBlending();
+            renderEngine25D.batch.setProjectionMatrix(camera.combined);
             if (getDepthOfFieldEffect().isEnabled()) {
                 float focalDepth;
                 focalDepth = getDepthOfFieldEffect().getFocalDepth();
@@ -1072,17 +1097,18 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
                             renderEngine25D.setTransformMatrix(m);
                         }
                         if (camera.frustum.pointInFrustum(light.position.x, light.position.y, light.position.z)) {
-//                        && light.position.dst(camera.position) > focalDepth
                             //the further the light, the bigger the bokeh
                             float size;
-                            if (depth > focalDepth)
+                            if (depth > focalDepth) {
                                 size = 8 * ((depth - focalDepth - depthOfFieldEffect.getFarDofStart()) / (depthOfFieldEffect.getFarDofDist() - depthOfFieldEffect.getFarDofStart()));
-                            else
-                                size = 8 * ((focalDepth - depth - depthOfFieldEffect.getNearDofStart()) / (depthOfFieldEffect.getNearDofDist() - depthOfFieldEffect.getNearDofStart()));
-                            if (camera.frustum.pointInFrustum(light.position))
-                                if (light.position.z < -1000)
-                                    if (size < 0)
-                                        System.out.println(" size=" + size + "dist=" + light.position.dst(camera.position));
+                            } else {
+//                                size = 8 * ((focalDepth - depth - depthOfFieldEffect.getNearDofStart()) / (depthOfFieldEffect.getNearDofDist() - depthOfFieldEffect.getNearDofStart()));
+                                break;
+                            }
+//                            if (camera.frustum.pointInFrustum(light.position))
+//                                if (light.position.z < -1000)
+//                                    if (size < 0)
+//                                        System.out.println(" size=" + size + "dist=" + light.position.dst(camera.position));
                             Color c = light.color;
                             c.a = 0.5f;
                             renderEngine25D.fillCircle(atlasRegion, 0, 0, size - 0.4f, 32, c);

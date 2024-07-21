@@ -83,8 +83,7 @@ void initializeKernel(int blur) {
 
 float getDepth() {
     vec4 depthColor = texture(u_depthTexture, v_texCoords);
-    return unpackVec3ToFloat(depthColor.rgb, u_cameraClipping.x,
-    u_cameraClipping.y);
+    return unpackVec3ToFloat(depthColor.rgb, u_cameraClipping.x, u_cameraClipping.y);
     //	float depth = texture(u_depthTexture, v_texCoords).r;
     //	float floorDistance = 2.0 * u_cameraClipping.x * u_cameraClipping.y	/ (u_cameraClipping.y + u_cameraClipping.x	- (2.0 * depth - 1.0)* (u_cameraClipping.y - u_cameraClipping.x));
     //	return floorDistance;

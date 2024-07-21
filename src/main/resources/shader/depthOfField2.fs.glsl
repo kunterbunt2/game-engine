@@ -72,12 +72,6 @@ varying vec2 v_texCoords;
 ivec2 textureSize2d = textureSize(u_sourceTexture, 0);
 float width = float(textureSize2d.x);
 float height = float(textureSize2d.y);
-
-//float width = renderTexWidth; //texture width
-//float height = renderTexHeight; //texture height
-//float width = 600;//texture width
-//float height = 600;//texture height
-
 vec2 texel = vec2(1.0/width, 1.0/height);
 
 //uniform variables from external script
@@ -100,8 +94,8 @@ uniform float zfar = 100.0;//camera clipping end
 //------------------------------------------
 //user variables
 
-int samples = 3;//samples on the first ring
-int rings = 3;//ring count
+int samples = 5;//samples on the first ring
+int rings = 5;//ring count
 
 bool manualdof = true;//manual dof calculation
 uniform float ndofstart = 1.0;//near dof blur start
@@ -120,7 +114,7 @@ bool autofocus = false;//use autofocus in shader? disable if you use external fo
 vec2 focus = vec2(0.5, 0.5);// autofocus point on screen (0.0,0.0 - left lower corner, 1.0,1.0 - upper right)
 float maxblur = 1.0;//clamp value of max blur (0.0 = no blur,1.0 default)
 
-float threshold = 0.7;//highlight threshold;
+float threshold = .9;//highlight threshold;
 float gain = 100.0;//highlight gain;
 
 float bias = 0.5;//bokeh edge bias
@@ -143,6 +137,14 @@ float feather = 0.4;//pentagon shape feather
 
 //------------------------------------------
 
+float unpackVec3ToFloat(vec3 packedValue, float near, float far) {
+    float packScale = far - near;
+    float depth = dot(packedValue, 1.0 / vec3(1.0, 256.0, 256.0 * 256.0));
+    float ndc = depth * 2.0 - 1.0;
+    depth = (2.0 * near * far) / (far + near - ndc * (far - near));
+    //	depth = near + packScale * depth * (256.0 * 256.0 * 256.0)	/ (256.0 * 256.0 * 256.0 - 1.0);
+    return depth;
+}
 
 float penta(vec2 coords)//pentagonal shape
 {
@@ -280,7 +282,9 @@ void main()
 {
     //scene depth calculation
 
-    float depth = linearize(texture(u_depthTexture, v_texCoords.xy).r);
+    //    float depth = linearize(texture(u_depthTexture, v_texCoords.xy).r);
+    float depth = unpackVec3ToFloat(texture(u_depthTexture, v_texCoords.xy).rgb, znear, zfar);
+
 
     //    if (depthblur)
     //    {
