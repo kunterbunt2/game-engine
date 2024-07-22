@@ -110,8 +110,8 @@ float vignout = 1.3;//vignetting outer border
 float vignin = 0.0;//vignetting inner border
 float vignfade = 22.0;//f-stops till vignete fades
 
-bool autofocus = false;//use autofocus in shader? disable if you use external focalDepth value
-vec2 focus = vec2(0.5, 0.5);// autofocus point on screen (0.0,0.0 - left lower corner, 1.0,1.0 - upper right)
+//bool autofocus = false;//use autofocus in shader? disable if you use external focalDepth value
+//vec2 focus = vec2(0.5, 0.5);// autofocus point on screen (0.0,0.0 - left lower corner, 1.0,1.0 - upper right)
 float maxblur = 1.0;//clamp value of max blur (0.0 = no blur,1.0 default)
 
 float threshold = .9;//highlight threshold;
@@ -123,8 +123,8 @@ float fringe = 0.7;//bokeh chromatic aberration/fringing
 bool noise = true;//use noise instead of pattern for sample dithering
 float namount = 0.0001;//dither amount
 
-bool depthblur = false;//blur the depth buffer?
-float dbsize = 1.25;//depthblursize
+//bool depthblur = true;//blur the depth buffer?
+//float dbsize = 1.25;//depthblursize
 
 /*
 next part is experimental

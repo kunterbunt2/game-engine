@@ -14,12 +14,16 @@
  * limitations under the License.
  */
 
-package de.bushnaq.abdalla.engine.shader;
+package de.bushnaq.abdalla.engine;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.files.FileHandle;
+import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.g3d.environment.PointLight;
 import com.badlogic.gdx.graphics.glutils.FrameBuffer;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
+import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.GdxRuntimeException;
 import com.crashinvaders.vfx.VfxManager;
@@ -31,26 +35,28 @@ import com.crashinvaders.vfx.framebuffer.VfxPingPongWrapper;
 import com.crashinvaders.vfx.gl.VfxGLUtils;
 import de.bushnaq.abdalla.engine.camera.MovingCamera;
 
-public class DepthOfFieldEffect extends ShaderVfxEffect implements ChainVfxEffect {
+public class DepthOfFieldEffect<T extends RenderEngineExtension> extends ShaderVfxEffect implements ChainVfxEffect {
 
-    private static final String       Texture0     = "u_sourceTexture";
-    private static final String       Texture1     = "u_depthTexture";
-    private final        MovingCamera camera;
-    private              boolean      enabled      = false;
-    private              float        focalDepth   = 100f;
-    private              float        farDofStart  = focalDepth / 20f;
-    private              float        farDofDist   = focalDepth * 1.5f;
-    private              float        nearDofDist  = focalDepth * 1.5f;
-    private              float        nearDofStart = focalDepth / 20f;
-    private final        FrameBuffer  postFbo;
-    private final        Vector2      resolution   = new Vector2();
-    private final        VfxManager   vfxManager;
+    private static final String            Texture0     = "u_sourceTexture";
+    private static final String            Texture1     = "u_depthTexture";
+    private final        MovingCamera      camera;
+    private              boolean           enabled      = false;
+    private              float             focalDepth   = 100f;
+    private              float             farDofStart  = focalDepth / 20f;
+    private              float             farDofDist   = focalDepth * 1.5f;
+    private              float             nearDofDist  = focalDepth * 1.5f;
+    private              float             nearDofStart = focalDepth / 20f;
+    private final        FrameBuffer       postFbo;
+    private final        RenderEngine3D<T> renderEngine;
+    private final        Vector2           resolution   = new Vector2();
+    private final        VfxManager        vfxManager;
 
-    public DepthOfFieldEffect(VfxManager vfxManager, final FrameBuffer postFbo, final MovingCamera camera) {
+    public DepthOfFieldEffect(RenderEngine3D<T> renderEngine, VfxManager vfxManager, final FrameBuffer postFbo, final MovingCamera camera) {
         super(MyVfxGLUtils2.compileShader(Gdx.files.classpath("shader/depthOfField.vs.glsl"), Gdx.files.classpath("shader/depthOfField2.fs.glsl"), ""));
-        this.vfxManager = vfxManager;
-        this.postFbo    = postFbo;
-        this.camera     = camera;
+        this.renderEngine = renderEngine;
+        this.vfxManager   = vfxManager;
+        this.postFbo      = postFbo;
+        this.camera       = camera;
         rebind();
     }
 
@@ -101,6 +107,7 @@ public class DepthOfFieldEffect extends ShaderVfxEffect implements ChainVfxEffec
     }
 
     public void render(final VfxRenderContext context, final VfxFrameBuffer src, final VfxFrameBuffer dst) {
+//        Gdx.gl.glDepthMask(false);
         // Bind src buffer's texture as a primary one.
         program.begin();
         postFbo.getColorBufferTexture().bind(TEXTURE_HANDLE0);
@@ -114,8 +121,61 @@ public class DepthOfFieldEffect extends ShaderVfxEffect implements ChainVfxEffec
         program.setUniformf("zfar", camera.far);
 
         program.end();
+
+
         // Apply shader effect and render result to dst buffer.
         renderShader(context, dst);
+//        dst.begin();
+//        renderBokeh();
+//        dst.end();
+    }
+
+    private void renderBokeh() {
+        Gdx.gl.glEnable(GL20.GL_DEPTH_TEST);
+//        if (render3D)
+        {
+            renderEngine.renderEngine25D.batch.begin();
+            renderEngine.renderEngine25D.batch.enableBlending();
+            renderEngine.renderEngine25D.batch.setProjectionMatrix(camera.combined);
+//            if (getDepthOfFieldEffect().isEnabled())
+            {
+                float focalDepth;
+                focalDepth = renderEngine.getDepthOfFieldEffect().getFocalDepth();
+                for (PointLight light : renderEngine.pointLights.lights) {
+                    float depth = light.position.dst(camera.position);
+                    if (!renderEngine.getDepthOfFieldEffect().isInFocus(depth)) {
+                        {
+                            final Matrix4 m = new Matrix4();
+                            m.setToTranslation(light.position.x, light.position.y, light.position.z);
+                            m.rotateTowardTarget(camera.position, camera.up);
+                            renderEngine.renderEngine25D.setTransformMatrix(m);
+                        }
+                        if (camera.frustum.pointInFrustum(light.position.x, light.position.y, light.position.z)) {
+                            //the further the light, the bigger the bokeh
+                            float size;
+                            if (depth > focalDepth) {
+                                size = 8 * ((depth - focalDepth - renderEngine.getDepthOfFieldEffect().getFarDofStart()) / (renderEngine.getDepthOfFieldEffect().getFarDofDist() - renderEngine.getDepthOfFieldEffect().getFarDofStart()));
+                            } else {
+//                                size = 8 * ((focalDepth - depth - depthOfFieldEffect.getNearDofStart()) / (depthOfFieldEffect.getNearDofDist() - depthOfFieldEffect.getNearDofStart()));
+                                break;
+                            }
+//                            if (camera.frustum.pointInFrustum(light.position))
+//                                if (light.position.z < -1000)
+//                                    if (size < 0)
+//                                        System.out.println(" size=" + size + "dist=" + light.position.dst(camera.position));
+                            Color c = light.color;
+                            c.a = 0.5f;
+                            renderEngine.renderEngine25D.fillCircle(renderEngine.atlasRegion, 0, 0, size - 0.4f, 32, c);
+                            c.a = .3f;
+                            renderEngine.renderEngine25D.circle(renderEngine.atlasRegion, 0, 0, size, 0.8f, c, 32);
+                        }
+                    }
+                }
+            }
+            renderEngine.renderEngine25D.batch.end();
+//            renderEngine.renderEngine25D.batch.setTransformMatrix(renderEngine.identityMatrix);// fix transformMatrix
+        }
+        Gdx.gl.glDisable(GL20.GL_DEPTH_TEST);
     }
 
     @Override

@@ -51,7 +51,10 @@ import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.crashinvaders.vfx.VfxManager;
 import de.bushnaq.abdalla.engine.camera.MovingCamera;
-import de.bushnaq.abdalla.engine.shader.*;
+import de.bushnaq.abdalla.engine.shader.GamePbrShaderProvider;
+import de.bushnaq.abdalla.engine.shader.GameSettings;
+import de.bushnaq.abdalla.engine.shader.GameShaderProvider;
+import de.bushnaq.abdalla.engine.shader.GameShaderProviderInterface;
 import de.bushnaq.abdalla.engine.shader.mirror.Mirror;
 import de.bushnaq.abdalla.engine.shader.util.GL32CMacIssueHandler;
 import de.bushnaq.abdalla.engine.shader.util.ShaderCompatibilityHelper;
@@ -88,7 +91,7 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
     private       boolean                     alwaysDay                        = true;
     private       ColorAttribute              ambientLight;
     public        float                       angle;
-    private final AtlasRegion                 atlasRegion;
+    final         AtlasRegion                 atlasRegion;
     public        ModelBatch                  batch;//TODO make private again
     public        CustomizedSpriteBatch       batch2D;
     private final BitmapFont                  boldFont;
@@ -131,7 +134,7 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
     private       float                       nightShadowIntensity             = .2f;
     public        SceneSkybox                 nightSkyBox;
     private       boolean                     pbr;
-    private final PointLightsAttribute        pointLights                      = new PointLightsAttribute();
+    final         PointLightsAttribute        pointLights                      = new PointLightsAttribute();
     private final Vector3                     position                         = new Vector3();
     private       FrameBuffer                 postFbo;
     private       FrameBuffer                 postMSFbo;
@@ -308,7 +311,7 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
 //		vfxManager.addEffect(new FilmGrainEffect());
 //		vfxManager.addEffect(new OldTvEffect());
         vfxManager         = new VfxManager(Pixmap.Format.RGBA8888);
-        depthOfFieldEffect = new DepthOfFieldEffect(vfxManager, postFbo, camera);
+        depthOfFieldEffect = new DepthOfFieldEffect(this, vfxManager, postFbo, camera);
         depthOfFieldEffect.setEnabled(true);
         vfxManager.addEffect(depthOfFieldEffect);
 //		vfxManager.addEffect(new FxaaEffect());
