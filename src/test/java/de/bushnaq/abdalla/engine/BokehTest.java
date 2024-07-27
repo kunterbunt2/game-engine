@@ -121,17 +121,18 @@ public class BokehTest extends BasicGameEngine {
                         getRenderEngine().addStatic(go);
 
                     }
-                    {
-                        GameObject<BasicGameEngine> go = new GameObject<>(new ModelInstanceHack(createRedEmissiveModel()), null, null);
-                        go.instance.transform.setToTranslationAndScaling(tx - CUBE_SIZE / 2, ty + CUBE_SIZE / 2, tz + CUBE_SIZE / 2, LIGHT_SIZE, LIGHT_SIZE, LIGHT_SIZE);
-                        getRenderEngine().addStatic(go);
-                    }
-                    {
-                        PointLight pointLight = new PointLight();
-                        float      intensity  = 100f;
-                        pointLight.set(Color.WHITE, tx - CUBE_SIZE / 2, ty + CUBE_SIZE / 2, tz + CUBE_SIZE / 2, intensity);
-
-                        getRenderEngine().add(pointLight, true);
+                    if (Math.random() < .1f) {
+                        {
+                            GameObject<BasicGameEngine> go = new GameObject<>(new ModelInstanceHack(createRedEmissiveModel()), null, null);
+                            go.instance.transform.setToTranslationAndScaling(tx - CUBE_SIZE / 2, ty + CUBE_SIZE / 2, tz + CUBE_SIZE / 2, LIGHT_SIZE, LIGHT_SIZE, LIGHT_SIZE);
+                            getRenderEngine().addStatic(go);
+                        }
+                        {
+                            PointLight pointLight = new PointLight();
+                            float      intensity  = 100f;
+                            pointLight.set(Color.WHITE, tx - CUBE_SIZE / 2, ty + CUBE_SIZE / 2, tz + CUBE_SIZE / 2, intensity);
+                            getRenderEngine().add(pointLight, true);
+                        }
                     }
                 }
             }

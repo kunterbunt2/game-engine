@@ -38,7 +38,6 @@ class Frame {
  */
 public abstract class Graph extends Array<Frame> {
     private static final float          Y_AXIS_WIDTH = 45;
-    final                GlyphLayout    layout       = new GlyphLayout();
     private final        AtlasRegion    atlasRegion;
     private final        Color          backgroundColor;
     private final        BitmapFont     captionFont;
@@ -47,6 +46,7 @@ public abstract class Graph extends Array<Frame> {
     private final        Color          graphColor;
     private final        String         graphName;
     private final        Color          graphTipColor;
+    final                GlyphLayout    layout       = new GlyphLayout();
     private final        int            maxFrames;
     private final        float          pixelToUnitFactor;
     private final        String         unit;
@@ -93,7 +93,7 @@ public abstract class Graph extends Array<Frame> {
             batch2D.draw(atlasRegion, 0, 50, Y_AXIS_WIDTH, viewport.getScreenHeight());
             batch2D.draw(atlasRegion, Y_AXIS_WIDTH, 0, maxFrames, layout.height);
             for (int y = 50; y < viewport.getScreenHeight(); y += 50) {
-                String text = "" + (int) (y * pixelToUnitFactor) + " " + unit;
+                String text = (int) (y * pixelToUnitFactor) + " " + unit;
                 batch2D.setColor(Color.WHITE);
                 batch2D.draw(atlasRegion, Y_AXIS_WIDTH - 5, y, 5, 1);
                 batch2D.setColor(backgroundColor);

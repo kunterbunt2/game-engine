@@ -135,8 +135,8 @@ public abstract class BasicGameEngine implements ApplicationListener, InputProce
     private Lwjgl3ApplicationConfiguration createConfig() {
         Lwjgl3ApplicationConfiguration config;
         config = new Lwjgl3ApplicationConfiguration();
-        config.useVsync(true);
-        config.setForegroundFPS(0);
+        config.useVsync(false);
+        config.setForegroundFPS(1000);
         config.setResizable(false);
         config.setOpenGLEmulation(Lwjgl3ApplicationConfiguration.GLEmulation.GL32, 3, 2); // use GL 3.0 (emulated by OpenGL 3.2)
         config.setBackBufferConfig(8, 8, 8, 8, 16, 0, 16);
@@ -245,15 +245,30 @@ public abstract class BasicGameEngine implements ApplicationListener, InputProce
 //                if (isSimulateBassBoost()) logger.info("bassBoost on");
 //                else logger.info("bassBoost off");
 //                return true;
-            case Input.Keys.NUM_1:
+            case Input.Keys.F1:
                 renderEngine.setGammaCorrected(!renderEngine.isGammaCorrected());
                 if (renderEngine.isGammaCorrected()) logger.info("gamma correction on");
                 else logger.info("gamma correction off");
                 return true;
-            case Input.Keys.NUM_2:
+            case Input.Keys.F2:
                 renderEngine.getDepthOfFieldEffect().setEnabled(!renderEngine.getDepthOfFieldEffect().isEnabled());
                 if (renderEngine.getDepthOfFieldEffect().isEnabled()) logger.info("depth of field on");
                 else logger.info("depth of field off");
+                return true;
+            case Input.Keys.F3:
+                renderEngine.setRenderBokeh(!renderEngine.isRenderBokeh());
+                if (renderEngine.isRenderBokeh()) logger.info("render bokeh on");
+                else logger.info("render bokeh off");
+                return true;
+            case Input.Keys.F9:
+                renderEngine.setShowGraphs(!renderEngine.isShowGraphs());
+                if (renderEngine.isShowGraphs()) logger.info("graphs are on");
+                else logger.info("graphs are off");
+                return true;
+            case Input.Keys.F10:
+                renderEngine.setDebugMode(!renderEngine.isDebugMode());
+                if (renderEngine.isDebugMode()) logger.info("debug mode on");
+                else logger.info("debug mode off");
                 return true;
             case Input.Keys.H:
                 try {

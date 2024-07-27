@@ -143,6 +143,7 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
     private final Plane                       refractionClippingPlane          = new Plane(new Vector3(0f, -1f, 0f), (-0.1f));                            // render everything below the
     public        boolean                     render2D                         = true;
     public        boolean                     render3D                         = true;
+    private       boolean                     renderBokeh                      = true;
     public        RenderEngine25D<T>          renderEngine25D;
     public        RenderEngine2D<T>           renderEngine2D;
     private final Array<ModelInstance>        renderableProviders              = new Array<>();
@@ -587,6 +588,14 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
         return depthOfFieldEffect;
     }
 
+    public float getFixedDayTime() {
+        return fixedDayTime;
+    }
+
+    public Fog getFog() {
+        return fog;
+    }
+
 //	private void createDepthOfFieldMeter() {
 //		if (isDebugMode()) {
 //
@@ -627,49 +636,9 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
 //		}
 //	}
 
-    public float getFixedDayTime() {
-        return fixedDayTime;
-    }
-
-    public Fog getFog() {
-        return fog;
-    }
-
     public T getGameEngine() {
         return gameEngine;
     }
-
-//    private void fboToScreen() {
-//        clearViewport();
-//        Gdx.gl.glDisable(GL20.GL_DEPTH_TEST);
-//        batch2D.disableBlending();
-//        batch2D.setProjectionMatrix(camera2D.combined);
-//        batch2D.begin();
-//        batch2D.draw(postFbo.getColorBufferTexture(), 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), 0, 0, postFbo.getWidth(), postFbo.getHeight(), false, true);
-//        batch2D.end();
-//        batch2D.enableBlending();
-//    }
-
-//	private void createLookatCube() {
-//		if (isDebugMode()) {
-//			if (lookatCube == null) {
-//				lookatCube = new GameObject(new ModelInstanceHack(rayCube), null);
-//				lookatCube.instance.materials.get(0).set(ColorAttribute.createDiffuse(Color.RED));
-//				lookatCube.instance.transform.scale(0.5f, 0.5f, 0.5f);
-//				addDynamic(lookatCube);
-//			}
-//			final Vector3 position = new Vector3();
-//			lookatCube.instance.transform.getTranslation(position);
-//			if (!position.equals(camera.lookat)) {
-//				lookatCube.instance.transform.setToTranslation(camera.lookat);
-//				lookatCube.update();
-//			}
-//		} else {
-//			if (lookatCube != null) {
-//				removeDynamic(lookatCube);
-//			}
-//		}
-//	}
 
     public GameObject<T> getGameObject(final int screenX, final int screenY) {
         final Ray ray = camera.getPickRay(screenX, screenY);
@@ -708,6 +677,38 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
     public Mirror getMirror() {
         return mirror;
     }
+
+//    private void fboToScreen() {
+//        clearViewport();
+//        Gdx.gl.glDisable(GL20.GL_DEPTH_TEST);
+//        batch2D.disableBlending();
+//        batch2D.setProjectionMatrix(camera2D.combined);
+//        batch2D.begin();
+//        batch2D.draw(postFbo.getColorBufferTexture(), 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), 0, 0, postFbo.getWidth(), postFbo.getHeight(), false, true);
+//        batch2D.end();
+//        batch2D.enableBlending();
+//    }
+
+//	private void createLookatCube() {
+//		if (isDebugMode()) {
+//			if (lookatCube == null) {
+//				lookatCube = new GameObject(new ModelInstanceHack(rayCube), null);
+//				lookatCube.instance.materials.get(0).set(ColorAttribute.createDiffuse(Color.RED));
+//				lookatCube.instance.transform.scale(0.5f, 0.5f, 0.5f);
+//				addDynamic(lookatCube);
+//			}
+//			final Vector3 position = new Vector3();
+//			lookatCube.instance.transform.getTranslation(position);
+//			if (!position.equals(camera.lookat)) {
+//				lookatCube.instance.transform.setToTranslation(camera.lookat);
+//				lookatCube.update();
+//			}
+//		} else {
+//			if (lookatCube != null) {
+//				removeDynamic(lookatCube);
+//			}
+//		}
+//	}
 
     public ExtendedGLProfiler getProfiler() {
         return profiler;
@@ -793,10 +794,6 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
         return gammaCorrected;
     }
 
-//    public boolean isDepthOfField() {
-//        return depthOfField;
-//    }
-
     public boolean isMirrorPresent() {
         return mirror.isPresent() /* && isPbr() */;
     }
@@ -805,8 +802,16 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
         return (!alwaysDay && (timeOfDay > 19 || timeOfDay <= 5));
     }
 
+//    public boolean isDepthOfField() {
+//        return depthOfField;
+//    }
+
     public boolean isPbr() {
         return pbr;
+    }
+
+    public boolean isRenderBokeh() {
+        return renderBokeh;
     }
 
     public boolean isShadowEnabled() {
@@ -827,32 +832,6 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
 
     public boolean isWaterPresent() {
         return water.isPresent() /* && isPbr() */;
-    }
-
-    public void postProcessRender() throws Exception {
-        if (depthOfFieldEffect.isEnabled() && render3D) {
-            // Clean up the screen.
-            Gdx.gl.glClearColor(0f, 0f, 0f, 1f);
-            Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-            postMSFbo.transfer(postFbo);
-            // Clean up internal buffers, as we don't need any information from the last render.
-            vfxManager.cleanUpBuffers();
-            vfxManager.applyEffects();
-            // Render result to the screen.
-            postFbo.begin();
-            postFbo.end();
-            vfxManager.renderToScreen();
-        } else {
-//            clearViewport();
-//            Gdx.gl.glDisable(GL20.GL_DEPTH_TEST);
-//            batch2D.disableBlending();
-//            batch2D.setProjectionMatrix(camera2D.combined);
-//            batch2D.begin();
-//            batch2D.draw(postFbo.getColorBufferTexture(), 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), false, true);
-//            batch2D.end();
-//            batch2D.enableBlending();
-        }
-
     }
 
     public void remove(final PointLight pointLight, final boolean dynamic) {
@@ -1034,12 +1013,12 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
         staticCacheDirtyCount = 0;
         renderGraphs();
 
-        if (depthOfFieldEffect.isEnabled() && render3D) postMSFbo.begin();
-        if (render3D) renderFbos(takeScreenShot);
-        if (depthOfFieldEffect.isEnabled() && render3D) postMSFbo.end();
+//        if (depthOfFieldEffect.isEnabled() && render3D) postMSFbo.begin();
+//        if (depthOfFieldEffect.isEnabled() && render3D) postMSFbo.end();
 
-        postProcessRender();
+        renderEffects();
         render2DText();
+        if (render3D) renderFbos(takeScreenShot);
     }
 
     private void render2DText() {
@@ -1112,12 +1091,12 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
      * render a bokeh for every visible light source.
      */
     private void renderBokeh() {
-        Gdx.gl.glEnable(GL20.GL_DEPTH_TEST);
-        if (render3D) {
-            renderEngine25D.batch.begin();
-            renderEngine25D.batch.enableBlending();
-            renderEngine25D.batch.setProjectionMatrix(camera.combined);
+        if (render3D && renderBokeh) {
             if (getDepthOfFieldEffect().isEnabled()) {
+                Gdx.gl.glEnable(GL20.GL_DEPTH_TEST);
+                renderEngine25D.batch.begin();
+                renderEngine25D.batch.enableBlending();
+                renderEngine25D.batch.setProjectionMatrix(camera.combined);
                 float focalDepth;
                 focalDepth = getDepthOfFieldEffect().getFocalDepth();
                 for (PointLight light : pointLights.lights) {
@@ -1145,14 +1124,14 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
                             Color c = light.color;
                             c.a = 0.5f;
                             renderEngine25D.fillCircle(atlasRegion, 0, 0, size - 0.4f, 32, c);
-                            c.a = .3f;
-                            renderEngine25D.circle(atlasRegion, 0, 0, size, 0.8f, c, 32);
+//                            c.a = .3f;
+//                            renderEngine25D.circle(atlasRegion, 0, 0, size, 0.8f, c, 32);
                         }
                     }
                 }
+                renderEngine25D.batch.end();
+                renderEngine25D.batch.setTransformMatrix(identityMatrix);// fix transformMatrix
             }
-            renderEngine25D.batch.end();
-            renderEngine25D.batch.setTransformMatrix(identityMatrix);// fix transformMatrix
         }
     }
 
@@ -1189,8 +1168,35 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
         depthBatch.end();
     }
 
+    public void renderEffects() throws Exception {
+        if (depthOfFieldEffect.isEnabled() && render3D) {
+            // Clean up the screen.
+            Gdx.gl.glClearColor(0f, 0f, 0f, 1f);
+            Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+            postMSFbo.transfer(postFbo);
+            // Clean up internal buffers, as we don't need any information from the last render.
+            vfxManager.cleanUpBuffers();
+            vfxManager.applyEffects();
+            // Render result to the screen.
+//            postFbo.begin();
+//            postFbo.end();
+            vfxManager.renderToScreen();
+        } else {
+//            clearViewport();
+//            Gdx.gl.glDisable(GL20.GL_DEPTH_TEST);
+//            batch2D.disableBlending();
+//            batch2D.setProjectionMatrix(camera2D.combined);
+//            batch2D.begin();
+//            batch2D.draw(postFbo.getColorBufferTexture(), 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), false, true);
+//            batch2D.end();
+//            batch2D.enableBlending();
+        }
+
+    }
+
     private void renderFbos(boolean takeScreenShot) {
         renderEngine2D.batch.begin();
+        renderEngine2D.batch.setColor(Color.WHITE);
         Gdx.gl.glDisable(GL20.GL_DEPTH_TEST);
         renderEngine2D.batch.enableBlending();
         renderEngine2D.batch.setProjectionMatrix(stage.getViewport().getCamera().combined);
@@ -1221,20 +1227,16 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
             }
             if (isShadowEnabled()) {
                 // lower left (shadow depth buffer)
-                {
-
-                    Texture t = shadowLight.getFrameBuffer().getColorBufferTexture();
-                    renderEngine2D.batch.draw(t, 0, 0, t.getWidth() / 8, t.getHeight() / 8, 0, 0, t.getWidth(), t.getHeight(), false, true);
-                }
+                Texture t = shadowLight.getFrameBuffer().getColorBufferTexture();
+                renderEngine2D.batch.draw(t, 0, 0, t.getWidth() / 8f, t.getHeight() / 8f, 0, 0, t.getWidth(), t.getHeight(), false, true);
             }
-            // lower right
             {
-//				Texture t = water.getRefractionFbo().getTextureAttachments().get(1);
-//				batch2D.draw(t, Gdx.graphics.getWidth() - t.getWidth() / 4, 0, t.getWidth() / 4, t.getHeight() / 4, 0, 0, t.getWidth(), t.getHeight(), false, true);
+                // lower right (depth buffer)
+                Texture t = postFbo.getTextureAttachments().get(1);
+                renderEngine2D.batch.draw(t, Gdx.graphics.getWidth() - t.getWidth() / 4f, 0, t.getWidth() / 4f, t.getHeight() / 4f, 0, 0, t.getWidth(), t.getHeight(), false, true);
             }
         }
         if (isShowGraphs()) {
-
             {
                 Texture t = cpuGraph.getFbo().getColorBufferTexture();
                 handleFrameBufferScreenshot(takeScreenShot, cpuGraph.getFbo(), "cpu.fbo");
@@ -1252,14 +1254,9 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
             }
         }
         renderEngine2D.batch.end();
-
     }
 
     public void renderGraphs() {
-//        if (context.isShowGraphs()) {
-//            cpuGraph.update();
-//            gpuGraph.update();
-//        }
         if (isShowGraphs()) {
             cpuGraph.draw(renderEngine2D.batch);
             gpuGraph.draw(renderEngine2D.batch);
@@ -1337,13 +1334,13 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
         this.enableProfiling = enableProfiling;
     }
 
-//    public void setDepthOfField(final boolean depthOfField) {
-//        this.depthOfField = depthOfField;
-//    }
-
     public void setFixedDayTime(float fixedDayTime) {
         this.fixedDayTime = fixedDayTime;
     }
+
+//    public void setDepthOfField(final boolean depthOfField) {
+//        this.depthOfField = depthOfField;
+//    }
 
     public void setFixedShadowDirection(boolean fixedShadowDirection) {
         this.fixedShadowDirection = fixedShadowDirection;
@@ -1374,6 +1371,10 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
 
     public void setRefractionClippingPlane(float distance) {
         refractionClippingPlane.d = distance;
+    }
+
+    public void setRenderBokeh(boolean renderBokeh) {
+        this.renderBokeh = renderBokeh;
     }
 
     public void setSceneBoxMax(Vector3 sceneBoxMax) {
