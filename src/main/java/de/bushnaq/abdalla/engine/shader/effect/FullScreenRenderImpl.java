@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package de.bushnaq.abdalla.engine.shader;
+package de.bushnaq.abdalla.engine.shader.effect;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.GL20;
@@ -25,6 +25,7 @@ import com.badlogic.gdx.graphics.glutils.IndexData;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.graphics.glutils.VertexData;
 import com.badlogic.gdx.utils.Disposable;
+import de.bushnaq.abdalla.engine.shader.GdxCompatibilityUtils;
 
 /**
  * @author kunterbunt

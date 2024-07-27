@@ -51,7 +51,13 @@ import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.crashinvaders.vfx.VfxManager;
 import de.bushnaq.abdalla.engine.camera.MovingCamera;
-import de.bushnaq.abdalla.engine.shader.*;
+import de.bushnaq.abdalla.engine.shader.GamePbrShaderProvider;
+import de.bushnaq.abdalla.engine.shader.GameSettings;
+import de.bushnaq.abdalla.engine.shader.GameShaderProvider;
+import de.bushnaq.abdalla.engine.shader.GameShaderProviderInterface;
+import de.bushnaq.abdalla.engine.shader.effect.DepthOfFieldEffect;
+import de.bushnaq.abdalla.engine.shader.effect.FadeEffect;
+import de.bushnaq.abdalla.engine.shader.effect.SsaoEffect;
 import de.bushnaq.abdalla.engine.shader.mirror.Mirror;
 import de.bushnaq.abdalla.engine.shader.util.GL32CMacIssueHandler;
 import de.bushnaq.abdalla.engine.shader.util.ShaderCompatibilityHelper;
@@ -89,7 +95,7 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
     private       ColorAttribute              ambientLight;
     public        float                       angle;
     final         AtlasRegion                 atlasRegion;
-    public        ModelBatch                  batch;//TODO make private again
+    private       ModelBatch                  batch;
     public        CustomizedSpriteBatch       batch2D;
     private final BitmapFont                  boldFont;
     private final MovingCamera                camera;
@@ -106,13 +112,14 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
     private       SceneSkybox                 daySkyBox;
     private       boolean                     debugMode                        = false;
     private       ModelBatch                  depthBatch;
-    private       DepthOfFieldEffect          depthOfFieldEffect;
+    private       DepthOfFieldEffect<T>       depthOfFieldEffect;
     private final ModelCache                  dynamicCache                     = new ModelCache();
     private       boolean                     dynamicDayTime                   = false;
     public        Array<GameObject<T>>        dynamicGameObjects               = new Array<>();
     private final Set<ObjectRenderer<T>>      dynamicText3DList                = new HashSet<>();
     private       boolean                     enableProfiling                  = true;
     public        Environment                 environment                      = new Environment();
+    private       FadeEffect                  fadeEffect;
     private       float                       fixedDayTime                     = 10;
     private       boolean                     fixedShadowDirection             = false;
     private final Fog                         fog                              = new Fog(Color.BLACK, 15f, 30f, 0.5f);
@@ -157,7 +164,7 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
     private       boolean                     skyBox                           = false;
     private final int                         speed                            = 5;                                                                    // speed of time
     private final SpotLightsAttribute         spotLights                       = new SpotLightsAttribute();
-    private       SsaoEffect                  ssaoEffect;
+    private       SsaoEffect<T>               ssaoEffect;
     private       Stage                       stage;
     private final ModelCache                  staticCache                      = new ModelCache();
     private       boolean                     staticCacheDirty                 = true;
@@ -311,8 +318,11 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
 //		vfxManager.addEffect(new FilmGrainEffect());
 //		vfxManager.addEffect(new OldTvEffect());
         vfxManager         = new VfxManager(Pixmap.Format.RGBA8888);
-        depthOfFieldEffect = new DepthOfFieldEffect<T>(this, vfxManager, postFbo, camera);
+        depthOfFieldEffect = new DepthOfFieldEffect<T>(vfxManager, postFbo, camera);
         depthOfFieldEffect.setEnabled(true);
+        fadeEffect = new FadeEffect(true);
+//        fadeEffect.setIntensity(.1f);
+        vfxManager.addEffect(fadeEffect);
 //        vfxManager.addEffect(depthOfFieldEffect);
 //        ssaoEffect = new SsaoEffect<T>(vfxManager, postFbo, camera);
 //        ssaoEffect.setEnabled(true);
@@ -376,7 +386,7 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
 
     private void createFrameBuffer() {
         water.createFrameBuffer();
-        getMirror().createFrameBuffer();
+        mirror.createFrameBuffer();
         {
             final GLFrameBuffer.FrameBufferBuilder frameBufferBuilder = new GLFrameBuffer.FrameBufferBuilder(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
             frameBufferBuilder.addColorTextureAttachment(GL30.GL_RGBA8, GL20.GL_RGBA, GL20.GL_UNSIGNED_BYTE);
@@ -399,7 +409,6 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
 
     private GameObject<T> createRay(final Ray ray, Float length, boolean center) {
         if (length == null) length = 10000f;
-//		final float			length		= 10000f;
         final Vector3       direction = new Vector3(ray.direction.x, ray.direction.y, ray.direction.z);
         final Vector3       position  = ray.origin.cpy();
         final GameObject<T> instance  = new GameObject<T>(new ModelInstanceHack(rayCube), null);
@@ -560,6 +569,10 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
     public void end() {
     }
 
+    public ColorAttribute getAmbientLight() {
+        return ambientLight;
+    }
+
     public MovingCamera getCamera() {
         return camera;
     }
@@ -586,6 +599,10 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
 
     public DepthOfFieldEffect getDepthOfFieldEffect() {
         return depthOfFieldEffect;
+    }
+
+    public FadeEffect getFadeEffect() {
+        return fadeEffect;
     }
 
     public float getFixedDayTime() {
@@ -902,10 +919,8 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
     }
 
     public void render(final long currentTime, final float deltaTime, final boolean takeScreenShot) throws Exception {
-        if (gammaCorrected)
-            Gdx.gl30.glEnable(org.lwjgl.opengl.GL30.GL_FRAMEBUFFER_SRGB);
-        else
-            Gdx.gl30.glDisable(org.lwjgl.opengl.GL30.GL_FRAMEBUFFER_SRGB);
+        if (gammaCorrected) Gdx.gl30.glEnable(org.lwjgl.opengl.GL30.GL_FRAMEBUFFER_SRGB);
+        else Gdx.gl30.glDisable(org.lwjgl.opengl.GL30.GL_FRAMEBUFFER_SRGB);
 //        glEnable(GL_FRAMEBUFFER_SRGB);
         fpsGraph.end();
         fpsGraph.begin();

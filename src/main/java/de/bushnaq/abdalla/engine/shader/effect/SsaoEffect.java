@@ -14,63 +14,60 @@
  * limitations under the License.
  */
 
-package de.bushnaq.abdalla.engine.shader;
+package de.bushnaq.abdalla.engine.shader.effect;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.glutils.FrameBuffer;
-import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.utils.GdxRuntimeException;
 import com.crashinvaders.vfx.VfxManager;
 import com.crashinvaders.vfx.VfxRenderContext;
 import com.crashinvaders.vfx.effects.ChainVfxEffect;
 import com.crashinvaders.vfx.effects.ShaderVfxEffect;
 import com.crashinvaders.vfx.framebuffer.VfxFrameBuffer;
 import com.crashinvaders.vfx.framebuffer.VfxPingPongWrapper;
-import com.crashinvaders.vfx.gl.VfxGLUtils;
 import de.bushnaq.abdalla.engine.RenderEngineExtension;
 import de.bushnaq.abdalla.engine.camera.MovingCamera;
+import de.bushnaq.abdalla.engine.shader.util.MyVfxGLUtils;
 
-class MyVfxGLUtils2 extends VfxGLUtils {
-    private static final String  TAG            = MyVfxGLUtils2.class.getSimpleName();
-    private static final boolean blurBackground = true;
-    private static final int     maxBlur        = 50;
-
-    public static ShaderProgram compileShader(final FileHandle vertexFile, final FileHandle fragmentFile, final String defines) {
-        if (fragmentFile == null) {
-            throw new IllegalArgumentException("Vertex shader file cannot be null.");
-        }
-        if (vertexFile == null) {
-            throw new IllegalArgumentException("Fragment shader file cannot be null.");
-        }
-        if (defines == null) {
-            throw new IllegalArgumentException("Defines cannot be null.");
-        }
-
-        final StringBuilder sb = new StringBuilder();
-        sb.append("Compiling \"").append(vertexFile.name()).append('/').append(fragmentFile.name()).append('\"');
-        if (defines.length() > 0) {
-            sb.append(" w/ (").append(defines.replace("\n", ", ")).append(")");
-        }
-        sb.append("...");
-        Gdx.app.log(TAG, sb.toString());
-
-        final String prependVert = prependVertexCode + defines;
-        final String prependFrag = prependFragmentCode + defines;
-        final String srcVert     = vertexFile.readString();
-        final String srcFrag     = fragmentFile.readString();
-//        exchange(fragmentFile.readString());
-
-        final ShaderProgram shader = new ShaderProgram(prependVert + "\n" + srcVert, prependFrag + "\n" + srcFrag);
-
-        if (!shader.isCompiled()) {
-            throw new GdxRuntimeException("Shader compile error: " + vertexFile.name() + "/" + fragmentFile.name() + "\n" + shader.getLog());
-        }
-        return shader;
-    }
-
-}
+//class MyVfxGLUtils2 extends VfxGLUtils {
+//    private static final String  TAG            = MyVfxGLUtils2.class.getSimpleName();
+//    private static final boolean blurBackground = true;
+//    private static final int     maxBlur        = 50;
+//
+//    public static ShaderProgram compileShader(final FileHandle vertexFile, final FileHandle fragmentFile, final String defines) {
+//        if (fragmentFile == null) {
+//            throw new IllegalArgumentException("Vertex shader file cannot be null.");
+//        }
+//        if (vertexFile == null) {
+//            throw new IllegalArgumentException("Fragment shader file cannot be null.");
+//        }
+//        if (defines == null) {
+//            throw new IllegalArgumentException("Defines cannot be null.");
+//        }
+//
+//        final StringBuilder sb = new StringBuilder();
+//        sb.append("Compiling \"").append(vertexFile.name()).append('/').append(fragmentFile.name()).append('\"');
+//        if (defines.length() > 0) {
+//            sb.append(" w/ (").append(defines.replace("\n", ", ")).append(")");
+//        }
+//        sb.append("...");
+//        Gdx.app.log(TAG, sb.toString());
+//
+//        final String prependVert = prependVertexCode + defines;
+//        final String prependFrag = prependFragmentCode + defines;
+//        final String srcVert     = vertexFile.readString();
+//        final String srcFrag     = fragmentFile.readString();
+////        exchange(fragmentFile.readString());
+//
+//        final ShaderProgram shader = new ShaderProgram(prependVert + "\n" + srcVert, prependFrag + "\n" + srcFrag);
+//
+//        if (!shader.isCompiled()) {
+//            throw new GdxRuntimeException("Shader compile error: " + vertexFile.name() + "/" + fragmentFile.name() + "\n" + shader.getLog());
+//        }
+//        return shader;
+//    }
+//
+//}
 
 public class SsaoEffect<T extends RenderEngineExtension> extends ShaderVfxEffect implements ChainVfxEffect {
 
@@ -83,7 +80,7 @@ public class SsaoEffect<T extends RenderEngineExtension> extends ShaderVfxEffect
     private final        VfxManager   vfxManager;
 
     public SsaoEffect(VfxManager vfxManager, final FrameBuffer postFbo, final MovingCamera camera) {
-        super(MyVfxGLUtils2.compileShader(Gdx.files.classpath("shader/ssao.vs.glsl"), Gdx.files.classpath("shader/ssao.fs.glsl"), ""));
+        super(MyVfxGLUtils.compileShader(Gdx.files.classpath("shader/ssao.vs.glsl"), Gdx.files.classpath("shader/ssao.fs.glsl"), ""));
         this.vfxManager = vfxManager;
         this.postFbo    = postFbo;
         this.camera     = camera;
