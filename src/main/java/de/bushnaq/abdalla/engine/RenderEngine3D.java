@@ -51,10 +51,7 @@ import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.crashinvaders.vfx.VfxManager;
 import de.bushnaq.abdalla.engine.camera.MovingCamera;
-import de.bushnaq.abdalla.engine.shader.GamePbrShaderProvider;
-import de.bushnaq.abdalla.engine.shader.GameSettings;
-import de.bushnaq.abdalla.engine.shader.GameShaderProvider;
-import de.bushnaq.abdalla.engine.shader.GameShaderProviderInterface;
+import de.bushnaq.abdalla.engine.shader.*;
 import de.bushnaq.abdalla.engine.shader.mirror.Mirror;
 import de.bushnaq.abdalla.engine.shader.util.GL32CMacIssueHandler;
 import de.bushnaq.abdalla.engine.shader.util.ShaderCompatibilityHelper;
@@ -123,6 +120,7 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
     private       Graph                       fpsGraph;
     private final T                           gameEngine;
     public        GameShaderProviderInterface gameShaderProvider;
+    private       boolean                     gammaCorrected;
     public        Graph                       gpuGraph;
     public final  Matrix4                     identityMatrix                   = new Matrix4();
     private final Logger                      logger                           = LoggerFactory.getLogger(this.getClass());
@@ -158,6 +156,7 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
     private       boolean                     skyBox                           = false;
     private final int                         speed                            = 5;                                                                    // speed of time
     private final SpotLightsAttribute         spotLights                       = new SpotLightsAttribute();
+    private       SsaoEffect                  ssaoEffect;
     private       Stage                       stage;
     private final ModelCache                  staticCache                      = new ModelCache();
     private       boolean                     staticCacheDirty                 = true;
@@ -311,9 +310,12 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
 //		vfxManager.addEffect(new FilmGrainEffect());
 //		vfxManager.addEffect(new OldTvEffect());
         vfxManager         = new VfxManager(Pixmap.Format.RGBA8888);
-        depthOfFieldEffect = new DepthOfFieldEffect(this, vfxManager, postFbo, camera);
+        depthOfFieldEffect = new DepthOfFieldEffect<T>(this, vfxManager, postFbo, camera);
         depthOfFieldEffect.setEnabled(true);
-        vfxManager.addEffect(depthOfFieldEffect);
+//        vfxManager.addEffect(depthOfFieldEffect);
+//        ssaoEffect = new SsaoEffect<T>(vfxManager, postFbo, camera);
+//        ssaoEffect.setEnabled(true);
+//        vfxManager.addEffect(ssaoEffect);
 //		vfxManager.addEffect(new FxaaEffect());
         createGraphs();
     }
@@ -387,7 +389,6 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
             postMSFbo = frameBufferBuilder.build();
         }
     }
-
 
     private void createGraphs() {
         cpuGraph = new TimeGraph("CPU", new Color(1f, 0f, 0f, 1f), new Color(1f, 0, 0, 0.6f), new Color(0f, 0f, 0f, .6f), Gdx.graphics.getWidth(), Gdx.graphics.getHeight() / 3, font, boldFont, atlasRegion);
@@ -558,6 +559,34 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
     public void end() {
     }
 
+    public MovingCamera getCamera() {
+        return camera;
+    }
+
+    public float getCurrentDayTime() {
+        return currentDayTime;
+    }
+
+    public float getDayAmbientIntensityB() {
+        return dayAmbientIntensityB;
+    }
+
+    public float getDayAmbientIntensityG() {
+        return dayAmbientIntensityG;
+    }
+
+    public float getDayAmbientIntensityR() {
+        return dayAmbientIntensityR;
+    }
+
+    public float getDayShadowIntensity() {
+        return dayShadowIntensity;
+    }
+
+    public DepthOfFieldEffect getDepthOfFieldEffect() {
+        return depthOfFieldEffect;
+    }
+
 //	private void createDepthOfFieldMeter() {
 //		if (isDebugMode()) {
 //
@@ -598,16 +627,16 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
 //		}
 //	}
 
-    public MovingCamera getCamera() {
-        return camera;
+    public float getFixedDayTime() {
+        return fixedDayTime;
     }
 
-    public float getCurrentDayTime() {
-        return currentDayTime;
+    public Fog getFog() {
+        return fog;
     }
 
-    public DepthOfFieldEffect getDepthOfFieldEffect() {
-        return depthOfFieldEffect;
+    public T getGameEngine() {
+        return gameEngine;
     }
 
 //    private void fboToScreen() {
@@ -641,18 +670,6 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
 //			}
 //		}
 //	}
-
-    public float getFixedDayTime() {
-        return fixedDayTime;
-    }
-
-    public Fog getFog() {
-        return fog;
-    }
-
-    public T getGameEngine() {
-        return gameEngine;
-    }
 
     public GameObject<T> getGameObject(final int screenX, final int screenY) {
         final Ray ray = camera.getPickRay(screenX, screenY);
@@ -706,6 +723,10 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
 
     public DirectionalShadowLight getShadowLight() {
         return shadowLight;
+    }
+
+    public SsaoEffect getSsaoEffect() {
+        return ssaoEffect;
     }
 
     public float getTimeOfDay() {
@@ -764,13 +785,17 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
         return enableProfiling;
     }
 
-//    public boolean isDepthOfField() {
-//        return depthOfField;
-//    }
-
     public boolean isFixedShadowDirection() {
         return fixedShadowDirection;
     }
+
+    public boolean isGammaCorrected() {
+        return gammaCorrected;
+    }
+
+//    public boolean isDepthOfField() {
+//        return depthOfField;
+//    }
 
     public boolean isMirrorPresent() {
         return mirror.isPresent() /* && isPbr() */;
@@ -898,6 +923,11 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
     }
 
     public void render(final long currentTime, final float deltaTime, final boolean takeScreenShot) throws Exception {
+        if (gammaCorrected)
+            Gdx.gl30.glEnable(org.lwjgl.opengl.GL30.GL_FRAMEBUFFER_SRGB);
+        else
+            Gdx.gl30.glDisable(org.lwjgl.opengl.GL30.GL_FRAMEBUFFER_SRGB);
+//        glEnable(GL_FRAMEBUFFER_SRGB);
         fpsGraph.end();
         fpsGraph.begin();
         float x1 = shadowLight.getCamera().position.x;
@@ -1303,13 +1333,13 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
         this.dynamicDayTime = dynamicDayTime;
     }
 
-//    public void setDepthOfField(final boolean depthOfField) {
-//        this.depthOfField = depthOfField;
-//    }
-
     public void setEnableProfiling(boolean enableProfiling) {
         this.enableProfiling = enableProfiling;
     }
+
+//    public void setDepthOfField(final boolean depthOfField) {
+//        this.depthOfField = depthOfField;
+//    }
 
     public void setFixedDayTime(float fixedDayTime) {
         this.fixedDayTime = fixedDayTime;
@@ -1317,6 +1347,10 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
 
     public void setFixedShadowDirection(boolean fixedShadowDirection) {
         this.fixedShadowDirection = fixedShadowDirection;
+    }
+
+    public void setGammaCorrected(boolean gammaCorrected) {
+        this.gammaCorrected = gammaCorrected;
     }
 
     public void setNightAmbientLight(float r, float g, float b, float shadowIntensity) {

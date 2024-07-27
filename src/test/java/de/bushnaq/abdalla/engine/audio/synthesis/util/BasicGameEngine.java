@@ -56,21 +56,22 @@ public abstract class BasicGameEngine implements ApplicationListener, InputProce
     private              OrthographicCamera    camera2D;
     private              long                  currentTime     = 0L;
     protected            Cubemap               diffuseCubemap;
+    Cubemap environmentCubemap;
     //    private              BitmapFont                      font;
-    private              boolean               hrtfEnabled     = true;
-    private final        Matrix4               identityMatrix  = new Matrix4();
+    private       boolean hrtfEnabled    = true;
+    private final Matrix4 identityMatrix = new Matrix4();
     InputMultiplexer inputMultiplexer = new InputMultiplexer();
-    private final List<Label>                     labels            = new ArrayList<>();
-    private       long                            lastTime          = 0;
-    private final Logger                          logger            = LoggerFactory.getLogger(this.getClass());
-    private final BasicRandomGenerator            randomGenerator   = new BasicRandomGenerator(1);
+    private final List<Label>                     labels          = new ArrayList<>();
+    private       long                            lastTime        = 0;
+    private final Logger                          logger          = LoggerFactory.getLogger(this.getClass());
+    private final BasicRandomGenerator            randomGenerator = new BasicRandomGenerator(1);
     private       RenderEngine3D<BasicGameEngine> renderEngine;
-    private       boolean                         simulateBassBoost = true;
+    //    private       boolean                         simulateBassBoost = true;
     protected     Cubemap                         specularCubemap;
     private       Stage                           stage;
     private       StringBuilder                   stringBuilder;
-    private       boolean                         takeScreenShot    = false;
-    private       long                            timeDelta         = 0L;
+    private       boolean                         takeScreenShot  = false;
+    private       long                            timeDelta       = 0L;
 
     public void advanceInTime() {
         long fixedDelta = 20L;
@@ -95,18 +96,20 @@ public abstract class BasicGameEngine implements ApplicationListener, InputProce
             createStage();
             renderEngine = new RenderEngine3D<BasicGameEngine>(context, this, camera, camera2D, getAtlasManager().menuFont, getAtlasManager().menuBoldFont, getAtlasManager().systemTextureRegion);
 //            renderEngine.setPbr(false);
-            renderEngine.setDayAmbientLight(.1f, .1f, .1f, 1f);
+            renderEngine.setSceneBoxMin(new Vector3(-1000, -1000, -1000));
+            renderEngine.setSceneBoxMax(new Vector3(1000, 1000, 1000));
+            renderEngine.getWater().setPresent(false);
+            renderEngine.getMirror().setPresent(false);
+            renderEngine.getFog().setEnabled(false);
+
+            renderEngine.setSkyBox(true);
+            renderEngine.setDayAmbientLight(.9f, .9f, .9f, 1f);
             renderEngine.setNightAmbientLight(.01f, .01f, .01f, 1f);
             renderEngine.setAlwaysDay(true);
-            getRenderEngine().getWater().setPresent(false);
-            getRenderEngine().getMirror().setPresent(false);
-            getRenderEngine().setShadowEnabled(true);
-            getRenderEngine().getFog().setEnabled(false);
-            getRenderEngine().setDynamicDayTime(true);
-            getRenderEngine().setSkyBox(true);
-            getRenderEngine().setSceneBoxMin(new Vector3(-1000, -1000, -1000));
-            getRenderEngine().setSceneBoxMax(new Vector3(1000, 1000, 1000));
-            getRenderEngine().setShowGraphs(true);
+            renderEngine.setDynamicDayTime(true);
+            renderEngine.setShadowEnabled(true);
+
+            renderEngine.setShowGraphs(true);
             createEnvironment();
             getAudioEngine().create("E:/github/game-engine/app/assets");
             audioEngine.radioTTS.loadResource(this.getClass());
@@ -163,10 +166,12 @@ public abstract class BasicGameEngine implements ApplicationListener, InputProce
         // setup IBL (image based lighting)
         if (getRenderEngine().isPbr()) {
             setupImageBasedLightingByFaceNames();
-            getRenderEngine().environment.set(PBRCubemapAttribute.createDiffuseEnv(diffuseCubemap));
-            getRenderEngine().environment.set(PBRCubemapAttribute.createSpecularEnv(specularCubemap));
-            getRenderEngine().environment.set(new PBRTextureAttribute(PBRTextureAttribute.BRDFLUTTexture, brdfLUT));
-            getRenderEngine().environment.set(new PBRFloatAttribute(PBRFloatAttribute.ShadowBias, 0f));
+//            renderEngine.setDaySkyBox(new SceneSkybox(environmentCubemap));
+//            renderEngine.setNightSkyBox(new SceneSkybox(environmentCubemap));
+            renderEngine.environment.set(PBRCubemapAttribute.createDiffuseEnv(diffuseCubemap));
+            renderEngine.environment.set(PBRCubemapAttribute.createSpecularEnv(specularCubemap));
+            renderEngine.environment.set(new PBRTextureAttribute(PBRTextureAttribute.BRDFLUTTexture, brdfLUT));
+            renderEngine.environment.set(new PBRFloatAttribute(PBRFloatAttribute.ShadowBias, 0f));
         } else {
         }
     }
@@ -225,9 +230,9 @@ public abstract class BasicGameEngine implements ApplicationListener, InputProce
         return renderEngine;
     }
 
-    public boolean isSimulateBassBoost() {
-        return simulateBassBoost;
-    }
+//    public boolean isSimulateBassBoost() {
+//        return simulateBassBoost;
+//    }
 
     @Override
     public boolean keyDown(final int keycode) {
@@ -235,10 +240,20 @@ public abstract class BasicGameEngine implements ApplicationListener, InputProce
             case Input.Keys.ESCAPE:
                 Gdx.app.exit();
                 return true;
+//            case Input.Keys.NUM_2:
+//                setSimulateBassBoost(!isSimulateBassBoost());
+//                if (isSimulateBassBoost()) logger.info("bassBoost on");
+//                else logger.info("bassBoost off");
+//                return true;
+            case Input.Keys.NUM_1:
+                renderEngine.setGammaCorrected(!renderEngine.isGammaCorrected());
+                if (renderEngine.isGammaCorrected()) logger.info("gamma correction on");
+                else logger.info("gamma correction off");
+                return true;
             case Input.Keys.NUM_2:
-                setSimulateBassBoost(!isSimulateBassBoost());
-                if (isSimulateBassBoost()) logger.info("bassBoost on");
-                else logger.info("bassBoost off");
+                renderEngine.getDepthOfFieldEffect().setEnabled(!renderEngine.getDepthOfFieldEffect().isEnabled());
+                if (renderEngine.getDepthOfFieldEffect().isEnabled()) logger.info("depth of field on");
+                else logger.info("depth of field off");
                 return true;
             case Input.Keys.H:
                 try {
@@ -347,9 +362,9 @@ public abstract class BasicGameEngine implements ApplicationListener, InputProce
         return false;
     }
 
-    public void setSimulateBassBoost(boolean simulateBassBoost) {
-        this.simulateBassBoost = simulateBassBoost;
-    }
+//    public void setSimulateBassBoost(boolean simulateBassBoost) {
+//        this.simulateBassBoost = simulateBassBoost;
+//    }
 
     protected void setupImageBasedLightingByFaceNames() {
         brdfLUT = new Texture(Gdx.files.classpath("net/mgsx/gltf/shaders/brdfLUT.png"));
@@ -357,10 +372,10 @@ public abstract class BasicGameEngine implements ApplicationListener, InputProce
         DirectionalLightEx light = new DirectionalLightEx();
         light.direction.set(1, -1, 1).nor();
         light.color.set(Color.WHITE);
-        IBLBuilder iblBuilder         = IBLBuilder.createOutdoor(light);
-        Cubemap    environmentCubemap = iblBuilder.buildEnvMap(1024);
-        diffuseCubemap  = iblBuilder.buildIrradianceMap(256);
-        specularCubemap = iblBuilder.buildRadianceMap(10);
+        IBLBuilder iblBuilder = IBLBuilder.createOutdoor(light);
+        environmentCubemap = iblBuilder.buildEnvMap(1024);
+        diffuseCubemap     = iblBuilder.buildIrradianceMap(256);
+        specularCubemap    = iblBuilder.buildRadianceMap(10);
         iblBuilder.dispose();
     }
 
