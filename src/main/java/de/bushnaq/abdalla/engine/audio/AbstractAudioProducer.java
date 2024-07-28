@@ -22,18 +22,19 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 
 public abstract class AbstractAudioProducer implements AudioProducer {
-    protected final Vector3      position     = new Vector3();//position of the audio source
-    protected final int          samplerate;
-    protected final Vector3      velocity     = new Vector3();//velocity of the audio source
-    private final   byte[]       oneKiloBytes = new byte[1024];//used to fast zero the byte buffer in times of silence
+    private         boolean      ambient      = false;//position always follows camera
     protected       boolean      enabled      = false;//a disabled synth does not possess an audio source and any of the source attached resource like filters and buffers
     protected       Filters      filters;
     protected       float        gain         = 1.0f;
+    protected       boolean      ignore;
+    private final   byte[]       oneKiloBytes = new byte[1024];//used to fast zero the byte buffer in times of silence
     protected       boolean      play         = false;//is the source playing?
-    protected       OpenAlSource source       = null;//if enabled, this will hold the attached openal source, otherwise null
-    private         boolean      ambient      = false;//position always follows camera
+    protected final Vector3      position     = new Vector3();//position of the audio source
     private         boolean      radio        = false;
+    protected final int          samplerate;
+    protected       OpenAlSource source       = null;//if enabled, this will hold the attached openal source, otherwise null
     private         float        sourceGain;
+    protected final Vector3      velocity     = new Vector3();//velocity of the audio source
 
     public AbstractAudioProducer(int samplerate) {
         this.samplerate = samplerate;
@@ -74,6 +75,18 @@ public abstract class AbstractAudioProducer implements AudioProducer {
         this.source.unparkOrStartThread();
     }
 
+    protected void fastZero(ByteBuffer byteBuffer) {
+        //fast zero the buffer
+        //TODO this code is causing crash, not sure why
+//        for (int i = byteBuffer.position(); i < (byteBuffer.capacity() - byteBuffer.position()) / oneKiloBytes.length; i++) {
+//            byteBuffer.put(oneKiloBytes);
+//        }
+        //zero the rest
+        for (int i = byteBuffer.position(); i < byteBuffer.capacity(); i++) {
+            byteBuffer.put(i, (byte) 0);
+        }
+    }
+
     public float getGain() {
         return gain;
     }
@@ -88,6 +101,10 @@ public abstract class AbstractAudioProducer implements AudioProducer {
         return samplerate;
     }
 
+    public void ignore(boolean value) {
+        this.ignore = value;
+    }
+
     public boolean isAmbient() {
         return ambient;
     }
@@ -95,6 +112,14 @@ public abstract class AbstractAudioProducer implements AudioProducer {
     @Override
     public boolean isEnabled() {
         return enabled;
+    }
+
+    public boolean isKeepCopy() throws OpenAlcException {
+        if (isEnabled()) {
+            return source.isKeepCopy();
+        } else {
+            throw new OpenAlcException("Synth is disabled");
+        }
     }
 
     /**
@@ -119,18 +144,35 @@ public abstract class AbstractAudioProducer implements AudioProducer {
 
     @Override
     public void pause() throws OpenAlException {
-        if (this.play) {
-            play = false;
+        if (!ignore) {
+            if (this.play) {
+                play = false;
+            }
+            if (isEnabled()) source.pause();
         }
-        if (isEnabled()) source.pause();
     }
 
     @Override
     public void play() throws OpenAlException {
-        if (!this.play) {
-            play = true;
+        if (!ignore) {
+            if (!this.play) {
+                play = true;
+            }
+            if (isEnabled()) source.play();
         }
-        if (isEnabled()) source.play();
+    }
+
+    /**
+     * Convenience method used for debugging
+     *
+     * @throws OpenAlcException
+     */
+    public void renderBuffer() throws OpenAlcException {
+        if (isEnabled()) {
+            source.renderBuffer();
+        } else {
+            throw new OpenAlcException("Synth is disabled");
+        }
     }
 
     public void setAmbient(boolean ambient) {
@@ -144,6 +186,14 @@ public abstract class AbstractAudioProducer implements AudioProducer {
             source.setGain(gain);
         }
         this.gain = gain;
+    }
+
+    public void setKeepCopy(final boolean enable) throws OpenAlcException {
+        if (isEnabled()) {
+            source.setKeepCopy(enable);
+        } else {
+            throw new OpenAlcException("Synth is disabled");
+        }
     }
 
     @Override
@@ -184,48 +234,6 @@ public abstract class AbstractAudioProducer implements AudioProducer {
     public void writeWav(final String fileName) throws IOException, OpenAlcException {
         if (isEnabled()) {
             source.writeWav(fileName);
-        } else {
-            throw new OpenAlcException("Synth is disabled");
-        }
-    }
-
-    protected void fastZero(ByteBuffer byteBuffer) {
-        //fast zero the buffer
-        //TODO this code is causing crash, not sure why
-//        for (int i = byteBuffer.position(); i < (byteBuffer.capacity() - byteBuffer.position()) / oneKiloBytes.length; i++) {
-//            byteBuffer.put(oneKiloBytes);
-//        }
-        //zero the rest
-        for (int i = byteBuffer.position(); i < byteBuffer.capacity(); i++) {
-            byteBuffer.put(i, (byte) 0);
-        }
-    }
-
-    public boolean isKeepCopy() throws OpenAlcException {
-        if (isEnabled()) {
-            return source.isKeepCopy();
-        } else {
-            throw new OpenAlcException("Synth is disabled");
-        }
-    }
-
-
-    /**
-     * Convenience method used for debugging
-     *
-     * @throws OpenAlcException
-     */
-    public void renderBuffer() throws OpenAlcException {
-        if (isEnabled()) {
-            source.renderBuffer();
-        } else {
-            throw new OpenAlcException("Synth is disabled");
-        }
-    }
-
-    public void setKeepCopy(final boolean enable) throws OpenAlcException {
-        if (isEnabled()) {
-            source.setKeepCopy(enable);
         } else {
             throw new OpenAlcException("Synth is disabled");
         }

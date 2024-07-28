@@ -41,6 +41,8 @@ public interface AudioProducer {
 
     int getSamplerate();
 
+    void ignore(boolean b);
+
     boolean isAmbient();
 
     boolean isEnabled();
