@@ -31,18 +31,19 @@ import de.bushnaq.abdalla.engine.shader.util.MyVfxGLUtils;
 
 public class DepthOfFieldEffect<T extends RenderEngineExtension> extends ShaderVfxEffect implements ChainVfxEffect {
 
-    private static final String       Texture0     = "u_sourceTexture";
-    private static final String       Texture1     = "u_depthTexture";
+    private static final String       Texture0       = "u_sourceTexture";
+    private static final String       Texture1       = "u_depthTexture";
     private final        MovingCamera camera;
-    private              boolean      enabled      = false;
-    private              float        focalDepth   = 100f;
-    private              float        farDofStart  = focalDepth / 20f;
-    private              float        farDofDist   = focalDepth * 1.5f;
-    private              float        nearDofDist  = focalDepth * 1.5f;
-    private              float        nearDofStart = focalDepth / 20f;
+    private              boolean      enabled        = false;
+    private              float        focalDepth     = 100f;
+    private              float        farDofStart    = focalDepth / 20f;
+    private              float        farDofDist     = focalDepth * 1.5f;
+    private              float        nearDofDist    = focalDepth * 1.5f;
+    private final        boolean      nearDofEnabled = false;
+    private              float        nearDofStart   = focalDepth / 20f;
     private final        FrameBuffer  postFbo;
     //    private final        RenderEngine3D<T> renderEngine;
-    private final        Vector2      resolution   = new Vector2();
+    private final        Vector2      resolution     = new Vector2();
     private final        VfxManager   vfxManager;
 
     public DepthOfFieldEffect(/*RenderEngine3D<T> renderEngine,*/ VfxManager vfxManager, final FrameBuffer postFbo, final MovingCamera camera) {
@@ -134,10 +135,15 @@ public class DepthOfFieldEffect<T extends RenderEngineExtension> extends ShaderV
 
     public void setFocalDepth(float focalDepth) {
         this.focalDepth = focalDepth;
-        nearDofStart    = focalDepth / 20f;
-        nearDofDist     = focalDepth * 1.5f;
-        farDofStart     = focalDepth / 20f;
-        farDofDist      = focalDepth * 1.5f;
+        if (nearDofEnabled) {
+            nearDofStart = focalDepth / 20f;
+            nearDofDist  = focalDepth * 1.5f;
+        } else {
+            nearDofStart = focalDepth * 1.5f;
+            nearDofDist  = focalDepth * 1.5f;
+        }
+        farDofStart = focalDepth / 20f;
+        farDofDist  = focalDepth * 1.5f;
     }
 
     @Override
