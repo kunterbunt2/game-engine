@@ -29,11 +29,11 @@ import static org.lwjgl.openal.AL10.AL_FORMAT_STEREO16;
 public class OggPlayer extends AbstractAudioProducer {
     static private final int            bufferSize     = 4096 * 10;
     static private final int            bytesPerSample = 2;
-    private final        Logger         logger         = LoggerFactory.getLogger(this.getClass());
-    protected            FileHandle     file;
     private              int            channels;
+    protected            FileHandle     file;
     private              int            format;
     private              OggInputStream input;
+    private final        Logger         logger         = LoggerFactory.getLogger(this.getClass());
     private              boolean        loop;
     //    private              float          maxSecondsPerBuffer;
     private              OggInputStream previousInput;
@@ -60,8 +60,12 @@ public class OggPlayer extends AbstractAudioProducer {
         return sampleRate;
     }
 
+    private void loop() {
+        input = new OggInputStream(file.read(), input);
+    }
+
     @Override
-    public void processBuffer(final ByteBuffer byteBuffer) {
+    public void processBuffer(final ByteBuffer byteBuffer) throws OpenAlException {
         for (int i = 0; i < byteBuffer.capacity(); i++) {
             int value = input.read();
             if (value == -1) {
@@ -70,15 +74,12 @@ public class OggPlayer extends AbstractAudioProducer {
                     value = input.read();
                 } else {
                     fastZero(byteBuffer);
+                    pause();
                     break;
                 }
             }
             byteBuffer.put(i, (byte) value);
         }
-    }
-
-    private void loop() {
-        input = new OggInputStream(file.read(), input);
     }
 
     public void setFile(final FileHandle file) throws OpenAlException {

@@ -62,7 +62,8 @@ public abstract class AbstractAudioProducer implements AudioProducer {
 
     @Override
     public void dispose() throws OpenAlException {
-        if (isEnabled()) source.dispose();
+        if (ignore)
+            if (isEnabled()) source.dispose();
     }
 
     @Override
@@ -167,7 +168,7 @@ public abstract class AbstractAudioProducer implements AudioProducer {
      *
      * @throws OpenAlcException
      */
-    public void renderBuffer() throws OpenAlcException {
+    public void renderBuffer() throws OpenAlException {
         if (isEnabled()) {
             source.renderBuffer();
         } else {

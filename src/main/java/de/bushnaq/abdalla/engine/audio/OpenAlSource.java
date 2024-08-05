@@ -311,7 +311,7 @@ public class OpenAlSource extends Thread {
         AudioEngine.checkAlError("Openal error #");
     }
 
-    public void renderBuffer() throws OpenAlcException {
+    public void renderBuffer() throws OpenAlException {
         audio.processBuffer(byteBuffer);
     }
 

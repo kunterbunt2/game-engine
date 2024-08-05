@@ -57,7 +57,7 @@ public interface AudioProducer {
 
     void play() throws OpenAlException;
 
-    void processBuffer(ByteBuffer byteBuffer) throws OpenAlcException;
+    void processBuffer(ByteBuffer byteBuffer) throws OpenAlException;
 
     void setAmbient(boolean enabled);
 
