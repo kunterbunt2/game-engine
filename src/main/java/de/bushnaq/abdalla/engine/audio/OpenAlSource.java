@@ -37,32 +37,32 @@ import java.util.List;
 
 public class OpenAlSource extends Thread {
     private static final int                       BUFFER_COUNT         = 3;
-    private final        int[]                     bufferId             = new int[BUFFER_COUNT];
-    private final        List<Integer>             bufferQueue          = new ArrayList<>(); // A quick and dirty queue of buffer objects
-    private final        List<Integer>             buffersUnqueued      = new ArrayList<>(); // A quick and dirty queue of buffer objects
-    private final        List<ByteBufferContainer> byteBufferCopyList   = new ArrayList<>();
-    //	private long lastIndex = 0;
-    private final        Logger                    logger               = LoggerFactory.getLogger(this.getClass());
-    private final        Vector3                   position             = new Vector3();//last position submitted to openal
-    private final        boolean                   radio;
-    private final        Vector3                   velocity             = new Vector3();//last velocity submitted to openal
     private              boolean                   ambient;
     private              AudioProducer             audio;
     private              int                       auxiliaryEffectSlot  = 0;
     private              int                       bits;
+    private final        int[]                     bufferId             = new int[BUFFER_COUNT];
+    private final        List<Integer>             bufferQueue          = new ArrayList<>(); // A quick and dirty queue of buffer objects
+    private final        List<Integer>             buffersUnqueued      = new ArrayList<>(); // A quick and dirty queue of buffer objects
     private              long                      buffersize;
     private              ByteBuffer                byteBuffer;
+    private final        List<ByteBufferContainer> byteBufferCopyList   = new ArrayList<>();
     private              int                       channels;
     private volatile     boolean                   end                  = false;
     private              int                       filter;
     private              float                     gain;
     private              boolean                   keepCopy             = false;
+    //	private long lastIndex = 0;
+    private final        Logger                    logger               = LoggerFactory.getLogger(this.getClass());
     private              boolean                   play;//source should be in play state
+    private final        Vector3                   position             = new Vector3();//last position submitted to openal
+    private final        boolean                   radio;
     private              int                       restartedSourceCount = 0;
     private              int                       samplerate;
     private              long                      samples;
     private              boolean                   sleeping             = false;
     private              int                       source;
+    private final        Vector3                   velocity             = new Vector3();//last velocity submitted to openal
 
     public OpenAlSource(final long samples, final int samplerate, final int bits, final int channels, float gain, final int auxiliaryEffectSlot, boolean ambient, boolean radio) throws OpenAlException {
         this.samples             = samples;
@@ -302,7 +302,7 @@ public class OpenAlSource extends Thread {
     }
 
     private void removeSource() throws OpenAlException {
-        final int state = AL10.alGetSourcei(source, AL10.AL_SOURCE_STATE);
+//        final int state = AL10.alGetSourcei(source, AL10.AL_SOURCE_STATE);
         AL10.alSourceStop(source);
         AudioEngine.checkAlError("Openal error #");
         logger.trace("stopped source " + source);
@@ -382,7 +382,7 @@ public class OpenAlSource extends Thread {
                         final int state = AL10.alGetSourcei(source, AL10.AL_SOURCE_STATE);
                         AudioEngine.checkAlError("Failed alGetSourcei AL_SOURCE_STATE with error #");
                         if (state != AL10.AL_PLAYING) {
-                            System.out.println(String.format("Had to restart source %d.", source));
+                            System.out.printf("Had to restart source %d.%n", source);
                             restartedSourceCount++;
                             AL10.alSourcePlay(source);
                             AudioEngine.checkAlError("Failed alSourcePlay with error #");
