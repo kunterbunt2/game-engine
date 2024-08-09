@@ -22,7 +22,10 @@ import com.badlogic.gdx.graphics.g3d.Renderable;
 import com.badlogic.gdx.graphics.g3d.Shader;
 import com.badlogic.gdx.graphics.g3d.shaders.DefaultShader;
 import com.badlogic.gdx.graphics.g3d.shaders.DefaultShader.Config;
+import com.badlogic.gdx.graphics.glutils.FrameBuffer;
 import com.badlogic.gdx.math.Plane;
+import de.bushnaq.abdalla.engine.shader.effect.ssao.Ssao;
+import de.bushnaq.abdalla.engine.shader.effect.ssao.SsaoShader;
 import de.bushnaq.abdalla.engine.shader.mirror.Mirror;
 import de.bushnaq.abdalla.engine.shader.mirror.MirrorShader;
 import de.bushnaq.abdalla.engine.shader.water.Water;
@@ -36,36 +39,34 @@ import net.mgsx.gltf.scene3d.shaders.PBRShaderProvider;
  */
 public class GamePbrShaderProvider extends PBRShaderProvider implements GameShaderProviderInterface {
 
-    public  MirrorShader mirrorShader;
-    public  MyPBRShader  pbrShader;
-    // private final FrameBuffer waterReflectionFbo;
-//	private final FrameBuffer	waterRefractionFbo;
-    public  WaterShader  waterShader;
-    private Plane        clippingPlane;
-    private Mirror       mirror;
-    //	private final float			waterTiling;
-//	private float				waveSpeed;
-//	private float				waveStrength;
-    private Water        water;
+    private       Plane        clippingPlane;
+    private final Mirror       mirror;
+    public        MirrorShader mirrorShader;
+    public        MyPBRShader  pbrShader;
+    private final FrameBuffer  postFbo;
+    private final Ssao         ssao;
+    private       boolean      ssaoEnabled = false;
+    public        SsaoShader   ssaoShader;
+    private final Water        water;
+    public        WaterShader  waterShader;
 
-    public GamePbrShaderProvider(final PBRShaderConfig config, final Water water, final Mirror mirror) {
+    public GamePbrShaderProvider(final PBRShaderConfig config, final Water water, final Mirror mirror, final Ssao ssao, FrameBuffer postFbo) {
         super(config);
-//		this.waterTiling = waterTiling;
-//		this.waveStrength = waveStrength;
-//		this.waveSpeed = waveSpeed;
-        this.water  = water;
-        this.mirror = mirror;
+        this.water   = water;
+        this.mirror  = mirror;
+        this.ssao    = ssao;
+        this.postFbo = postFbo;
     }
 
-    public static GamePbrShaderProvider createDefault(final PBRShaderConfig config, final Water water, final Mirror mirror) {
-        return new GamePbrShaderProvider(config, water, mirror);
+    public static GamePbrShaderProvider createDefault(final PBRShaderConfig config, final Water water, final Mirror mirror, final Ssao ssao, FrameBuffer postFbo) {
+        return new GamePbrShaderProvider(config, water, mirror, ssao, postFbo);
     }
 
     private Shader createMirrorShader(final Renderable renderable) {
         final String prefix = createPrefixBase(renderable, config);
         final Config config = new Config();
-        config.vertexShader   = Gdx.files.internal("shader/mirror.vs.glsl").readString();
-        config.fragmentShader = Gdx.files.internal("shader/mirror.fs.glsl").readString();
+        config.vertexShader   = Gdx.files.internal("shader/mirror/mirror.vs.glsl").readString();
+        config.fragmentShader = Gdx.files.internal("shader/mirror/mirror.fs.glsl").readString();
         mirrorShader          = new MirrorShader(renderable, config, prefix, mirror);
         mirrorShader.setClippingPlane(clippingPlane);
         return mirrorShader;
@@ -100,35 +101,6 @@ public class GamePbrShaderProvider extends PBRShaderProvider implements GameShad
         return prefix;
     }
 
-    //TODO remove
-    public Shader createShaderPublic(final Renderable renderable) {
-        return createShader(renderable);
-    }
-
-    private Shader createWaterShader(final Renderable renderable) {
-        final String prefix = createPrefixBase(renderable, config);
-        final Config config = new Config();
-        config.vertexShader   = Gdx.files.internal("shader/water.vs.glsl").readString();
-        config.fragmentShader = Gdx.files.internal("shader/water.fs.glsl").readString();
-        waterShader           = new WaterShader(renderable, config, prefix, water);
-//		setWaterAttribute(waterAttribute);
-        waterShader.setClippingPlane(clippingPlane);
-        return waterShader;
-
-    }
-
-    @Override
-    public void dispose() {
-        // pbrShader.dispose();
-        // waterShader.dispose();
-        super.dispose();
-    }
-
-    @Override
-    protected boolean isGL3() {
-        return Gdx.graphics.getGLVersion().isVersionEqualToOrHigher(3, 0);
-    }
-
     @Override
     public String createPrefixBase(Renderable renderable, PBRShaderConfig config) {
 
@@ -157,9 +129,11 @@ public class GamePbrShaderProvider extends PBRShaderProvider implements GameShad
 
     @Override
     protected Shader createShader(final Renderable renderable) {
-        if (renderable.material.id.equals("water") && water != null) {
+        if (ssaoEnabled)
+            return createSsaoShader(renderable);
+        else if (renderable.material.id.equals("water") && water != null) {
             return createWaterShader(renderable);
-        } else if (renderable.material.id.equals("mirror") && mirror != null) {
+        } else if (renderable.material.id.equals("shader/mirror") && mirror != null) {
             return createMirrorShader(renderable);
         } else
             return createPBRShader(renderable);
@@ -168,6 +142,49 @@ public class GamePbrShaderProvider extends PBRShaderProvider implements GameShad
     @Override
     protected PBRShader createShader(final Renderable renderable, final PBRShaderConfig config, final String prefix) {
         return new MyPBRShader(renderable, config, prefix);
+    }
+
+    //TODO remove
+    public Shader createShaderPublic(final Renderable renderable) {
+        return createShader(renderable);
+    }
+
+    private Shader createSsaoShader(final Renderable renderable) {
+        final String prefix = createPrefixBase(renderable, config);
+        final Config config = new Config();
+        config.vertexShader   = Gdx.files.internal("shader/mirror/ssao_vertex.glsl").readString();
+        config.fragmentShader = Gdx.files.internal("shader/mirror/ssao_fragment.glsl").readString();
+        ssaoShader            = new SsaoShader(renderable, config, prefix, ssao, postFbo);
+        return ssaoShader;
+
+    }
+
+    private Shader createWaterShader(final Renderable renderable) {
+        final String prefix = createPrefixBase(renderable, config);
+        final Config config = new Config();
+        config.vertexShader   = Gdx.files.internal("shader/water/water.vs.glsl").readString();
+        config.fragmentShader = Gdx.files.internal("shader/water/water.fs.glsl").readString();
+        waterShader           = new WaterShader(renderable, config, prefix, water);
+//		setWaterAttribute(waterAttribute);
+        waterShader.setClippingPlane(clippingPlane);
+        return waterShader;
+
+    }
+
+    @Override
+    public void dispose() {
+        // pbrShader.dispose();
+        // waterShader.dispose();
+        super.dispose();
+    }
+
+    @Override
+    protected boolean isGL3() {
+        return Gdx.graphics.getGLVersion().isVersionEqualToOrHigher(3, 0);
+    }
+
+    public boolean isSsaoEnabled() {
+        return ssaoEnabled;
     }
 
     @Override
@@ -184,11 +201,9 @@ public class GamePbrShaderProvider extends PBRShaderProvider implements GameShad
         }
     }
 
-//	@Override
-//	public void setWaterAttribute(WaterAttribute waterAttribute) {
-//		waterShader.setTiling(waterAttribute.getTiling() * 2 * /* 4 * 2 **/ 3.0f / Context.WORLD_SCALE);
-//		waterShader.setWaveStrength(waterAttribute.getWaveStrength());
-//		waterShader.setWaveSpeed(waterAttribute.getWaveSpeed());
-//	}
+    public void setSsaoEnabled(boolean ssaoEnabled) {
+        pbrShader.setSsaoEnabled(ssaoEnabled);
+        this.ssaoEnabled = ssaoEnabled;
+    }
 
 }

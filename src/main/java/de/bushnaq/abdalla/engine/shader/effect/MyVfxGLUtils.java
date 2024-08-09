@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package de.bushnaq.abdalla.engine.shader.util;
+package de.bushnaq.abdalla.engine.shader.effect;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.files.FileHandle;
@@ -24,8 +24,6 @@ import com.crashinvaders.vfx.gl.VfxGLUtils;
 
 public class MyVfxGLUtils extends VfxGLUtils {
     private static final String TAG = MyVfxGLUtils.class.getSimpleName();
-//    private static final boolean blurBackground = true;
-//    private static final int     maxBlur        = 50;
 
     public static ShaderProgram compileShader(final FileHandle vertexFile, final FileHandle fragmentFile, final String defines) {
         if (fragmentFile == null) {

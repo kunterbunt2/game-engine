@@ -57,7 +57,9 @@ import de.bushnaq.abdalla.engine.shader.GameShaderProvider;
 import de.bushnaq.abdalla.engine.shader.GameShaderProviderInterface;
 import de.bushnaq.abdalla.engine.shader.effect.DepthOfFieldEffect;
 import de.bushnaq.abdalla.engine.shader.effect.FadeEffect;
-import de.bushnaq.abdalla.engine.shader.effect.SsaoEffect;
+import de.bushnaq.abdalla.engine.shader.effect.ssao.Ssao;
+import de.bushnaq.abdalla.engine.shader.effect.ssao.SsaoEffect;
+import de.bushnaq.abdalla.engine.shader.effect.ssao.SsaoShaderProvider;
 import de.bushnaq.abdalla.engine.shader.mirror.Mirror;
 import de.bushnaq.abdalla.engine.shader.util.GL32CMacIssueHandler;
 import de.bushnaq.abdalla.engine.shader.util.ShaderCompatibilityHelper;
@@ -164,6 +166,8 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
     private       boolean                     skyBox                           = false;
     private final int                         speed                            = 5;                                                                    // speed of time
     private final SpotLightsAttribute         spotLights                       = new SpotLightsAttribute();
+    private final Ssao                        ssao                             = new Ssao();
+    private       ModelBatch                  ssaoBatch;
     private       SsaoEffect<T>               ssaoEffect;
     private       Stage                       stage;
     private final ModelCache                  staticCache                      = new ModelCache();
@@ -317,17 +321,15 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
 //		vfxManager.addEffect(new FxaaEffect());
 //		vfxManager.addEffect(new FilmGrainEffect());
 //		vfxManager.addEffect(new OldTvEffect());
-        vfxManager         = new VfxManager(Pixmap.Format.RGBA8888);
+        vfxManager = new VfxManager(Pixmap.Format.RGBA8888);
+        ssaoEffect = new SsaoEffect<T>(vfxManager, postFbo, camera, ssao);
+//        ssaoEffect.setEnabled(true);
         depthOfFieldEffect = new DepthOfFieldEffect<T>(vfxManager, postFbo, camera);
-        depthOfFieldEffect.setEnabled(true);
+//        depthOfFieldEffect.setEnabled(true);
+
         fadeEffect = new FadeEffect(true);
 //        fadeEffect.setIntensity(.1f);
-        vfxManager.addEffect(fadeEffect);
-//        vfxManager.addEffect(depthOfFieldEffect);
-//        ssaoEffect = new SsaoEffect<T>(vfxManager, postFbo, camera);
-//        ssaoEffect.setEnabled(true);
-//        vfxManager.addEffect(ssaoEffect);
-//		vfxManager.addEffect(new FxaaEffect());
+//        vfxManager.addEffect(fadeEffect);
         createGraphs();
     }
 
@@ -387,6 +389,7 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
     private void createFrameBuffer() {
         water.createFrameBuffer();
         mirror.createFrameBuffer();
+        ssao.createFrameBuffer();
         {
             final GLFrameBuffer.FrameBufferBuilder frameBufferBuilder = new GLFrameBuffer.FrameBufferBuilder(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
             frameBufferBuilder.addColorTextureAttachment(GL30.GL_RGBA8, GL20.GL_RGBA, GL20.GL_UNSIGNED_BYTE);
@@ -452,7 +455,8 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
         } else {
             depthBatch = new ModelBatch(new DepthShaderProvider());
         }
-        batch = new ModelBatch(createShaderProvider(), renderableSorter);
+        batch     = new ModelBatch(createShaderProvider(), renderableSorter);
+        ssaoBatch = new ModelBatch(createSsaoShaderProvider(), renderableSorter);
 //        batch2D = new CustomizedSpriteBatch(5460, ShaderCompatibilityHelper.mustUse32CShader() ? GL32CMacIssueHandler.createSpriteBatchShader() : null);
         batch2D = new CustomizedSpriteBatch(5460, ShaderCompatibilityHelper.mustUse32CShader() ? GL32CMacIssueHandler.createSpriteBatchShader() : null);
     }
@@ -464,17 +468,25 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
             config.numDirectionalLights = 1;
             config.numPointLights       = context.getMaxPointLights();
             config.numSpotLights        = 0;
-            gameShaderProvider          = GamePbrShaderProvider.createDefault(config, water, mirror);
+            gameShaderProvider          = GamePbrShaderProvider.createDefault(config, water, mirror, ssao, postFbo);
             return gameShaderProvider;
         } else {
-
             DefaultShader.Config config = new Config();
 //			config.numDirectionalLights = 2;
 //			config.numPointLights = context.getMaxPointLights();
 //			config.numSpotLights = 0;
-            gameShaderProvider = GameShaderProvider.createDefault(config, water, mirror);
+            gameShaderProvider = GameShaderProvider.createDefault(config, water, mirror, ssao, postFbo);
             return gameShaderProvider;
         }
+    }
+
+    private SsaoShaderProvider createSsaoShaderProvider() {
+        final PBRShaderConfig config = PBRShaderProvider.createDefaultConfig();
+        config.numBones             = 0;
+        config.numDirectionalLights = 0;
+        config.numPointLights       = 0;
+        config.numSpotLights        = 0;
+        return SsaoShaderProvider.createDefault(config, ssao, postFbo);
     }
 
     private void createStage() {
@@ -573,6 +585,13 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
         return ambientLight;
     }
 
+    private ModelBatch getBatch() {
+        if (ssao.isEnabled())
+            return ssaoBatch;
+        else
+            return batch;
+    }
+
     public MovingCamera getCamera() {
         return camera;
     }
@@ -603,14 +622,6 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
 
     public FadeEffect getFadeEffect() {
         return fadeEffect;
-    }
-
-    public float getFixedDayTime() {
-        return fixedDayTime;
-    }
-
-    public Fog getFog() {
-        return fog;
     }
 
 //	private void createDepthOfFieldMeter() {
@@ -653,9 +664,49 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
 //		}
 //	}
 
+    public float getFixedDayTime() {
+        return fixedDayTime;
+    }
+
+    public Fog getFog() {
+        return fog;
+    }
+
     public T getGameEngine() {
         return gameEngine;
     }
+
+//    private void fboToScreen() {
+//        clearViewport();
+//        Gdx.gl.glDisable(GL20.GL_DEPTH_TEST);
+//        batch2D.disableBlending();
+//        batch2D.setProjectionMatrix(camera2D.combined);
+//        batch2D.begin();
+//        batch2D.draw(postFbo.getColorBufferTexture(), 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), 0, 0, postFbo.getWidth(), postFbo.getHeight(), false, true);
+//        batch2D.end();
+//        batch2D.enableBlending();
+//    }
+
+//	private void createLookatCube() {
+//		if (isDebugMode()) {
+//			if (lookatCube == null) {
+//				lookatCube = new GameObject(new ModelInstanceHack(rayCube), null);
+//				lookatCube.instance.materials.get(0).set(ColorAttribute.createDiffuse(Color.RED));
+//				lookatCube.instance.transform.scale(0.5f, 0.5f, 0.5f);
+//				addDynamic(lookatCube);
+//			}
+//			final Vector3 position = new Vector3();
+//			lookatCube.instance.transform.getTranslation(position);
+//			if (!position.equals(camera.lookat)) {
+//				lookatCube.instance.transform.setToTranslation(camera.lookat);
+//				lookatCube.update();
+//			}
+//		} else {
+//			if (lookatCube != null) {
+//				removeDynamic(lookatCube);
+//			}
+//		}
+//	}
 
     public GameObject<T> getGameObject(final int screenX, final int screenY) {
         final Ray ray = camera.getPickRay(screenX, screenY);
@@ -694,38 +745,6 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
     public Mirror getMirror() {
         return mirror;
     }
-
-//    private void fboToScreen() {
-//        clearViewport();
-//        Gdx.gl.glDisable(GL20.GL_DEPTH_TEST);
-//        batch2D.disableBlending();
-//        batch2D.setProjectionMatrix(camera2D.combined);
-//        batch2D.begin();
-//        batch2D.draw(postFbo.getColorBufferTexture(), 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), 0, 0, postFbo.getWidth(), postFbo.getHeight(), false, true);
-//        batch2D.end();
-//        batch2D.enableBlending();
-//    }
-
-//	private void createLookatCube() {
-//		if (isDebugMode()) {
-//			if (lookatCube == null) {
-//				lookatCube = new GameObject(new ModelInstanceHack(rayCube), null);
-//				lookatCube.instance.materials.get(0).set(ColorAttribute.createDiffuse(Color.RED));
-//				lookatCube.instance.transform.scale(0.5f, 0.5f, 0.5f);
-//				addDynamic(lookatCube);
-//			}
-//			final Vector3 position = new Vector3();
-//			lookatCube.instance.transform.getTranslation(position);
-//			if (!position.equals(camera.lookat)) {
-//				lookatCube.instance.transform.setToTranslation(camera.lookat);
-//				lookatCube.update();
-//			}
-//		} else {
-//			if (lookatCube != null) {
-//				removeDynamic(lookatCube);
-//			}
-//		}
-//	}
 
     public ExtendedGLProfiler getProfiler() {
         return profiler;
@@ -811,6 +830,10 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
         return gammaCorrected;
     }
 
+//    public boolean isDepthOfField() {
+//        return depthOfField;
+//    }
+
     public boolean isMirrorPresent() {
         return mirror.isPresent() /* && isPbr() */;
     }
@@ -818,10 +841,6 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
     public boolean isNight() {
         return (!alwaysDay && (timeOfDay > 19 || timeOfDay <= 5));
     }
-
-//    public boolean isDepthOfField() {
-//        return depthOfField;
-//    }
 
     public boolean isPbr() {
         return pbr;
@@ -1014,7 +1033,8 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
             context.disableClipping();
         }
         // if (firstTime) {
-        if (depthOfFieldEffect.isEnabled() && render3D) postMSFbo.begin();
+        if (vfxManager.anyEnabledEffects() && render3D)
+            postMSFbo.begin();
 //		createCameraCube();
 //		createLookatCube();
 //		createDepthOfFieldMeter();
@@ -1022,14 +1042,34 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
         render3DText();
         renderBokeh();
         render2Dxz();
-        if (depthOfFieldEffect.isEnabled() && render3D) postMSFbo.end();
+        if (vfxManager.anyEnabledEffects() && render3D)
+            postMSFbo.end();
+
+        postMSFbo.transfer(postFbo);//creates black screen
+        ssao.setEnabled(true);
+        ssao.getSsaoFbo().begin();
+        renderColors(takeScreenShot);
+        ssao.getSsaoFbo().end();
+        ssao.setEnabled(false);
+//        {
+//            //debugging method
+//            //render ssaoFbo to screen
+//            renderEngine2D.batch.begin();
+//            renderEngine2D.batch.setColor(Color.WHITE);
+//            Gdx.gl.glDisable(GL20.GL_DEPTH_TEST);
+//            renderEngine2D.batch.enableBlending();
+//            renderEngine2D.batch.setProjectionMatrix(stage.getViewport().getCamera().combined);
+//            Texture t = ssao.getSsaoFbo().getColorBufferTexture();
+//            renderEngine2D.batch.draw(t, 0, 0, (float) t.getWidth(), (float) t.getHeight(), 0, 0, t.getWidth(), t.getHeight(), false, true);
+//        }
+
 
         camera.setDirty(false);
         staticCacheDirtyCount = 0;
         renderGraphs();
 
-//        if (depthOfFieldEffect.isEnabled() && render3D) postMSFbo.begin();
-//        if (depthOfFieldEffect.isEnabled() && render3D) postMSFbo.end();
+//        if (vfxManager.anyEnabledEffects() && render3D) postMSFbo.begin();
+//        if (vfxManager.anyEnabledEffects() && render3D) postMSFbo.end();
 
         renderEffects();
         render2DText();
@@ -1156,17 +1196,17 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
     private void renderColors(final boolean takeScreenShot) {
         clearViewport();
         if (render3D) {
-            batch.begin(camera);
-            if (useStaticCache) batch.render(staticCache, computedEnvironement);
+            getBatch().begin(camera);
+            if (useStaticCache) getBatch().render(staticCache, computedEnvironement);
 //         else
 //         batch.render(visibleStaticModelInstances, computedEnvironement);
-            if (useDynamicCache) batch.render(dynamicCache, computedEnvironement);
-            else batch.render(visibleDynamicModelInstances, computedEnvironement);
+            if (useDynamicCache) getBatch().render(dynamicCache, computedEnvironement);
+            else getBatch().render(visibleDynamicModelInstances, computedEnvironement);
             if (isSkyBox()) {
-                if (daySkyBox != null && isDay()) batch.render(daySkyBox);
-                else if (nightSkyBox != null && isNight()) batch.render(nightSkyBox);
+                if (daySkyBox != null && isDay()) getBatch().render(daySkyBox);
+                else if (nightSkyBox != null && isNight()) getBatch().render(nightSkyBox);
             }
-            batch.end();
+            getBatch().end();
         }
     }
 
@@ -1184,29 +1224,16 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
     }
 
     public void renderEffects() throws Exception {
-        if (depthOfFieldEffect.isEnabled() && render3D) {
+        if (vfxManager.anyEnabledEffects() && render3D) {
             // Clean up the screen.
             Gdx.gl.glClearColor(0f, 0f, 0f, 1f);
             Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-            postMSFbo.transfer(postFbo);
+//            postMSFbo.transfer(postFbo);
             // Clean up internal buffers, as we don't need any information from the last render.
             vfxManager.cleanUpBuffers();
             vfxManager.applyEffects();
-            // Render result to the screen.
-//            postFbo.begin();
-//            postFbo.end();
             vfxManager.renderToScreen();
-        } else {
-//            clearViewport();
-//            Gdx.gl.glDisable(GL20.GL_DEPTH_TEST);
-//            batch2D.disableBlending();
-//            batch2D.setProjectionMatrix(camera2D.combined);
-//            batch2D.begin();
-//            batch2D.draw(postFbo.getColorBufferTexture(), 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), false, true);
-//            batch2D.end();
-//            batch2D.enableBlending();
         }
-
     }
 
     private void renderFbos(boolean takeScreenShot) {

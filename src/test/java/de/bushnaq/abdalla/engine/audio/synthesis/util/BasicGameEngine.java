@@ -142,13 +142,13 @@ public abstract class BasicGameEngine implements ApplicationListener, InputProce
         config.setBackBufferConfig(8, 8, 8, 8, 16, 0, 16);
         config.setTitle("game-engine-test");
         {
-            ShaderProgram.prependVertexCode   = "#version 150\n"//
+            ShaderProgram.prependVertexCode   = "#version 330\n"//
                     + "#define GLSL3\n"//
                     + "#ifdef GLSL3\n"//
                     + "#define attribute in\n"//
                     + "#define varying out\n"//
                     + "#endif\n";//
-            ShaderProgram.prependFragmentCode = "#version 150\n"//
+            ShaderProgram.prependFragmentCode = "#version 330\n"//
                     + "#define GLSL3\n"//
                     + "#ifdef GLSL3\n"//
                     + "#define textureCube texture\n"//
@@ -259,6 +259,11 @@ public abstract class BasicGameEngine implements ApplicationListener, InputProce
                 renderEngine.setRenderBokeh(!renderEngine.isRenderBokeh());
                 if (renderEngine.isRenderBokeh()) logger.info("render bokeh on");
                 else logger.info("render bokeh off");
+                return true;
+            case Input.Keys.F4:
+                renderEngine.getSsaoEffect().setEnabled(!renderEngine.getSsaoEffect().isEnabled());
+                if (renderEngine.getSsaoEffect().isEnabled()) logger.info("ssao on");
+                else logger.info("ssao off");
                 return true;
             case Input.Keys.F9:
                 renderEngine.setShowGraphs(!renderEngine.isShowGraphs());

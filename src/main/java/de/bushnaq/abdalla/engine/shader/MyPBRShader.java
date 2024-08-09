@@ -26,8 +26,9 @@ import net.mgsx.gltf.scene3d.shaders.PBRShader;
  * @author kunterbunt
  */
 public class MyPBRShader extends PBRShader {
-    private static Plane clippingPlane;
-    public final   int   u_clippingPlane = register("u_clippingPlane");
+    private static Plane   clippingPlane;
+    private        boolean ssaoEnabled;
+    public final   int     u_clippingPlane = register("u_clippingPlane");
 
     public MyPBRShader(final Renderable renderable, final Config config, final String prefix) {
         super(renderable, config, prefix);
@@ -42,9 +43,11 @@ public class MyPBRShader extends PBRShader {
 
     @Override
     public boolean canRender(final Renderable renderable) {
-        if (renderable.material.id.equals("water")) {
+        if (ssaoEnabled)
+            return true;
+        else if (renderable.material.id.equals("water")) {
             return false;
-        } else if (renderable.material.id.equals("mirror")) {
+        } else if (renderable.material.id.equals("shader/mirror")) {
             return false;
         } else if (renderable.material.id.equals("post")) {
             return false;
@@ -57,4 +60,7 @@ public class MyPBRShader extends PBRShader {
         MyPBRShader.clippingPlane = clippingPlane;
     }
 
+    public void setSsaoEnabled(boolean ssaoEnabled) {
+        this.ssaoEnabled = ssaoEnabled;
+    }
 }

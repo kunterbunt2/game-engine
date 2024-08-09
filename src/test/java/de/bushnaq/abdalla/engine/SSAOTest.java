@@ -20,14 +20,15 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.VertexAttributes;
 import com.badlogic.gdx.graphics.g3d.Attribute;
 import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.Model;
+import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.math.Vector3;
 import de.bushnaq.abdalla.engine.audio.synthesis.util.BasicGameEngine;
 import de.bushnaq.abdalla.engine.audio.synthesis.util.CircularCubeActor;
 import de.bushnaq.abdalla.engine.util.ExtendedGLProfiler;
-import de.bushnaq.abdalla.engine.util.ModelCreator;
 import net.mgsx.gltf.scene3d.attributes.PBRColorAttribute;
 import net.mgsx.gltf.scene3d.attributes.PBRFloatAttribute;
 import net.mgsx.gltf.scene3d.model.ModelInstanceHack;
@@ -95,15 +96,16 @@ public class SSAOTest extends BasicGameEngine {
         getRenderEngine().setShowGraphs(false);
         getRenderEngine().setShadowEnabled(true);
         getRenderEngine().getDepthOfFieldEffect().setEnabled(false);
-//        getRenderEngine().getSsaoEffect().setEnabled(false);
+        getRenderEngine().getSsaoEffect().setEnabled(true);
+        getRenderEngine().setDynamicDayTime(false);
         float focalDepth = CUBE_DISTANCE * 2;
 //        getRenderEngine().getDepthOfFieldEffect().setFocalDepth(focalDepth);
         Vector3 position = new Vector3(0, CUBE_DISTANCE, CUBE_DISTANCE);
         Vector3 lookat   = new Vector3(0, 0, -CUBE_SIZE * 4);
         camera.position.set(position);
         camera.up.set(0, 1, 0);
-        camera.near = 1f;
-        camera.far  = 8000f;
+        camera.near = 10f;
+        camera.far  = 2000f;
         camera.lookAt(lookat);
         camera.update();
         meter.createFocusCross(getRenderEngine(), focalDepth);
@@ -135,12 +137,15 @@ public class SSAOTest extends BasicGameEngine {
     }
 
     private Model createCube() {
-        final ModelCreator modelCreator = new ModelCreator();
-        final Attribute    color        = new PBRColorAttribute(PBRColorAttribute.BaseColorFactor, Color.WHITE);
-        final Attribute    metallic     = PBRFloatAttribute.createMetallic(0.5f);
-        final Attribute    roughness    = PBRFloatAttribute.createRoughness(0.5f);
-        final Material     material     = new Material(metallic, roughness, color);
-        return modelCreator.createBox(material);
+        final ModelBuilder modelBuilder = new ModelBuilder();
+//        final ModelCreator modelCreator = new ModelCreator();
+        final Attribute color     = new PBRColorAttribute(PBRColorAttribute.BaseColorFactor, Color.WHITE);
+        final Attribute metallic  = PBRFloatAttribute.createMetallic(0.5f);
+        final Attribute roughness = PBRFloatAttribute.createRoughness(0.5f);
+        final Material  material  = new Material(metallic, roughness, color);
+//        return modelCreator.createBox(material);
+        return modelBuilder.createBox(1.0f, 1.0f, 1.0f, material, VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal | VertexAttributes.Usage.TextureCoordinates);
+
     }
 
 

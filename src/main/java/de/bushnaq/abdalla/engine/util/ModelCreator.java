@@ -34,8 +34,9 @@ public class ModelCreator {
         if (ta1 != null) {
             final PBRTextureAttribute ta2 = (PBRTextureAttribute) material.get(PBRTextureAttribute.MetallicRoughnessTexture);
             builder.part("1", createQuad(ta1.offsetU, ta1.offsetV, ta1.scaleU + ta1.offsetU, ta1.scaleV + ta1.offsetV, ta2.offsetU, ta2.offsetV, ta2.scaleU + ta2.offsetU, ta2.scaleV + ta2.offsetV), GL20.GL_TRIANGLES, material);
-        } else
+        } else {
             builder.part("1", createQuad(), GL20.GL_TRIANGLES, material);
+        }
         final Model model = builder.end();
         return model;
     }

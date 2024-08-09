@@ -24,10 +24,10 @@ import com.badlogic.gdx.math.Plane;
  */
 public interface GameShaderProviderInterface extends ShaderProvider {
     @Override
-    public void dispose();
+    void dispose();
 
-    public void setClippingPlane(final Plane clippingPlane);
+    boolean isSsaoEnabled();
 
-//	public void setWaterAttribute(WaterAttribute waterAttribute);
+    void setClippingPlane(final Plane clippingPlane);
 
 }

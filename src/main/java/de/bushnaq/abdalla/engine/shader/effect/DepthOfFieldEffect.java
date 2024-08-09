@@ -27,7 +27,6 @@ import com.crashinvaders.vfx.framebuffer.VfxFrameBuffer;
 import com.crashinvaders.vfx.framebuffer.VfxPingPongWrapper;
 import de.bushnaq.abdalla.engine.RenderEngineExtension;
 import de.bushnaq.abdalla.engine.camera.MovingCamera;
-import de.bushnaq.abdalla.engine.shader.util.MyVfxGLUtils;
 
 public class DepthOfFieldEffect<T extends RenderEngineExtension> extends ShaderVfxEffect implements ChainVfxEffect {
 
@@ -42,13 +41,11 @@ public class DepthOfFieldEffect<T extends RenderEngineExtension> extends ShaderV
     private final        boolean      nearDofEnabled = false;
     private              float        nearDofStart   = focalDepth / 20f;
     private final        FrameBuffer  postFbo;
-    //    private final        RenderEngine3D<T> renderEngine;
     private final        Vector2      resolution     = new Vector2();
     private final        VfxManager   vfxManager;
 
-    public DepthOfFieldEffect(/*RenderEngine3D<T> renderEngine,*/ VfxManager vfxManager, final FrameBuffer postFbo, final MovingCamera camera) {
-        super(MyVfxGLUtils.compileShader(Gdx.files.classpath("shader/depthOfField.vs.glsl"), Gdx.files.classpath("shader/depthOfField2.fs.glsl"), ""));
-//        this.renderEngine = renderEngine;
+    public DepthOfFieldEffect(VfxManager vfxManager, final FrameBuffer postFbo, final MovingCamera camera) {
+        super(MyVfxGLUtils.compileShader(Gdx.files.classpath("shader/depthOfField/depthOfField.vs.glsl"), Gdx.files.classpath("shader/depthOfField/depthOfField2.fs.glsl"), ""));
         this.vfxManager = vfxManager;
         this.postFbo    = postFbo;
         this.camera     = camera;

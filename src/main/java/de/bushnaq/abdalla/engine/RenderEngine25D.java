@@ -56,13 +56,13 @@ public class RenderEngine25D<T> {
 //    public       int                   width;
     T           gameEngine;
     GlyphLayout layout = new GlyphLayout();
-    private FlushablePool<com.badlogic.gdx.graphics.g3d.Renderable> renderablesPool = new FlushablePool<com.badlogic.gdx.graphics.g3d.Renderable>() {
+    private final FlushablePool<com.badlogic.gdx.graphics.g3d.Renderable> renderablesPool = new FlushablePool<com.badlogic.gdx.graphics.g3d.Renderable>() {
         @Override
         protected com.badlogic.gdx.graphics.g3d.Renderable newObject() {
             return new Renderable();
         }
     };
-    private Array<Renderable>                                       tmp             = new Array<Renderable>();
+    private final Array<Renderable>                                       tmp             = new Array<Renderable>();
 
     public RenderEngine25D(T gameEngine, OrthographicCamera camera) {
         this.gameEngine = gameEngine;
@@ -152,7 +152,7 @@ public class RenderEngine25D<T> {
         config.numDirectionalLights = 1;
         config.numPointLights       = 20;
         config.numSpotLights        = 0;
-        return new GamePbrShaderProvider(config, null, null);
+        return new GamePbrShaderProvider(config, null, null, null, null);
     }
 
     public void dispose() {

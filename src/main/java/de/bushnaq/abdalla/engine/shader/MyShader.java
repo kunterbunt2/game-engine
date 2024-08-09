@@ -34,23 +34,23 @@ public class MyShader extends DefaultShader {
     }
 
     @Override
+    public void begin(final Camera camera, final RenderContext context) {
+        super.begin(camera, context);
+        if (clippingPlane != null)
+            set(u_clippingPlane, clippingPlane.normal.x, clippingPlane.normal.y, clippingPlane.normal.z, clippingPlane.d);
+    }
+
+    @Override
     public boolean canRender(final Renderable renderable) {
         if (renderable.material.id.equals("water")) {
             return false;
-        } else if (renderable.material.id.equals("mirror")) {
+        } else if (renderable.material.id.equals("shader/mirror")) {
             return false;
         } else if (renderable.material.id.equals("post")) {
             return false;
         } else {
             return super.canRender(renderable);
         }
-    }
-
-    @Override
-    public void begin(final Camera camera, final RenderContext context) {
-        super.begin(camera, context);
-        if (clippingPlane != null)
-            set(u_clippingPlane, clippingPlane.normal.x, clippingPlane.normal.y, clippingPlane.normal.z, clippingPlane.d);
     }
 
     public void setClippingPlane(final Plane clippingPlane) {
