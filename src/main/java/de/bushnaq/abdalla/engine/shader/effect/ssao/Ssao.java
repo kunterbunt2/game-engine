@@ -19,6 +19,7 @@ package de.bushnaq.abdalla.engine.shader.effect.ssao;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.GL30;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.glutils.FrameBuffer;
 import com.badlogic.gdx.graphics.glutils.GLFrameBuffer.FrameBufferBuilder;
 
@@ -26,33 +27,36 @@ import com.badlogic.gdx.graphics.glutils.GLFrameBuffer.FrameBufferBuilder;
  * @author kunterbunt
  */
 public class Ssao {
-    private boolean     enabled = false;
-    //    private final Vector2     resolution = new Vector2();
     private FrameBuffer ssaoFbo;
+    private SsaoMode    ssaoMode = SsaoMode.PBR;
 
     public Ssao() {
 
     }
 
     public void createFrameBuffer() {
-        {
-            final FrameBufferBuilder frameBufferBuilder = new FrameBufferBuilder(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-            frameBufferBuilder.addColorTextureAttachment(GL30.GL_RGBA8, GL20.GL_RGBA, GL20.GL_UNSIGNED_BYTE);
-            frameBufferBuilder.addDepthRenderBuffer(GL30.GL_DEPTH_COMPONENT24);
-            ssaoFbo = frameBufferBuilder.build();
-        }
+        final FrameBufferBuilder frameBufferBuilder = new FrameBufferBuilder(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+        frameBufferBuilder.addColorTextureAttachment(GL30.GL_RGBA8, GL20.GL_RGBA, GL20.GL_UNSIGNED_BYTE);//position
+
+        frameBufferBuilder.addColorTextureAttachment(GL30.GL_RGBA8, GL20.GL_RGBA, GL20.GL_UNSIGNED_BYTE);//normal
+        frameBufferBuilder.addDepthRenderBuffer(GL30.GL_DEPTH_COMPONENT24);//depth
+        ssaoFbo = frameBufferBuilder.build();
+        ssaoFbo.getTextureAttachments().get(0).setFilter(Texture.TextureFilter.Nearest, Texture.TextureFilter.Nearest);
+        ssaoFbo.getTextureAttachments().get(0).setWrap(Texture.TextureWrap.ClampToEdge, Texture.TextureWrap.ClampToEdge);
+        ssaoFbo.getTextureAttachments().get(1).setFilter(Texture.TextureFilter.Nearest, Texture.TextureFilter.Nearest);
     }
 
     public FrameBuffer getSsaoFbo() {
         return ssaoFbo;
     }
 
-    public boolean isEnabled() {
-        return enabled;
+    public SsaoMode getSsaoMode() {
+        return ssaoMode;
     }
 
-    public void setEnabled(boolean enabled) {
-        this.enabled = enabled;
+    public void setSsaoMode(SsaoMode ssaoMode) {
+        this.ssaoMode = ssaoMode;
     }
+
 
 }

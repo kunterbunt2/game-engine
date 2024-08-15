@@ -14,8 +14,8 @@ precision highp float;
 #ifdef GLSL3
 #define varying in
 out vec4 out_FragColor;
-#define textureCube texture
-#define texture2D texture
+//#define textureCube texture
+//#define texture2D texture
 #else
 #define out_FragColor gl_FragColor
 #endif

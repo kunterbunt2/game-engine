@@ -18,17 +18,22 @@ package de.bushnaq.abdalla.engine;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
+import com.badlogic.gdx.assets.loaders.ModelLoader;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.Mesh;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.VertexAttributes;
 import com.badlogic.gdx.graphics.g3d.Attribute;
 import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.Model;
+import com.badlogic.gdx.graphics.g3d.loader.ObjLoader;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.math.Vector3;
+import de.bushnaq.abdalla.engine.audio.synthesis.util.BasicAtlasManager;
 import de.bushnaq.abdalla.engine.audio.synthesis.util.BasicGameEngine;
 import de.bushnaq.abdalla.engine.audio.synthesis.util.CircularCubeActor;
 import de.bushnaq.abdalla.engine.util.ExtendedGLProfiler;
+import de.bushnaq.abdalla.engine.util.ModelCreator;
 import net.mgsx.gltf.scene3d.attributes.PBRColorAttribute;
 import net.mgsx.gltf.scene3d.attributes.PBRFloatAttribute;
 import net.mgsx.gltf.scene3d.model.ModelInstanceHack;
@@ -95,8 +100,11 @@ public class SSAOTest extends BasicGameEngine {
         super.create();
         getRenderEngine().setShowGraphs(false);
         getRenderEngine().setShadowEnabled(true);
+
         getRenderEngine().getDepthOfFieldEffect().setEnabled(false);
         getRenderEngine().getSsaoEffect().setEnabled(true);
+        getRenderEngine().getSsaoComboneEffect().setEnabled(true);
+
         getRenderEngine().setDynamicDayTime(false);
         float focalDepth = CUBE_DISTANCE * 2;
 //        getRenderEngine().getDepthOfFieldEffect().setFocalDepth(focalDepth);
@@ -115,6 +123,11 @@ public class SSAOTest extends BasicGameEngine {
         {
             GameObject<BasicGameEngine> go = new GameObject<>(new ModelInstanceHack(createCube()), null, null);
             go.instance.transform.setToTranslationAndScaling(scenePosition.x, scenePosition.y - CUBE_SIZE, scenePosition.z, 2 * DIMENSION_SIZE_X * CUBE_SIZE + CUBE_SIZE, CUBE_SIZE, 2 * DIMENSION_SIZE_Z * CUBE_SIZE + CUBE_SIZE);
+            getRenderEngine().addStatic(go);
+        }
+        {
+            GameObject<BasicGameEngine> go = new GameObject<>(new ModelInstanceHack(createSuite()), null, null);
+            go.instance.transform.setToTranslationAndScaling(scenePosition.x, scenePosition.y - CUBE_SIZE, scenePosition.z, 10, 10, 10);
             getRenderEngine().addStatic(go);
         }
         for (int z = -DIMENSION_SIZE_Z; z <= DIMENSION_SIZE_Z; z++) {
@@ -148,6 +161,16 @@ public class SSAOTest extends BasicGameEngine {
 
     }
 
+    private Mesh createQuad() {
+        final ModelCreator modelCreator = new ModelCreator();
+        return modelCreator.createQuad();
+    }
+
+    private Model createSuite() {
+        ModelLoader loader = new ObjLoader();
+        Model       model  = loader.loadModel(Gdx.files.internal(BasicAtlasManager.getAssetsFolderName() + "/models/nanosuit3.obj"));
+        return model;
+    }
 
     @Override
     public void dispose() {

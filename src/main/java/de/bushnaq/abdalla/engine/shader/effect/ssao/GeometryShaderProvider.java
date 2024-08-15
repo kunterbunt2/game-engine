@@ -30,20 +30,20 @@ import net.mgsx.gltf.scene3d.shaders.PBRShaderProvider;
 /**
  * @author kunterbunt
  */
-public class SsaoShaderProvider extends PBRShaderProvider {
+public class GeometryShaderProvider extends PBRShaderProvider {
 
-    private final FrameBuffer postFbo;
-    private final Ssao        ssao;
-    public        SsaoShader  ssaoShader;
+    public        GeometryShader geometryShader;
+    private final FrameBuffer    postFbo;
+    private final Ssao           ssao;
 
-    public SsaoShaderProvider(final PBRShaderConfig config, final Ssao ssao, FrameBuffer postFbo) {
+    public GeometryShaderProvider(final PBRShaderConfig config, final Ssao ssao, FrameBuffer postFbo) {
         super(config);
         this.ssao    = ssao;
         this.postFbo = postFbo;
     }
 
-    public static SsaoShaderProvider createDefault(final PBRShaderConfig config, final Ssao ssao, FrameBuffer postFbo) {
-        return new SsaoShaderProvider(config, ssao, postFbo);
+    public static GeometryShaderProvider createDefault(final PBRShaderConfig config, final Ssao ssao, FrameBuffer postFbo) {
+        return new GeometryShaderProvider(config, ssao, postFbo);
     }
 
     public String createPrefixBase(final Renderable renderable, final Config config) {
@@ -53,11 +53,11 @@ public class SsaoShaderProvider extends PBRShaderProvider {
         if (isGL3()) {
             if (Gdx.app.getType() == ApplicationType.Desktop) {
                 if (version == null) {
-//					version = "#version 150\n" + "#define GLSL3\n";
+//                    version = "#version 330\n" + "#define GLSL3\n";
                 }
             } else if (Gdx.app.getType() == ApplicationType.Android) {
                 if (version == null)
-                    version = "#version 300 es\n" + "#define GLSL3\n";
+                    version = "#version 330 es\n" + "#define GLSL3\n";
             }
         }
         String prefix = "";
@@ -76,11 +76,11 @@ public class SsaoShaderProvider extends PBRShaderProvider {
         if (isGL3()) {
             if (Gdx.app.getType() == ApplicationType.Desktop) {
                 if (version == null) {
-//					version = "#version 150\n" + "#define GLSL3\n";
+//                    version = "#version 330\n" + "#define GLSL3\n";
                 }
             } else if (Gdx.app.getType() == ApplicationType.Android) {
                 if (version == null) {
-                    version = "#version 300 es\n" + "#define GLSL3\n";
+                    version = "#version 330 es\n" + "#define GLSL3\n";
                 }
             }
         }
@@ -101,7 +101,7 @@ public class SsaoShaderProvider extends PBRShaderProvider {
 
     @Override
     protected PBRShader createShader(final Renderable renderable, final PBRShaderConfig config, final String prefix) {
-        return new SsaoShader(renderable, config, prefix, ssao, postFbo);
+        return new GeometryShader(renderable, config, prefix, ssao, postFbo);
     }
 
     //TODO remove
@@ -112,12 +112,10 @@ public class SsaoShaderProvider extends PBRShaderProvider {
     private Shader createSsaoShader(final Renderable renderable) {
         final String prefix = createPrefixBase(renderable, config);
         final Config config = new Config();
-        config.vertexShader   = Gdx.files.internal("shader/ssao/old/ssao_vertex.glsl").readString();
-        config.fragmentShader = Gdx.files.internal("shader/ssao/old/ssao_fragment.glsl").readString();
-//        config.vertexShader   = Gdx.files.internal("net/mgsx/gltf/shaders/gdx-pbr.vs.glsl").readString();
-//        config.fragmentShader = Gdx.files.internal("net/mgsx/gltf/shaders/gdx-pbr.fs.glsl").readString();
-        ssaoShader = new SsaoShader(renderable, config, prefix, ssao, postFbo);
-        return ssaoShader;
+        config.vertexShader   = Gdx.files.internal("shader/ssao/geometry-vert.glsl").readString();
+        config.fragmentShader = Gdx.files.internal("shader/ssao/geometry-frag.glsl").readString();
+        geometryShader        = new GeometryShader(renderable, config, prefix, ssao, postFbo);
+        return geometryShader;
 
     }
 

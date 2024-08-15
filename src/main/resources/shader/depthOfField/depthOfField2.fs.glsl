@@ -61,7 +61,6 @@ changelog:
 
 uniform sampler2D u_sourceTexture;
 uniform sampler2D u_depthTexture;
-//smooth in vec2 texcoord;
 varying vec2 v_texCoords;
 
 //uniform float renderTexWidth;
