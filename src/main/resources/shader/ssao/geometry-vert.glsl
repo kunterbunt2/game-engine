@@ -47,6 +47,7 @@ out vec4 v_color;
 void main() {
 
     v_normal = normalize(u_normalMatrix * a_normal);
+    v_normal = a_normal;
 
     #ifdef texturedFlag
     v_tangent = normalize(u_normalMatrix * a_tangent);

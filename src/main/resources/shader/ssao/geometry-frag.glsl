@@ -11,7 +11,11 @@ void main()
 {
     gColor = vec4(1.0);//color map
     gPosition = v_position;//depth map
+    //    gPosition = (v_position + 1.0) * 0.5;
+
     gNormal = normalize(v_normal);//normal map
+    //    gNormal = normalize((v_normal + 1.0) * 0.5);
+
 
     //    gPosition = vec3(1f, 0f, 0f);
     //    gNormal = vec3(0f, 1f, 0f);

@@ -74,7 +74,7 @@ public class SsaoEffect<T extends RenderEngineExtension> extends ShaderVfxEffect
         for (int i = 0; i < 16; i++) {
             noise[i * 3]     = random.nextFloat() * 2.0f - 1.0f;
             noise[i * 3 + 1] = random.nextFloat() * 2.0f - 1.0f;
-            noise[i * 3 + 2] = 0f;
+            noise[i * 3 + 2] = 0;
         }
 
         Pixmap pixmap = new Pixmap(4, 4, Pixmap.Format.RGB888);
@@ -84,9 +84,10 @@ public class SsaoEffect<T extends RenderEngineExtension> extends ShaderVfxEffect
                 int r     = (int) ((noise[index] * 0.5f + 0.5f) * 255);
                 int g     = (int) ((noise[index + 1] * 0.5f + 0.5f) * 255);
                 int b     = 0/*(int) ((noise[index + 2] * 0.5f + 0.5f) * 255)*/;
-                pixmap.setColor(noise[index], noise[index + 1], 0f, 1f);
-                pixmap.drawPixel(x, y);
-//                pixmap.drawPixel(x, y, (r << 24) | (g << 16) | (b << 8) | 0xFF);
+//                pixmap.setColor(noise[index], noise[index + 1], noise[index + 2], 1f);
+//                pixmap.drawPixel(x, y);
+                long result = ((long) r << 24) | ((long) g << 16) | (b << 8) | 0xFF;
+                pixmap.drawPixel(x, y, (r << 24) | (g << 16) | (b << 8) | 0xFF);
             }
         }
 
