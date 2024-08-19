@@ -13,8 +13,9 @@ void main()
     gPosition = v_position;//depth map
     //    gPosition = (v_position + 1.0) * 0.5;
 
-    gNormal = normalize(v_normal);//normal map
-    //    gNormal = normalize((v_normal + 1.0) * 0.5);
+    //    gNormal = normalize(v_normal);//normal map
+    gNormal = normalize((v_normal + 1.0) * 0.5);//{-1 - 1} to {0 - 1}
+    //    gNormal = vec3((v_normal.x + 1.0) * 0.5, 0.5, 0.5);//{-1 - 1} to {0 - 1}
 
 
     //    gPosition = vec3(1f, 0f, 0f);

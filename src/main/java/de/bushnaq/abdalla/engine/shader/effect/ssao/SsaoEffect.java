@@ -81,13 +81,15 @@ public class SsaoEffect<T extends RenderEngineExtension> extends ShaderVfxEffect
         for (int y = 0; y < 4; y++) {
             for (int x = 0; x < 4; x++) {
                 int index = (x + y * 4) * 3;
-                int r     = (int) ((noise[index] * 0.5f + 0.5f) * 255);
-                int g     = (int) ((noise[index + 1] * 0.5f + 0.5f) * 255);
-                int b     = 0/*(int) ((noise[index + 2] * 0.5f + 0.5f) * 255)*/;
-//                pixmap.setColor(noise[index], noise[index + 1], noise[index + 2], 1f);
-//                pixmap.drawPixel(x, y);
-                long result = ((long) r << 24) | ((long) g << 16) | (b << 8) | 0xFF;
-                pixmap.drawPixel(x, y, (r << 24) | (g << 16) | (b << 8) | 0xFF);
+//                int r     = (int) ((noise[index] * 0.5f + 0.5f) * 255);
+//                int g     = (int) ((noise[index + 1] * 0.5f + 0.5f) * 255);
+//                int b     = 0/*(int) ((noise[index + 2] * 0.5f + 0.5f) * 255)*/;
+//                long result = ((long) r << 24) | ((long) g << 16) | (b << 8) | 0xFF;
+//                pixmap.drawPixel(x, y, (r << 24) | (g << 16) | (b << 8) | 0xFF);
+                float r = (int) (noise[index] * 0.5f + 0.5f);
+                float g = (int) (noise[index + 1] * 0.5f + 0.5f);
+                pixmap.setColor(noise[index], noise[index + 1], noise[index + 2], 1f);
+                pixmap.drawPixel(x, y);
             }
         }
 

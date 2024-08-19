@@ -20,12 +20,14 @@ import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.g3d.Renderable;
 import com.badlogic.gdx.graphics.g3d.utils.RenderContext;
 import com.badlogic.gdx.graphics.glutils.FrameBuffer;
+import com.badlogic.gdx.math.Matrix3;
 import net.mgsx.gltf.scene3d.shaders.PBRShader;
 
 /**
  * @author kunterbunt
  */
 public class GeometryShader extends PBRShader {
+    Matrix3 matrix3 = new Matrix3();
     private final FrameBuffer postFbo;
     private final Ssao        ssao;
 
@@ -54,6 +56,8 @@ public class GeometryShader extends PBRShader {
     @Override
     public void render(final Renderable renderable) {
         super.render(renderable);
+//        program.setUniformMatrix("u_worldTrans", renderable.worldTransform);
+//        program.setUniformMatrix("u_projViewTrans", camera.combined);
+//        program.setUniformMatrix("u_normalMatrix", matrix3.set(renderable.worldTransform).inv().transpose());
     }
-
 }

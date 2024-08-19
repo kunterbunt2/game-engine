@@ -28,7 +28,7 @@ uniform sampler2D u_ssaoTexture;
 void main() {
     vec3 sceneColor = texture(u_colorTexture, v_texCoord0).rgb;
     float ssaoFactor = texture(u_ssaoTexture, v_texCoord0).r;
-    vec3 ssaoColor = texture(u_ssaoTexture, v_texCoord0).rgb;
+    vec3 ssaoColor = texture(u_ssaoTexture, v_texCoord0).rgb;//{0 - 1}
 
     // Combine the SSAO with the scene's color
     vec3 finalColor = sceneColor * ssaoFactor;
@@ -36,6 +36,7 @@ void main() {
     out_FragColor = vec4(finalColor, 1.0);
     //    out_FragColor = vec4(ssaoFactor, ssaoFactor, ssaoFactor, 1.0);
     //    out_FragColor = vec4(sceneColor, 1.0);
-    //    out_FragColor = vec4(ssaoColor, 1.0);
+    //    out_FragColor = vec4(ssaoColor.x, ssaoColor.y, ssaoColor.z, 1.0);
+    //    out_FragColor = vec4(ssaoColor.x, 0, 0, 1.0);
     //    out_FragColor = vec4(v_texCoord0, 1.0, 1.0);
 }

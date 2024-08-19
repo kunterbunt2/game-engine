@@ -22,10 +22,11 @@ void main()
 {
     vec3 fragPos = texture(uni_texture0, var_UV).xyz;
 //	vec3 fragPos = (texture(uni_texture0, var_UV).xyz * 2.0) - 1.0;
-    vec3 normal = texture(uni_texture1, var_UV).rgb;
-//	vec3 normal = (texture(uni_texture1, var_UV).xyz * 2.0) - 1.0;
+//    vec3 normal = texture(uni_texture1, var_UV).rgb;
+	vec3 normal =texture(uni_texture1, var_UV).rgb;
+	normal = normalize( normal * 2.0 - 1.0);//{0 - 1} to {-1 - 1}
     vec3 randomVec = texture(uni_texture2, var_UV * noiseScale).xyz;
-//	vec3 randomVec = (texture(uni_texture2, var_UV * noiseScale).xyz * 2.0) - 1.0;
+	randomVec = (randomVec * 2.0) - 1.0;
 
     vec3 tangent = normalize(randomVec - normal * dot(randomVec, normal));
     vec3 bitangent = cross(normal, tangent);
@@ -55,6 +56,8 @@ void main()
 //    fragColor = occlusion;
     fragColor = vec4(occlusion, occlusion, occlusion, 1f);
 //	fragColor = vec4(abs(normal.x),abs(normal.y),abs(normal.z), 1f);
+//	fragColor = vec4((normal+1)*0.5, 1f);//{-1 - 1} to {0 - 1}
+//fragColor = vec4(normal, 1f);//{-1 - 1} to {0 - 1}
 //    fragColor = vec4(var_UV.x,var_UV.y, 0f, 1f);
 
 }
