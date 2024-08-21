@@ -48,7 +48,7 @@ public class MirrorShader extends DefaultShader {
 
     @Override
     public boolean canRender(final Renderable renderable) {
-        return renderable.material.id.equals("shader/mirror");
+        return renderable.material.id.equals("mirror");
     }
 
     public String getLog() {

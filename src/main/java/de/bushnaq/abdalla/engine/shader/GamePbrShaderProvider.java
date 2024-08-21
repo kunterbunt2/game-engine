@@ -129,11 +129,11 @@ public class GamePbrShaderProvider extends PBRShaderProvider implements GameShad
 
     @Override
     protected Shader createShader(final Renderable renderable) {
-        if (ssaoEnabled)
-            return createSsaoShader(renderable);
-        else if (renderable.material.id.equals("water") && water != null) {
+//        if (ssaoEnabled)
+//            return createSsaoShader(renderable);
+        if (renderable.material.id.equals("water") && water != null) {
             return createWaterShader(renderable);
-        } else if (renderable.material.id.equals("shader/mirror") && mirror != null) {
+        } else if (renderable.material.id.equals("mirror") && mirror != null) {
             return createMirrorShader(renderable);
         } else
             return createPBRShader(renderable);

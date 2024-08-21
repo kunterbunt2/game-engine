@@ -43,9 +43,9 @@ public class MyPBRShader extends PBRShader {
 
     @Override
     public boolean canRender(final Renderable renderable) {
-        if (ssaoEnabled)
-            return true;
-        else if (renderable.material.id.equals("water")) {
+//        if (ssaoEnabled)
+//            return false;
+        if (renderable.material.id.equals("water")) {
             return false;
         } else if (renderable.material.id.equals("shader/mirror")) {
             return false;
