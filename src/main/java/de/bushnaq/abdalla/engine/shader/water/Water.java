@@ -22,25 +22,44 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.GL30;
 import com.badlogic.gdx.graphics.glutils.FrameBuffer;
 import com.badlogic.gdx.graphics.glutils.GLFrameBuffer.FrameBufferBuilder;
+import com.badlogic.gdx.math.Plane;
+import com.badlogic.gdx.math.Vector3;
 
 /**
  * @author kunterbunt
  */
 public class Water {
-    private boolean     present                 = false;
-    private FrameBuffer reflectionFbo;
-    private FrameBuffer refractionFbo;
-    private float       refractiveMultiplicator = 1.0f;
-    private float       tiling                  = 1f;
-    //	private float		waveSpeed				= 0.01f;
-//	private float		waveStrength			= 0.007f;
-    private float       waveSpeed               = 0.0f;
-    private float       waveStrength            = 0.00f;
+    private       boolean     present                 = false;
+    private       FrameBuffer reflectionFbo;
+    private       FrameBuffer refractionFbo;
+    private       float       refractiveMultiplicator = 1.0f;
+    private       float       tiling                  = 1f;
+    private       float       waveSpeed               = 0.0f;
+    private       float       waveStrength            = 0.00f;
+    private final Plane       reflectionClippingPlane = new Plane(new Vector3(0f, 1f, 0f), 0.1f);                                // render everything above d
+    private final Plane       refractionClippingPlane = new Plane(new Vector3(0f, -1f, 0f), (-0.1f));                            // render everything below d
+    private float waterLevel  = 0;
 
     public Water() {
 
     }
+    public float getWaterLevel() {
+        return waterLevel;
+    }
 
+    public void setWaterLevel(float level) {
+         waterLevel = level;
+        reflectionClippingPlane.d = waterLevel+.1f;
+        refractionClippingPlane.d = waterLevel-.1f;
+    }
+    public Plane getRefractionClippingPlane()
+    {
+        return refractionClippingPlane;
+    }
+    public Plane getReflectionClippingPlane()
+    {
+        return reflectionClippingPlane;
+    }
     public void createFrameBuffer() {
         {
             final FrameBufferBuilder frameBufferBuilder = new FrameBufferBuilder(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());

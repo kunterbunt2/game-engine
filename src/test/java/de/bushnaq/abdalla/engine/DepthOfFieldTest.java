@@ -95,7 +95,6 @@ public class DepthOfFieldTest extends BasicGameEngine {
         getRenderEngine().setShowGraphs(false);
         getRenderEngine().setShadowEnabled(true);
         getRenderEngine().getDepthOfFieldEffect().setEnabled(true);
-//        getRenderEngine().getDepthOfFieldEffect().setEnabled(true);
         float focalDepth = CUBE_DISTANCE * 2;
         getRenderEngine().getDepthOfFieldEffect().setFocalDepth(focalDepth);
         Vector3 position = new Vector3(0, 0, CUBE_DISTANCE);

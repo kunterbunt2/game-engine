@@ -147,8 +147,8 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
     private       ExtendedGLProfiler          profiler;
     public        Model                       rayCube;
     // private final Ray ray = new Ray(new Vector3(), new Vector3());
-    private final Plane                       reflectionClippingPlane          = new Plane(new Vector3(0f, 1f, 0f), 0.1f);                                // render everything above the
-    private final Plane                       refractionClippingPlane          = new Plane(new Vector3(0f, -1f, 0f), (-0.1f));                            // render everything below the
+//    private final Plane                       reflectionClippingPlane          = new Plane(new Vector3(0f, 1f, 0f), 0.1f);                                // render everything above d
+//    private final Plane                       refractionClippingPlane          = new Plane(new Vector3(0f, -1f, 0f), (-0.1f));                            // render everything below d
     public        boolean                     render2D                         = true;
     public        boolean                     render3D                         = true;
     private       boolean                     renderBokeh                      = true;
@@ -344,18 +344,19 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
 //		effect1.setPasses(32);
     }
 
-    private void createCoordinates() {
+    public void createCoordinates(Vector3 origin, Vector3 rotate, float length, float width) {
         createRayCube();
-        final Vector3 position = new Vector3(0, 0, 0);
+        final Vector3 position = origin;
         final Vector3 xVector  = new Vector3(1, 0, 0);
         final Vector3 yVector  = new Vector3(0, 1, 0);
         final Vector3 zVector  = new Vector3(0, 0, 1);
         final Ray     rayX     = new Ray(position, xVector);
         final Ray     rayY     = new Ray(position, yVector);
         final Ray     rayZ     = new Ray(position, zVector);
-        createRay(rayX, null, false);
-        createRay(rayY, null, false);
-        createRay(rayZ, null, false);
+
+        createRay(rayX, length, false, rotate, width);
+        createRay(rayY, length, false, rotate, width);
+        createRay(rayZ, length, false, rotate, width);
     }
 
     private void createEnvironment() {
@@ -418,7 +419,7 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
         fpsGraph = new FpsGraph("FPS", new Color(0f, 0f, 1f, 1f), new Color(0f, 0f, 1f, 0.6f), new Color(0f, 0f, 0f, .6f), Gdx.graphics.getWidth(), Gdx.graphics.getHeight() / 3, font, boldFont, atlasRegion);
     }
 
-    private GameObject<T> createRay(final Ray ray, Float length, boolean center) {
+    private GameObject<T> createRay(final Ray ray, Float length, boolean center, Vector3 rotate, float width) {
         if (length == null) length = 10000f;
         final Vector3       direction = new Vector3(ray.direction.x, ray.direction.y, ray.direction.z);
         final Vector3       position  = ray.origin.cpy();
@@ -436,9 +437,12 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
             position.y += direction.y * length / 2;
             position.z += direction.z * length / 2;
         }
-        instance.instance.transform.setToTranslation(position);
+//        instance.instance.transform.rotate(Vector3.X, rotate.x);
+        instance.instance.transform.setToRotation(Vector3.Y, rotate.y);
+//        instance.instance.transform.rotate(Vector3.Z, rotate.z);
+        instance.instance.transform.translate(position);
         instance.instance.transform.rotate(xVector, direction);
-        instance.instance.transform.scale(length, 0.5f, 0.5f);
+        instance.instance.transform.scale(length, width, width);
         instance.update();
         return instance;
         // System.out.println("created ray");
@@ -989,15 +993,15 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
             // waterRefractionFbo
             context.enableClipping();
             water.getRefractionFbo().begin();
-            gameShaderProvider.setClippingPlane(refractionClippingPlane);
+            gameShaderProvider.setClippingPlane(water.getRefractionClippingPlane());
             renderColors(takeScreenShot);
             water.getRefractionFbo().end();
             handleFrameBufferScreenshot(takeScreenShot, water.getRefractionFbo(), "water.refraction.fbo");
 
             // waterReflectionFbo
-            gameShaderProvider.setClippingPlane(reflectionClippingPlane);
-            final float cameraYDistance = 2 * (camera.position.y - context.getWaterLevel());
-            final float lookatYDistance = 2 * (camera.lookat.y - context.getWaterLevel());
+            gameShaderProvider.setClippingPlane(water.getReflectionClippingPlane());
+            final float cameraYDistance = 2 * (camera.position.y - water.getWaterLevel());
+            final float lookatYDistance = 2 * (camera.lookat.y - water.getWaterLevel());
             camera.position.y -= cameraYDistance;
             camera.lookat.y -= lookatYDistance;
             camera.up.set(0, 1, 0);
@@ -1022,9 +1026,9 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
             // waterReflectionFbo
             context.enableClipping();
 
-            gameShaderProvider.setClippingPlane(reflectionClippingPlane);
-            final float cameraYDistance = 2 * (camera.position.y - context.getMirrorLevel());
-            final float lookatYDistance = 2 * (camera.lookat.y - context.getMirrorLevel());
+            gameShaderProvider.setClippingPlane(mirror.getReflectionClippingPlane());
+            final float cameraYDistance = 2 * (camera.position.y - mirror.getMirrorLevel());
+            final float lookatYDistance = 2 * (camera.lookat.y - mirror.getMirrorLevel());
             camera.position.y -= cameraYDistance;
             camera.lookat.y -= lookatYDistance;
             camera.up.set(0, 1, 0);
@@ -1445,13 +1449,13 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
         this.pbr = pbr;
     }
 
-    public void setReflectionClippingPlane(float distance) {
-        reflectionClippingPlane.d = distance;
-    }
-
-    public void setRefractionClippingPlane(float distance) {
-        refractionClippingPlane.d = distance;
-    }
+//    public void setReflectionClippingPlane(float distance) {
+//        reflectionClippingPlane.d = distance;
+//    }
+//
+//    public void setRefractionClippingPlane(float distance) {
+//        refractionClippingPlane.d = distance;
+//    }
 
     public void setRenderBokeh(boolean renderBokeh) {
         this.renderBokeh = renderBokeh;

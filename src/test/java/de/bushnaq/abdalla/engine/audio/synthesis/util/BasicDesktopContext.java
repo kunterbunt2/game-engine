@@ -43,15 +43,25 @@ public class BasicDesktopContext extends Context {
 
     }
 
-    @Override
-    public float getMirrorLevel() {
-        return -12;
-    }
-
-    @Override
-    public float getWaterLevel() {
-        return -10f;
-    }
+//    @Override
+//    public float getMirrorLevel() {
+//        return -12;
+//    }
+//
+//    @Override
+//    public float getWaterLevel() {
+//        return -10f;
+//    }
+//
+//    @Override
+//    public float setMirrorLevel(float level) {
+//        return 0;
+//    }
+//
+//    @Override
+//    public float setWaterLevel(float level) {
+//        return 0;
+//    }
 
     @Override
     protected String getInstallationFolder() {

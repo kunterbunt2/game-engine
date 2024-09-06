@@ -26,7 +26,7 @@ import com.badlogic.gdx.math.Plane;
  * @author kunterbunt
  */
 public class MirrorShader extends DefaultShader {
-    private static Plane  clippingPlane;
+    private Plane  clippingPlane;
     private final  Mirror mirror;
     private final  int    u_clippingPlane     = register("u_clippingPlane");
     private final  int    u_reflectionTexture = register("u_reflectionTexture");
@@ -61,7 +61,7 @@ public class MirrorShader extends DefaultShader {
     }
 
     public void setClippingPlane(final Plane clippingPlane) {
-        MirrorShader.clippingPlane = clippingPlane;
+        this.clippingPlane = clippingPlane;
     }
 
 }

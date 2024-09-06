@@ -33,11 +33,14 @@ import de.bushnaq.abdalla.engine.shader.water.WaterShader;
 import net.mgsx.gltf.scene3d.shaders.PBRShader;
 import net.mgsx.gltf.scene3d.shaders.PBRShaderConfig;
 import net.mgsx.gltf.scene3d.shaders.PBRShaderProvider;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author kunterbunt
  */
 public class GamePbrShaderProvider extends PBRShaderProvider implements GameShaderProviderInterface {
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private       Plane        clippingPlane;
     private final Mirror       mirror;

@@ -72,6 +72,7 @@ public abstract class BasicGameEngine implements ApplicationListener, InputProce
     private       StringBuilder                   stringBuilder;
     private       boolean                         takeScreenShot  = false;
     private       long                            timeDelta       = 0L;
+    public        Context                         context;
 
     public void advanceInTime() {
         long fixedDelta = 20L;
@@ -88,7 +89,7 @@ public abstract class BasicGameEngine implements ApplicationListener, InputProce
     public void create() {
         try {
             BasicDesktopContextFactory contextFactory = new BasicDesktopContextFactory();
-            Context                    context        = contextFactory.create();
+            context = contextFactory.create();
             createCamera();
             createInputProcessor(this);
             atlasManager = new BasicAtlasManager();
