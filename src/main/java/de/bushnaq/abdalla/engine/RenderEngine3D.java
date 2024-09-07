@@ -40,7 +40,6 @@ import com.badlogic.gdx.graphics.glutils.GLFrameBuffer;
 import com.badlogic.gdx.graphics.profiling.GLErrorListener;
 import com.badlogic.gdx.math.Intersector;
 import com.badlogic.gdx.math.Matrix4;
-import com.badlogic.gdx.math.Plane;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.math.collision.Ray;
@@ -175,7 +174,7 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
     private       int                         staticCacheDirtyCount            = 0;
     public final  Array<GameObject<T>>        staticGameObjects                = new Array<>();
     private final Set<ObjectRenderer<T>>      staticText3DList                 = new HashSet<>();
-    public        int                         testCase                         = 1;
+    //        public        int                         testCase                         = 1;
     private final Set<Text2D>                 text2DList                       = new HashSet<>();
     private       float                       timeOfDay                        = 8;                                                                    // 24h time
     private final boolean                     useDynamicCache                  = false;
@@ -217,15 +216,15 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
         this.atlasRegion = atlasRegion;
         renderEngine2D   = new RenderEngine2D<>(gameEngine, camera2D);
         renderEngine25D  = new RenderEngine25D<>(gameEngine, camera2D);
-        if (testCase == 1) {
-            renderutils2Dxz = new Render2Dxz<>(gameEngine, camera);
-        }
-        if (testCase == 2) {
-            renderutils2Dxz = new Render2Dxz<>(gameEngine, camera2D);
-        }
-        if (testCase == 3) {
+//        if (testCase == 1) {
+        renderutils2Dxz = new Render2Dxz<>(gameEngine, camera);
+//        }
+//        if (testCase == 2) {
 //            renderutils2Dxz = new Render2Dxz<>(gameEngine, camera2D);
-        }
+//        }
+//        if (testCase == 3) {
+////            renderutils2Dxz = new Render2Dxz<>(gameEngine, camera2D);
+//        }
 
         create();
         logger.info(String.format("fog = %b", getFog().isEnabled()));
@@ -344,15 +343,15 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
 //		effect1.setPasses(32);
     }
 
-    public void createCoordinates(Vector3 origin, Vector3 rotate, float length, float width) {
+    public void createCoordinates(Vector3 translate, Vector3 rotate, float length, float width) {
         createRayCube();
-        final Vector3 position = origin;
-        final Vector3 xVector  = new Vector3(1, 0, 0);
-        final Vector3 yVector  = new Vector3(0, 1, 0);
-        final Vector3 zVector  = new Vector3(0, 0, 1);
-        final Ray     rayX     = new Ray(position, xVector);
-        final Ray     rayY     = new Ray(position, yVector);
-        final Ray     rayZ     = new Ray(position, zVector);
+//        final Vector3 position = translate;
+        final Vector3 xVector = new Vector3(1, 0, 0);
+        final Vector3 yVector = new Vector3(0, 1, 0);
+        final Vector3 zVector = new Vector3(0, 0, 1);
+        final Ray     rayX    = new Ray(translate, xVector);
+        final Ray     rayY    = new Ray(translate, yVector);
+        final Ray     rayZ    = new Ray(translate, zVector);
 
         createRay(rayX, length, false, rotate, width);
         createRay(rayY, length, false, rotate, width);
@@ -1524,50 +1523,50 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
             camera.setDirty(true);
 //            System.out.println("updateCamera");
         }
-        if (testCase == 1) {
-            if (camera.isDirty()) {
-                Vector3 v1 = new Vector3(camera.position);
-                Vector3 v2 = new Vector3(camera.position);
-                sceneBox.set(v1.add(sceneBoxMin), v2.add(sceneBoxMax));
-                shadowLight.setBounds(sceneBox);
+//        if (testCase == 1) {
+        if (camera.isDirty()) {
+            Vector3 v1 = new Vector3(camera.position);
+            Vector3 v2 = new Vector3(camera.position);
+            sceneBox.set(v1.add(sceneBoxMin), v2.add(sceneBoxMax));
+            shadowLight.setBounds(sceneBox);
 
-                renderutils2Dxz.batch.setTransformMatrix(identityMatrix);
-                renderutils2Dxz.batch.enableBlending();
-                renderutils2Dxz.batch.setProjectionMatrix(camera.combined);
-                final Matrix4 m = new Matrix4();
-                m.translate(0, 0.2f, 0);
-                m.rotate(xVector, -90);
-                renderutils2Dxz.batch.setTransformMatrix(m);
-            }
+            renderutils2Dxz.batch.setTransformMatrix(identityMatrix);
+            renderutils2Dxz.batch.enableBlending();
+            renderutils2Dxz.batch.setProjectionMatrix(camera.combined);
+            final Matrix4 m = new Matrix4();
+            m.translate(0, 0.2f, 0);
+            m.rotate(xVector, -90);
+            renderutils2Dxz.batch.setTransformMatrix(m);
         }
-        if (testCase == 2) {
-//            if (camera2D.isDirty())
-            {
-                renderutils2Dxz.batch.setTransformMatrix(identityMatrix);
-                renderutils2Dxz.batch.enableBlending();
-                renderutils2Dxz.batch.setProjectionMatrix(camera2D.combined);
-                final Matrix4 m       = new Matrix4();
-                final Vector3 xVector = new Vector3(1, 0, 0);
-                final Vector3 yVector = new Vector3(0, 1, 0);
-                final Vector3 zVector = new Vector3(0, 0, 1);
-                m.rotate(xVector, -90);
-                renderutils2Dxz.batch.setTransformMatrix(m);
-            }
-        }
-        if (testCase == 3) {
-//            if (camera2D.isDirty())
-            {
-                renderEngine2D.batch.setTransformMatrix(identityMatrix);
-                renderEngine2D.batch.enableBlending();
-                renderEngine2D.batch.setProjectionMatrix(camera2D.combined);
-                final Matrix4 m       = new Matrix4();
-                final Vector3 xVector = new Vector3(1, 0, 0);
-                final Vector3 yVector = new Vector3(0, 1, 0);
-                final Vector3 zVector = new Vector3(0, 0, 1);
-                m.rotate(xVector, -90);
-                renderEngine2D.batch.setTransformMatrix(m);
-            }
-        }
+//        }
+//        if (testCase == 2) {
+////            if (camera2D.isDirty())
+//            {
+//                renderutils2Dxz.batch.setTransformMatrix(identityMatrix);
+//                renderutils2Dxz.batch.enableBlending();
+//                renderutils2Dxz.batch.setProjectionMatrix(camera2D.combined);
+//                final Matrix4 m       = new Matrix4();
+//                final Vector3 xVector = new Vector3(1, 0, 0);
+//                final Vector3 yVector = new Vector3(0, 1, 0);
+//                final Vector3 zVector = new Vector3(0, 0, 1);
+//                m.rotate(xVector, -90);
+//                renderutils2Dxz.batch.setTransformMatrix(m);
+//            }
+//        }
+//        if (testCase == 3) {
+////            if (camera2D.isDirty())
+//            {
+//                renderEngine2D.batch.setTransformMatrix(identityMatrix);
+//                renderEngine2D.batch.enableBlending();
+//                renderEngine2D.batch.setProjectionMatrix(camera2D.combined);
+//                final Matrix4 m       = new Matrix4();
+//                final Vector3 xVector = new Vector3(1, 0, 0);
+//                final Vector3 yVector = new Vector3(0, 1, 0);
+//                final Vector3 zVector = new Vector3(0, 0, 1);
+//                m.rotate(xVector, -90);
+//                renderEngine2D.batch.setTransformMatrix(m);
+//            }
+//        }
     }
 
     private void updateDynamicModelInstanceCache() {
