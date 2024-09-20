@@ -50,6 +50,7 @@ import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.crashinvaders.vfx.VfxManager;
 import de.bushnaq.abdalla.engine.camera.MovingCamera;
+import de.bushnaq.abdalla.engine.physics.PhysicsEngine;
 import de.bushnaq.abdalla.engine.shader.GamePbrShaderProvider;
 import de.bushnaq.abdalla.engine.shader.GameSettings;
 import de.bushnaq.abdalla.engine.shader.GameShaderProvider;
@@ -139,6 +140,7 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
     private       float                       nightShadowIntensity             = .2f;
     public        SceneSkybox                 nightSkyBox;
     private       boolean                     pbr;
+    public        PhysicsEngine               physicsEngine;
     final         PointLightsAttribute        pointLights                      = new PointLightsAttribute();
     private final Vector3                     position                         = new Vector3();
     private       FrameBuffer                 postFbo;
@@ -293,8 +295,8 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
     public void clearViewport() {
 //        Gdx.gl.glEnable(GL20.GL_DEPTH_TEST);// modelBatch will change this state anyway, so better enable it when you
         // need it
-//        Gdx.gl.glClearColor(getFog().getColor().r, getFog().getColor().g, getFog().getColor().b, 1.0f);
-        Gdx.gl20.glClearColor(0, 0, 0, 1);
+        Gdx.gl.glClearColor(getFog().getColor().r, getFog().getColor().g, getFog().getColor().b, 1.0f);
+//        Gdx.gl20.glClearColor(0, 0, 0, 1);
         Gdx.gl20.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
 //        Gdx.gl20.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
 //        Gdx.gl.glViewport(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
@@ -328,6 +330,8 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
 //        fadeEffect.setIntensity(.1f);
 //        vfxManager.addEffect(fadeEffect);
         createGraphs();
+        physicsEngine = new PhysicsEngine();
+        physicsEngine.create();
     }
 
     private void createBloomEffect() {
@@ -544,6 +548,7 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
     }
 
     public void dispose() throws Exception {
+        physicsEngine.dispose();
         if (profiler.isEnabled()) {
             profiler.disable();
         }
@@ -1108,6 +1113,7 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
         camera.setDirty(false);
         staticCacheDirtyCount = 0;
         renderGraphs();
+        physicsEngine.render(camera);
 
 //        if (vfxManager.anyEnabledEffects() && render3D) postMSFbo.begin();
 //        if (vfxManager.anyEnabledEffects() && render3D) postMSFbo.end();
@@ -1511,11 +1517,11 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
     }
 
     public void updateCamera(final float centerXD, final float centerYD, final float centerZD) {
-        if (centerXD != 0f || /*centerYD != 0f ||*/ centerZD != 0f)//TODO do not update if nothing has changed
+        if (centerXD != 0f || centerYD != 0f || centerZD != 0f)//TODO do not update if nothing has changed
         {
             Vector3 backup = new Vector3(camera.lookat);
-            camera.translate(centerXD, 0, centerZD);
-            camera.lookat.add(centerXD, 0, centerZD);
+            camera.translate(centerXD, centerYD, centerZD);
+            camera.lookat.add(centerXD, centerYD, centerZD);
             camera.up.set(0, 1, 0);
 //            camera.lookAt(backup/*camera.lookat*/);
 //            camera.lookAt(camera.lookat);

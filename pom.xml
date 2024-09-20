@@ -69,6 +69,17 @@
             <version>${libgdxVersion}</version>
         </dependency>
         <dependency>
+            <groupId>com.badlogicgames.gdx</groupId>
+            <artifactId>gdx-bullet</artifactId>
+            <version>${libgdxVersion}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.badlogicgames.gdx</groupId>
+            <artifactId>gdx-bullet-platform</artifactId>
+            <classifier>natives-desktop</classifier>
+            <version>${libgdxVersion}</version>
+        </dependency>
+        <dependency>
             <groupId>com.crashinvaders.vfx</groupId>
             <artifactId>gdx-vfx-effects</artifactId>
             <version>${gdx.vfx.version}</version>

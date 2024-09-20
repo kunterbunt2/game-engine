@@ -28,11 +28,11 @@ import com.badlogic.gdx.utils.Align;
  * TODO example
  */
 public class Text2D {
+    private Color color;
     BitmapFont font;
     String     text;
     int        x;
     int        y;
-    private Color color;
 
     public Text2D(final String text, int x, int y, Color color, final BitmapFont font) {
         this.text  = text;
@@ -47,6 +47,7 @@ public class Text2D {
         layout.setText(font, text);
         final float width = layout.width;// contains the width of the current set text
         font.setColor(color);
+//        batch2d.setColor(color);
         font.draw(batch2d, text, x, y, width, Align.left, false);
     }
 
