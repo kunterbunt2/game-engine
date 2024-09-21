@@ -16,9 +16,13 @@
 
 package de.bushnaq.abdalla.engine.physics;
 
+import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.Bullet;
 import com.badlogic.gdx.physics.bullet.DebugDrawer;
 import com.badlogic.gdx.physics.bullet.collision.*;
+import com.badlogic.gdx.physics.bullet.dynamics.btDiscreteDynamicsWorld;
+import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
+import com.badlogic.gdx.physics.bullet.dynamics.btSequentialImpulseConstraintSolver;
 import com.badlogic.gdx.physics.bullet.linearmath.btIDebugDraw;
 import com.badlogic.gdx.utils.Array;
 import de.bushnaq.abdalla.engine.GameObject;
@@ -28,69 +32,72 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class PhysicsEngine<T extends RenderEngineExtension> {
-    public final static short ALL_FLAG    = -1;
-    public final static short BOX_FLAG    = 1 << 8;
-    public final static short MARBLE_FLAG = 1 << 9;
-    btCollisionAlgorithm     algorithm;
-    btBroadphaseInterface    broadphase;
-    btCollisionConfiguration collisionConfig;
-    public btCollisionWorld collisionWorld;
-    MyContactListener    contactListener;
-    DebugDrawer          debugDrawer;
-    btDispatcher         dispatcher;
-    Array<GameObject<T>> instances = new Array<>();
-    protected Logger logger = LoggerFactory.getLogger(this.getClass());
+    public final static short                               ALL_FLAG    = -1;
+    public final static short                               BOX_FLAG    = 1 << 8;
+    public final static short                               MARBLE_FLAG = 1 << 9;
+    private             btCollisionAlgorithm                algorithm;
+    private             btBroadphaseInterface               broadphase;
+    private             btCollisionConfiguration            collisionConfig;
+    private             btSequentialImpulseConstraintSolver constraintSolver;
+    private             boolean                             debug;
+    private             DebugDrawer                         debugDrawer;
+    private             btDispatcher                        dispatcher;
+    private             btDiscreteDynamicsWorld             dynamicsWorld;
+    public              Array<Object>                       instances   = new Array<>();
+    protected           Logger                              logger      = LoggerFactory.getLogger(this.getClass());
 
-    public void add(GameObject<T> gameObject, btCollisionObject collisionObject, short marbleFlag, short allFlag) {
+    public void add(Object Object, btRigidBody collisionObject, short marbleFlag, short allFlag) {
         collisionObject.setUserValue(instances.size);
-        instances.add(gameObject);
+        instances.add(Object);
         collisionObject.setCollisionFlags(collisionObject.getCollisionFlags() | btCollisionObject.CollisionFlags.CF_CUSTOM_MATERIAL_CALLBACK);
-        collisionWorld.addCollisionObject(collisionObject/*, PhysicsEngine.MARBLE_FLAG, PhysicsEngine.ALL_FLAG*/);
+        dynamicsWorld.addRigidBody(collisionObject/*, PhysicsEngine.MARBLE_FLAG, PhysicsEngine.ALL_FLAG*/);
     }
 
-    public void create() {
+    public void create(T gameEngine) {
         Bullet.init();
         debugDrawer = new DebugDrawer();
         debugDrawer.setDebugMode(btIDebugDraw.DebugDrawModes.DBG_MAX_DEBUG_DRAW_MODE);
         collisionConfig = new btDefaultCollisionConfiguration();
         dispatcher      = new btCollisionDispatcher(collisionConfig);
         broadphase      = new btDbvtBroadphase();
-        collisionWorld  = new btCollisionWorld(dispatcher, broadphase, collisionConfig);
-        collisionWorld.setDebugDrawer(debugDrawer);
-        contactListener = new MyContactListener();
+//        collisionWorld  = new btCollisionWorld(dispatcher, broadphase, collisionConfig);
+        constraintSolver = new btSequentialImpulseConstraintSolver();
+        dynamicsWorld    = new btDiscreteDynamicsWorld(dispatcher, broadphase, constraintSolver, collisionConfig);
+        dynamicsWorld.setGravity(new Vector3(0, -10f, 0));
+
+        dynamicsWorld.setDebugDrawer(debugDrawer);
 //        btCollisionAlgorithmConstructionInfo ci = new btCollisionAlgorithmConstructionInfo();
 //        ci.setDispatcher1(dispatcher);
 //            algorithm = new btSphereBoxCollisionAlgorithm(null, ci, co0.wrapper, co1.wrapper, false);
     }
 
     public void dispose() {
-        collisionWorld.dispose();
+        dynamicsWorld.dispose();
         broadphase.dispose();
         dispatcher.dispose();
         collisionConfig.dispose();
-        contactListener.dispose();
     }
 
-    public void remove(GameObject<T> gameObject, btCollisionObject ballObject) {
+    public void remove(GameObject<T> gameObject, btRigidBody ballObject) {
         instances.removeValue(gameObject, false);
-        collisionWorld.removeCollisionObject(ballObject);
+        dynamicsWorld.removeCollisionObject(ballObject);
     }
 
     public void render(MovingCamera camera) {
 //        logger.info(String.format("testing %d objects collisions...", collisionWorld.getNumCollisionObjects()));
-        collisionWorld.performDiscreteCollisionDetection();
-        debugDrawer.begin(camera);
-        collisionWorld.debugDrawWorld();
-        debugDrawer.end();
-    }
-
-    class MyContactListener extends ContactListener {
-        @Override
-        public boolean onContactAdded(int userValue0, int partId0, int index0, int userValue1, int partId1, int index1) {
-            GameObject<T> go0 = instances.get(userValue0);
-            GameObject<T> go1 = instances.get(userValue1);
-            logger.info("contact!");
-            return true;
+//        final float delta = Math.min(1f / 30f, Gdx.graphics.getDeltaTime());
+//        dynamicsWorld.stepSimulation(delta, 5, 1f / 60f);
+//        logger.info("collision test start");
+        dynamicsWorld.performDiscreteCollisionDetection();
+//        logger.info("collision test end");
+//        for (GameObject<T> obj : instances)
+//            obj.body.getWorldTransform(obj.instance.transform);//TODO remove and ensure callback is working
+        if (debug) {
+            debugDrawer.begin(camera);
+            dynamicsWorld.debugDrawWorld();
+            debugDrawer.end();
         }
     }
+
+
 }

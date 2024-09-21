@@ -18,6 +18,7 @@ package de.bushnaq.abdalla.engine;
 
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
+import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import net.mgsx.gltf.scene3d.animation.AnimationControllerHack;
 import net.mgsx.gltf.scene3d.model.ModelInstanceHack;
 
@@ -26,8 +27,9 @@ import net.mgsx.gltf.scene3d.model.ModelInstanceHack;
  */
 public class GameObject<T extends RenderEngineExtension> {
 
-    public final Vector3                 center                 = new Vector3();
+    public       btRigidBody             body;
     public       BoundingBox             boundingBox            = new BoundingBox();
+    public final Vector3                 center                 = new Vector3();
     public       AnimationControllerHack controller;
     public       ModelInstanceHack       instance;
     public       Object                  interactive;
@@ -42,7 +44,7 @@ public class GameObject<T extends RenderEngineExtension> {
         this.instance       = instance;
         this.interactive    = interactive;
         this.objectRenderer = objectRenderer;
-        boundingBox         = new BoundingBox();
+//        boundingBox         = new BoundingBox();
         instance.calculateBoundingBox(boundingBox);
         boundingBox.getCenter(center);
     }

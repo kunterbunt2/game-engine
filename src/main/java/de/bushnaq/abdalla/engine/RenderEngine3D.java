@@ -140,7 +140,7 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
     private       float                       nightShadowIntensity             = .2f;
     public        SceneSkybox                 nightSkyBox;
     private       boolean                     pbr;
-    public        PhysicsEngine               physicsEngine;
+    public        PhysicsEngine<T>            physicsEngine;
     final         PointLightsAttribute        pointLights                      = new PointLightsAttribute();
     private final Vector3                     position                         = new Vector3();
     private       FrameBuffer                 postFbo;
@@ -331,7 +331,7 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
 //        vfxManager.addEffect(fadeEffect);
         createGraphs();
         physicsEngine = new PhysicsEngine();
-        physicsEngine.create();
+        physicsEngine.create(getGameEngine());
     }
 
     private void createBloomEffect() {

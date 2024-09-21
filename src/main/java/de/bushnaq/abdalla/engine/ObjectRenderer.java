@@ -30,6 +30,11 @@ public abstract class ObjectRenderer<T extends RenderEngineExtension> {
     public void destroy(final RenderEngine3D<T> renderEngine) {
     }
 
+
+    public boolean onContactAdded(Object o0, Object o1) {
+        return false;
+    }
+
     public void render(final float px, final float py, final RenderEngine2D<T> renderEngine, final int index, final boolean selected) {
     }
 
@@ -57,4 +62,5 @@ public abstract class ObjectRenderer<T extends RenderEngineExtension> {
     public boolean withinBounds(final float x, final float y) {
         return false;
     }
+
 }
