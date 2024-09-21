@@ -390,7 +390,7 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
 
     private void createFrameBuffer() {
         water.createFrameBuffer();
-        mirror.createFrameBuffer();
+        mirror.createFrameBuffer(context.getMSAASamples());
         ssao.createFrameBuffer();
         {
             final GLFrameBuffer.FrameBufferBuilder frameBufferBuilder = new GLFrameBuffer.FrameBufferBuilder(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
@@ -1040,16 +1040,16 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
             camera.update();
 //			createCameraCube();
 //			createLookatCube();
-            mirror.getReflectionFbo().begin();
+            mirror.begin();
             renderColors(takeScreenShot);
-            mirror.getReflectionFbo().end();
+            mirror.end();
 
             camera.position.y += cameraYDistance;
             camera.lookat.y += lookatYDistance;
             camera.up.set(0, 1, 0);
             camera.lookAt(camera.lookat);
             camera.update();
-            handleFrameBufferScreenshot(takeScreenShot, mirror.getReflectionFbo(), "mirror.reflection.fbo");
+            handleFrameBufferScreenshot(takeScreenShot, mirror.getPostFbo(), "mirror.reflection.fbo");
 
             context.disableClipping();
         }
@@ -1275,7 +1275,7 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
             // Clean up the screen.
             Gdx.gl.glClearColor(0f, 0f, 0f, 1f);
             Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-            postMSFbo.transfer(postFbo);
+            postMSFbo.transfer(postFbo);//copy the buffer into one that can be accessed
             // Clean up internal buffers, as we don't need any information from the last render.
             vfxManager.cleanUpBuffers();
             vfxManager.applyEffects();
@@ -1310,7 +1310,7 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
             if (isMirrorPresent()) {
                 // middle-up right (mirror reflection)
                 {
-                    Texture t = mirror.getReflectionFbo().getColorBufferTexture();
+                    Texture t = mirror.getPostFbo().getColorBufferTexture();
                     renderEngine2D.batch.draw(t, (float) (Gdx.graphics.getWidth() - t.getWidth() / 4), (float) (Gdx.graphics.getHeight() - (t.getHeight() / 4) * 2), (float) (t.getWidth() / 4), (float) (t.getHeight() / 4), 0, 0, t.getWidth(), t.getHeight(), false, true);
                 }
             }

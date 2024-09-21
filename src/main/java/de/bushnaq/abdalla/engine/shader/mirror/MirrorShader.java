@@ -26,11 +26,11 @@ import com.badlogic.gdx.math.Plane;
  * @author kunterbunt
  */
 public class MirrorShader extends DefaultShader {
-    private Plane  clippingPlane;
-    private final  Mirror mirror;
-    private final  int    u_clippingPlane     = register("u_clippingPlane");
-    private final  int    u_reflectionTexture = register("u_reflectionTexture");
-    private final  int    u_reflectivity      = register("u_reflectivity");
+    private       Plane  clippingPlane;
+    private final Mirror mirror;
+    private final int    u_clippingPlane     = register("u_clippingPlane");
+    private final int    u_reflectionTexture = register("u_reflectionTexture");
+    private final int    u_reflectivity      = register("u_reflectivity");
 
     public MirrorShader(final Renderable renderable, final Config config, final String prefix, final Mirror mirror) {
         super(renderable, config, prefix);
@@ -42,7 +42,7 @@ public class MirrorShader extends DefaultShader {
         super.begin(camera, context);
         if (clippingPlane != null)
             set(u_clippingPlane, clippingPlane.normal.x, clippingPlane.normal.y, clippingPlane.normal.z, clippingPlane.d);
-        set(u_reflectionTexture, mirror.getReflectionFbo().getColorBufferTexture());
+        set(u_reflectionTexture, mirror.getPostFbo().getColorBufferTexture());
         set(u_reflectivity, mirror.getReflectivity());
     }
 

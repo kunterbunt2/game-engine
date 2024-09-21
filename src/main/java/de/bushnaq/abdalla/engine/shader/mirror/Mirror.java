@@ -19,7 +19,9 @@ package de.bushnaq.abdalla.engine.shader.mirror;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.GL30;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.glutils.FrameBuffer;
+import com.badlogic.gdx.graphics.glutils.GLFrameBuffer;
 import com.badlogic.gdx.graphics.glutils.GLFrameBuffer.FrameBufferBuilder;
 import com.badlogic.gdx.math.Plane;
 import com.badlogic.gdx.math.Vector3;
@@ -28,9 +30,10 @@ import com.badlogic.gdx.math.Vector3;
  * @author kunterbunt
  */
 public class Mirror {
-    private       float       mirrorLevel             = 0;
+    private float mirrorLevel = 0;
+    FrameBuffer postFbo;
     private       boolean     present                 = false;
-    private final Plane       reflectionClippingPlane = new Plane(new Vector3(0f, 1f, 0f), 0.1f);                                // render everything above d
+    private final Plane       reflectionClippingPlane = new Plane(new Vector3(0f, 1f, 0f), 0.1f);// render everything above d
     private       FrameBuffer reflectionFbo;
     private       float       reflectivity            = 0.5f;
 
@@ -38,29 +41,45 @@ public class Mirror {
 
     }
 
-    public void createFrameBuffer() {
+    public void begin() {
+        reflectionFbo.begin();
+    }
+
+    public void createFrameBuffer(int msaaSamples) {
         {
-            final FrameBufferBuilder frameBufferBuilder = new FrameBufferBuilder(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-            frameBufferBuilder.addColorTextureAttachment(GL30.GL_RGBA8, GL20.GL_RGBA, GL20.GL_UNSIGNED_BYTE);
-            frameBufferBuilder.addDepthRenderBuffer(GL30.GL_DEPTH_COMPONENT24);
+            final FrameBufferBuilder frameBufferBuilder = new FrameBufferBuilder(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), msaaSamples);
+            frameBufferBuilder.addColorRenderBuffer(GL30.GL_RGBA8).addDepthRenderBuffer(GL30.GL_DEPTH_COMPONENT24).build();
             reflectionFbo = frameBufferBuilder.build();
         }
+        {
+            final GLFrameBuffer.FrameBufferBuilder frameBufferBuilder = new GLFrameBuffer.FrameBufferBuilder(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+            frameBufferBuilder.addColorTextureAttachment(GL30.GL_RGBA8, GL20.GL_RGBA, GL20.GL_UNSIGNED_BYTE);
+            frameBufferBuilder.addDepthTextureAttachment(GL30.GL_DEPTH_COMPONENT24, GL20.GL_UNSIGNED_BYTE);
+            postFbo = frameBufferBuilder.build();
+            postFbo.getColorBufferTexture().setFilter(Texture.TextureFilter.Nearest, Texture.TextureFilter.Nearest);
+        }
+
     }
 
     public void dispose() {
         reflectionFbo.dispose();
     }
 
+    public void end() {
+        reflectionFbo.end();
+        reflectionFbo.transfer(postFbo);
+    }
+
     public float getMirrorLevel() {
         return mirrorLevel;
     }
 
-    public Plane getReflectionClippingPlane() {
-        return reflectionClippingPlane;
+    public FrameBuffer getPostFbo() {
+        return postFbo;
     }
 
-    public FrameBuffer getReflectionFbo() {
-        return reflectionFbo;
+    public Plane getReflectionClippingPlane() {
+        return reflectionClippingPlane;
     }
 
     public float getReflectivity() {
