@@ -54,6 +54,7 @@ public abstract class BasicGameEngine implements ApplicationListener, InputProce
     private              CameraInputController camController;
     public               MovingCamera          camera;
     private              OrthographicCamera    camera2D;
+    public               Context               context;
     private              long                  currentTime     = 0L;
     protected            Cubemap               diffuseCubemap;
     Cubemap environmentCubemap;
@@ -65,14 +66,13 @@ public abstract class BasicGameEngine implements ApplicationListener, InputProce
     private       long                            lastTime        = 0;
     private final Logger                          logger          = LoggerFactory.getLogger(this.getClass());
     private final BasicRandomGenerator            randomGenerator = new BasicRandomGenerator(1);
-    private       RenderEngine3D<BasicGameEngine> renderEngine;
+    public        RenderEngine3D<BasicGameEngine> renderEngine;
     //    private       boolean                         simulateBassBoost = true;
     protected     Cubemap                         specularCubemap;
     private       Stage                           stage;
     private       StringBuilder                   stringBuilder;
     private       boolean                         takeScreenShot  = false;
     private       long                            timeDelta       = 0L;
-    public        Context                         context;
 
     public void advanceInTime() {
         long fixedDelta = 20L;
@@ -104,7 +104,7 @@ public abstract class BasicGameEngine implements ApplicationListener, InputProce
             renderEngine.getFog().setEnabled(false);
 
             renderEngine.setSkyBox(true);
-            renderEngine.setDayAmbientLight(.9f, .9f, .9f, 1f);
+            renderEngine.setDayAmbientLight(.5f, .5f, .5f, 1f);
             renderEngine.setNightAmbientLight(.01f, .01f, .01f, 1f);
             renderEngine.setAlwaysDay(true);
             renderEngine.setDynamicDayTime(true);

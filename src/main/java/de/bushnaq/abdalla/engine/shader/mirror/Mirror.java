@@ -30,19 +30,19 @@ import com.badlogic.gdx.math.Vector3;
  * @author kunterbunt
  */
 public class Mirror {
-    private float mirrorLevel = 0;
-    FrameBuffer postFbo;
+    private       float       mirrorLevel             = 0;
     private       boolean     present                 = false;
     private final Plane       reflectionClippingPlane = new Plane(new Vector3(0f, 1f, 0f), 0.1f);// render everything above d
     private       FrameBuffer reflectionFbo;
-    private       float       reflectivity            = 0.5f;
+    FrameBuffer reflectionPostFbo;
+    private float reflectivity = 0.5f;
 
     public Mirror() {
 
     }
 
-    public void begin() {
-        reflectionFbo.begin();
+    public void copyFbo() {
+        reflectionFbo.transfer(reflectionPostFbo);
     }
 
     public void createFrameBuffer(int msaaSamples) {
@@ -55,31 +55,31 @@ public class Mirror {
             final GLFrameBuffer.FrameBufferBuilder frameBufferBuilder = new GLFrameBuffer.FrameBufferBuilder(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
             frameBufferBuilder.addColorTextureAttachment(GL30.GL_RGBA8, GL20.GL_RGBA, GL20.GL_UNSIGNED_BYTE);
             frameBufferBuilder.addDepthTextureAttachment(GL30.GL_DEPTH_COMPONENT24, GL20.GL_UNSIGNED_BYTE);
-            postFbo = frameBufferBuilder.build();
-            postFbo.getColorBufferTexture().setFilter(Texture.TextureFilter.Nearest, Texture.TextureFilter.Nearest);
+            reflectionPostFbo = frameBufferBuilder.build();
+            reflectionPostFbo.getColorBufferTexture().setFilter(Texture.TextureFilter.Nearest, Texture.TextureFilter.Nearest);
         }
 
     }
 
     public void dispose() {
         reflectionFbo.dispose();
-    }
-
-    public void end() {
-        reflectionFbo.end();
-        reflectionFbo.transfer(postFbo);
+        reflectionPostFbo.dispose();
     }
 
     public float getMirrorLevel() {
         return mirrorLevel;
     }
 
-    public FrameBuffer getPostFbo() {
-        return postFbo;
-    }
-
     public Plane getReflectionClippingPlane() {
         return reflectionClippingPlane;
+    }
+
+    public FrameBuffer getReflectionFbo() {
+        return reflectionFbo;
+    }
+
+    public FrameBuffer getReflectionPostFbo() {
+        return reflectionPostFbo;
     }
 
     public float getReflectivity() {

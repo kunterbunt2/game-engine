@@ -33,6 +33,7 @@ public class WaterShader extends DefaultShader {
     private static final String  DUDV_MAP_FILE_NAME        = "shader/texture/waterDUDV.png";
     private static final String  NORMAL_MAP_FILE_NAME      = "shader/texture/normal.png";
     private static       Plane   clippingPlane;
+    private              float   moveFactor                = 0f;
     private final        Texture normalMap;
     private final        int     u_clippingPlane           = register("u_clippingPlane");
     private final        int     u_depthMap                = register("u_depthMap");
@@ -44,9 +45,8 @@ public class WaterShader extends DefaultShader {
     private final        int     u_refractiveMultiplicator = register("u_refractiveMultiplicator");
     private final        int     u_tiling                  = register("u_tiling");
     private final        int     u_waveStrength            = register("u_waveStrength");
+    private final        Water   water;
     private final        Texture waterDuDv;
-    private              float   moveFactor                = 0f;
-    private              Water   water;
 
     public WaterShader(final Renderable renderable, final Config config, final String prefix, final Water water) {
         super(renderable, config, prefix + createPrefix(renderable, config));
@@ -58,29 +58,15 @@ public class WaterShader extends DefaultShader {
         normalMap.setWrap(TextureWrap.Repeat, TextureWrap.Repeat);
     }
 
-    public static String createPrefix(final Renderable renderable, final Config config) {
-        if (Gdx.app.getType() != ApplicationType.iOS)
-            return "#define PackedDepthFlag\n";
-        return "";
-    }
-
-    @Override
-    public boolean canRender(final Renderable renderable) {
-        if (renderable.material.id.equals("water"))
-            return true;
-        else
-            return false;
-    }
-
     @Override
     public void begin(final Camera camera, final RenderContext context) {
         super.begin(camera, context);
         if (clippingPlane != null)
             set(u_clippingPlane, clippingPlane.normal.x, clippingPlane.normal.y, clippingPlane.normal.z, clippingPlane.d);
-        set(u_refractionTexture, water.getRefractionFbo().getColorBufferTexture());
-        set(u_reflectionTexture, water.getReflectionFbo().getColorBufferTexture());
+        set(u_refractionTexture, water.getRefractionPostFbo().getColorBufferTexture());
+        set(u_reflectionTexture, water.getReflectionPostFbo().getColorBufferTexture());
         if (Gdx.app.getType() != ApplicationType.iOS) {
-            set(u_depthMap, water.getRefractionFbo().getTextureAttachments().get(1));
+            set(u_depthMap, water.getRefractionPostFbo().getTextureAttachments().get(1));
         }
         set(u_dudvMapTexture, waterDuDv);
         set(u_normalMap, normalMap);
@@ -91,6 +77,17 @@ public class WaterShader extends DefaultShader {
         set(u_moveFactor, moveFactor);
         set(u_waveStrength, water.getWaveStrength());
 
+    }
+
+    @Override
+    public boolean canRender(final Renderable renderable) {
+        return renderable.material.id.equals("water");
+    }
+
+    public static String createPrefix(final Renderable renderable, final Config config) {
+        if (Gdx.app.getType() != ApplicationType.iOS)
+            return "#define PackedDepthFlag\n";
+        return "";
     }
 
     public String getLog() {

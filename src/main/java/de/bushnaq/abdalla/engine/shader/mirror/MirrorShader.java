@@ -42,7 +42,7 @@ public class MirrorShader extends DefaultShader {
         super.begin(camera, context);
         if (clippingPlane != null)
             set(u_clippingPlane, clippingPlane.normal.x, clippingPlane.normal.y, clippingPlane.normal.z, clippingPlane.d);
-        set(u_reflectionTexture, mirror.getPostFbo().getColorBufferTexture());
+        set(u_reflectionTexture, mirror.getReflectionPostFbo().getColorBufferTexture());
         set(u_reflectivity, mirror.getReflectivity());
     }
 

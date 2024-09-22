@@ -389,7 +389,7 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
     }
 
     private void createFrameBuffer() {
-        water.createFrameBuffer();
+        water.createFrameBuffer(context.getMSAASamples());
         mirror.createFrameBuffer(context.getMSAASamples());
         ssao.createFrameBuffer();
         {
@@ -1000,7 +1000,7 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
             gameShaderProvider.setClippingPlane(water.getRefractionClippingPlane());
             renderColors(takeScreenShot);
             water.getRefractionFbo().end();
-            handleFrameBufferScreenshot(takeScreenShot, water.getRefractionFbo(), "water.refraction.fbo");
+            handleFrameBufferScreenshot(takeScreenShot, water.getRefractionPostFbo(), "water.refraction.fbo");
 
             // waterReflectionFbo
             gameShaderProvider.setClippingPlane(water.getReflectionClippingPlane());
@@ -1016,12 +1016,13 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
             water.getReflectionFbo().begin();
             renderColors(takeScreenShot);
             water.getReflectionFbo().end();
+            water.copyFbo();
             camera.position.y += cameraYDistance;
             camera.lookat.y += lookatYDistance;
             camera.up.set(0, 1, 0);
             camera.lookAt(camera.lookat);
             camera.update();
-            handleFrameBufferScreenshot(takeScreenShot, water.getReflectionFbo(), "water.reflection.fbo");
+            handleFrameBufferScreenshot(takeScreenShot, water.getReflectionPostFbo(), "water.reflection.fbo");
 
             context.disableClipping();
 //			setSkyBox(skyBox);
@@ -1040,16 +1041,17 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
             camera.update();
 //			createCameraCube();
 //			createLookatCube();
-            mirror.begin();
+            mirror.getReflectionFbo().begin();
             renderColors(takeScreenShot);
-            mirror.end();
+            mirror.getReflectionFbo().end();
+            mirror.copyFbo();
 
             camera.position.y += cameraYDistance;
             camera.lookat.y += lookatYDistance;
             camera.up.set(0, 1, 0);
             camera.lookAt(camera.lookat);
             camera.update();
-            handleFrameBufferScreenshot(takeScreenShot, mirror.getPostFbo(), "mirror.reflection.fbo");
+            handleFrameBufferScreenshot(takeScreenShot, mirror.getReflectionPostFbo(), "mirror.reflection.fbo");
 
             context.disableClipping();
         }
@@ -1293,24 +1295,24 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
             if (isWaterPresent()) {
                 // up left (water refraction)
                 {
-                    Texture t = water.getRefractionFbo().getColorBufferTexture();
+                    Texture t = water.getRefractionPostFbo().getColorBufferTexture();
                     renderEngine2D.batch.draw(t, 0, (float) (Gdx.graphics.getHeight() - t.getHeight() / 4), (float) (t.getWidth() / 4), (float) (t.getHeight() / 4), 0, 0, t.getWidth(), t.getHeight(), false, true);
                 }
                 // up right (water refraction depth buffer)
                 {
-                    Texture t = water.getRefractionFbo().getTextureAttachments().get(1);
+                    Texture t = water.getRefractionPostFbo().getTextureAttachments().get(1);
                     renderEngine2D.batch.draw(t, (float) (Gdx.graphics.getWidth() - t.getWidth() / 4), (float) (Gdx.graphics.getHeight() - t.getHeight() / 4), (float) (t.getWidth() / 4), (float) (t.getHeight() / 4), 0, 0, t.getWidth(), t.getHeight(), false, true);
                 }
                 // middle-up left (water reflection)
                 {
-                    Texture t = water.getReflectionFbo().getColorBufferTexture();
+                    Texture t = water.getReflectionPostFbo().getColorBufferTexture();
                     renderEngine2D.batch.draw(t, 0, (float) (Gdx.graphics.getHeight() - (t.getHeight() / 4) * 2), (float) (t.getWidth() / 4), (float) (t.getHeight() / 4), 0, 0, t.getWidth(), t.getHeight(), false, true);
                 }
             }
             if (isMirrorPresent()) {
                 // middle-up right (mirror reflection)
                 {
-                    Texture t = mirror.getPostFbo().getColorBufferTexture();
+                    Texture t = mirror.getReflectionPostFbo().getColorBufferTexture();
                     renderEngine2D.batch.draw(t, (float) (Gdx.graphics.getWidth() - t.getWidth() / 4), (float) (Gdx.graphics.getHeight() - (t.getHeight() / 4) * 2), (float) (t.getWidth() / 4), (float) (t.getHeight() / 4), 0, 0, t.getWidth(), t.getHeight(), false, true);
                 }
             }
