@@ -326,7 +326,7 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
         ssaoEffect         = new SsaoEffect<T>(vfxManager, postFbo, camera, ssao);
         ssaoComboneEffect  = new SsaoCombineEffect<T>(vfxManager, postFbo, camera, ssao);
         depthOfFieldEffect = new DepthOfFieldEffect<T>(vfxManager, postFbo, camera);
-        fadeEffect         = new FadeEffect(true);
+        fadeEffect         = new FadeEffect(vfxManager, true);
 //        fadeEffect.setIntensity(.1f);
 //        vfxManager.addEffect(fadeEffect);
         createGraphs();

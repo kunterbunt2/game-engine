@@ -30,22 +30,24 @@ import de.bushnaq.abdalla.engine.camera.MovingCamera;
 
 public class DepthOfFieldEffect<T extends RenderEngineExtension> extends ShaderVfxEffect implements ChainVfxEffect {
 
-    private static final String       Texture0       = "u_sourceTexture";
-    private static final String       Texture1       = "u_depthTexture";
+    private static final String       Texture0    = "u_sourceTexture";
+    private static final String       Texture1    = "u_depthTexture";
     private final        MovingCamera camera;
-    private              boolean      enabled        = false;
-    private              float        focalDepth     = 100f;
-    private              float        farDofStart    = focalDepth / 20f;
-    private              float        farDofDist     = focalDepth * 1.5f;
-    private              float        nearDofDist    = focalDepth * 1.5f;
-    private final        boolean      nearDofEnabled = false;
-    private              float        nearDofStart   = focalDepth / 20f;
-    private final        FrameBuffer  postFbo;
-    private final        Vector2      resolution     = new Vector2();
-    private final        VfxManager   vfxManager;
+    private              boolean      enabled     = false;
+    private              float        focalDepth  = 100f;
+    private              float        farDofStart = focalDepth / 20f;
+    private              float        farDofDist  = focalDepth * 1.5f;
+    private       float       gain           = 100;
+    private       float       nearDofDist    = focalDepth * 1.5f;
+    private final boolean     nearDofEnabled = false;
+    private       float       nearDofStart   = focalDepth / 20f;
+    private final FrameBuffer postFbo;
+    private final Vector2     resolution     = new Vector2();
+    private       float      threshold = .9f;
+    private final VfxManager vfxManager;
 
     public DepthOfFieldEffect(VfxManager vfxManager, final FrameBuffer postFbo, final MovingCamera camera) {
-        super(MyVfxGLUtils.compileShader(Gdx.files.classpath("shader/depthOfField/depthOfField.vs.glsl"), Gdx.files.classpath("shader/depthOfField/depthOfField2.fs.glsl"), ""));
+        super(MyVfxGLUtils.compileShader(Gdx.files.classpath("shader/depthOfField/depthOfField.vs.glsl"), Gdx.files.classpath("shader/depthOfField/depthOfField.fs.glsl"), ""));
         this.vfxManager = vfxManager;
         this.postFbo    = postFbo;
         this.camera     = camera;
@@ -68,12 +70,20 @@ public class DepthOfFieldEffect<T extends RenderEngineExtension> extends ShaderV
         return focalDepth;
     }
 
+    public float getGain() {
+        return gain;
+    }
+
     public float getNearDofDist() {
         return nearDofDist;
     }
 
     public float getNearDofStart() {
         return nearDofStart;
+    }
+
+    public float getThreshold() {
+        return threshold;
     }
 
     public boolean isEnabled() {
@@ -109,6 +119,8 @@ public class DepthOfFieldEffect<T extends RenderEngineExtension> extends ShaderV
         program.setUniformf("fdofdist", farDofDist);
         program.setUniformf("znear", camera.near);
         program.setUniformf("zfar", camera.far);
+        program.setUniformf("threshold", threshold);
+        program.setUniformf("gain", gain);
         program.end();
 
         // Apply shader effect and render result to dst buffer.
@@ -141,6 +153,14 @@ public class DepthOfFieldEffect<T extends RenderEngineExtension> extends ShaderV
         }
         farDofStart = focalDepth / 20f;
         farDofDist  = focalDepth * 1.5f;
+    }
+
+    public void setGain(float gain) {
+        this.gain = gain;
+    }
+
+    public void setThreshold(float threshold) {
+        this.threshold = threshold;
     }
 
     @Override

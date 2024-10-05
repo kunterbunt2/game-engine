@@ -113,8 +113,8 @@ float vignfade = 22.0;//f-stops till vignete fades
 //vec2 focus = vec2(0.5, 0.5);// autofocus point on screen (0.0,0.0 - left lower corner, 1.0,1.0 - upper right)
 float maxblur = 1.0;//clamp value of max blur (0.0 = no blur,1.0 default)
 
-float threshold = .9;//highlight threshold;
-float gain = 100.0;//highlight gain;
+uniform float threshold = .9;//highlight threshold;
+uniform float gain = 100.0;//highlight gain;
 
 float bias = 0.5;//bokeh edge bias
 float fringe = 0.7;//bokeh chromatic aberration/fringing

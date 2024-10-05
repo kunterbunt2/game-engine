@@ -17,6 +17,7 @@
 package de.bushnaq.abdalla.engine.shader.effect;
 
 import com.badlogic.gdx.Gdx;
+import com.crashinvaders.vfx.VfxManager;
 import com.crashinvaders.vfx.VfxRenderContext;
 import com.crashinvaders.vfx.effects.ChainVfxEffect;
 import com.crashinvaders.vfx.effects.ShaderVfxEffect;
@@ -26,20 +27,23 @@ import com.crashinvaders.vfx.gl.VfxGLUtils;
 
 public class FadeEffect extends ShaderVfxEffect implements ChainVfxEffect {
 
-    private static final String  SATURATION         = "u_saturation";
-    private static final String  SATURATION_MUL     = "u_saturationMul";
-    private static final String  TEXTURE0           = "u_texture0";
-    private static final String  VIGNETTE_INTENSITY = "u_intensity";
-    private              float   intensity          = 1f;
-    private              float   saturation         = 1f;
-    private final        boolean saturationEnabled;
-    private              float   saturationMul      = 1f;
+    private static final String     SATURATION         = "u_saturation";
+    private static final String     SATURATION_MUL     = "u_saturationMul";
+    private static final String     TEXTURE0           = "u_texture0";
+    private static final String     VIGNETTE_INTENSITY = "u_intensity";
+    private boolean enabled = false;
+    private              float      intensity          = 1f;
+    private              float      saturation         = 1f;
+    private final        boolean    saturationEnabled;
+    private              float      saturationMul      = 1f;
+    private final        VfxManager vfxManager;
 
-    public FadeEffect(boolean controlSaturation) {
+    public FadeEffect(VfxManager vfxManager, boolean controlSaturation) {
         super(VfxGLUtils.compileShader(
                 Gdx.files.classpath("gdxvfx/shaders/screenspace.vert"),
                 Gdx.files.classpath("shader/fade.frag"),
                 (controlSaturation ? "#define CONTROL_SATURATION" : "")));
+        this.vfxManager        = vfxManager;
         this.saturationEnabled = controlSaturation;
         rebind();
     }
@@ -93,6 +97,14 @@ public class FadeEffect extends ShaderVfxEffect implements ChainVfxEffect {
         program.end();
         // Apply shader effect and render result to dst buffer.
         renderShader(context, dst);
+    }
+
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+        if (enabled)
+            vfxManager.addEffect(this);
+        else
+            vfxManager.removeEffect(this);
     }
 
     public void setIntensity(float intensity) {

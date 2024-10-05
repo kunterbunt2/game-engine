@@ -39,18 +39,18 @@ public class PhysicsEngine<T extends RenderEngineExtension> {
     private             btBroadphaseInterface               broadphase;
     private             btCollisionConfiguration            collisionConfig;
     private             btSequentialImpulseConstraintSolver constraintSolver;
-    private             boolean                             debug;
+    private final       boolean                             debug       = false;
     private             DebugDrawer                         debugDrawer;
     private             btDispatcher                        dispatcher;
     private             btDiscreteDynamicsWorld             dynamicsWorld;
     public              Array<Object>                       instances   = new Array<>();
     protected           Logger                              logger      = LoggerFactory.getLogger(this.getClass());
 
-    public void add(Object Object, btRigidBody collisionObject, short marbleFlag, short allFlag) {
-        collisionObject.setUserValue(instances.size);
+    public void add(Object Object, btRigidBody rigidBody, short marbleFlag, short allFlag) {
+        rigidBody.setUserValue(instances.size);
         instances.add(Object);
-        collisionObject.setCollisionFlags(collisionObject.getCollisionFlags() | btCollisionObject.CollisionFlags.CF_CUSTOM_MATERIAL_CALLBACK);
-        dynamicsWorld.addRigidBody(collisionObject/*, PhysicsEngine.MARBLE_FLAG, PhysicsEngine.ALL_FLAG*/);
+        rigidBody.setCollisionFlags(rigidBody.getCollisionFlags() | btCollisionObject.CollisionFlags.CF_CUSTOM_MATERIAL_CALLBACK);
+        dynamicsWorld.addRigidBody(rigidBody/*, PhysicsEngine.MARBLE_FLAG, PhysicsEngine.ALL_FLAG*/);
     }
 
     public void create(T gameEngine) {
@@ -78,9 +78,9 @@ public class PhysicsEngine<T extends RenderEngineExtension> {
         collisionConfig.dispose();
     }
 
-    public void remove(GameObject<T> gameObject, btRigidBody ballObject) {
+    public void remove(GameObject<T> gameObject, btRigidBody rigidBody) {
         instances.removeValue(gameObject, false);
-        dynamicsWorld.removeCollisionObject(ballObject);
+        dynamicsWorld.removeRigidBody(rigidBody);
     }
 
     public void render(MovingCamera camera) {
