@@ -168,6 +168,21 @@
                     <target>${target.level}</target>
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>io.github.orhankupusoglu</groupId>
+                <artifactId>sloc-maven-plugin</artifactId>
+                <version>1.0.7</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>sloc</goal>
+                        </goals>
+                        <configuration>
+                            <save>true</save>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
     <!-- Artifact Repositories -->

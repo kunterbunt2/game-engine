@@ -25,7 +25,7 @@ import net.mgsx.gltf.scene3d.model.ModelInstanceHack;
 /**
  * @author kunterbunt
  */
-public class GameObject<T extends RenderEngineExtension> {
+public class GameObject<T extends IGameEngine> {
 
     public       btRigidBody             body;
     public       BoundingBox             boundingBox            = new BoundingBox();

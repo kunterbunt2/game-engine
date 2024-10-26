@@ -29,7 +29,7 @@ import net.mgsx.gltf.scene3d.attributes.PBRColorAttribute;
 import net.mgsx.gltf.scene3d.attributes.PBRFloatAttribute;
 import net.mgsx.gltf.scene3d.model.ModelInstanceHack;
 
-public class Meter<T extends RenderEngineExtension> {
+public class Meter<T extends IGameEngine> {
     private RenderEngine3D<T> engine;
     private float             focalDepth;
     GameObject<T> instance1;

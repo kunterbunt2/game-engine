@@ -25,11 +25,11 @@ import com.crashinvaders.vfx.effects.ChainVfxEffect;
 import com.crashinvaders.vfx.effects.ShaderVfxEffect;
 import com.crashinvaders.vfx.framebuffer.VfxFrameBuffer;
 import com.crashinvaders.vfx.framebuffer.VfxPingPongWrapper;
-import de.bushnaq.abdalla.engine.RenderEngineExtension;
+import de.bushnaq.abdalla.engine.IGameEngine;
 import de.bushnaq.abdalla.engine.camera.MovingCamera;
 import de.bushnaq.abdalla.engine.shader.effect.MyVfxGLUtils;
 
-public class SsaoCombineEffect<T extends RenderEngineExtension> extends ShaderVfxEffect implements ChainVfxEffect {
+public class SsaoCombineEffect<T extends IGameEngine> extends ShaderVfxEffect implements ChainVfxEffect {
 
     private static final String       u_colorTexture = "u_colorTexture";
     private static final String       u_ssaoTexture  = "u_ssaoTexture";

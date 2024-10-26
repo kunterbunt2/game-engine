@@ -27,13 +27,13 @@ import com.crashinvaders.vfx.effects.ChainVfxEffect;
 import com.crashinvaders.vfx.effects.ShaderVfxEffect;
 import com.crashinvaders.vfx.framebuffer.VfxFrameBuffer;
 import com.crashinvaders.vfx.framebuffer.VfxPingPongWrapper;
-import de.bushnaq.abdalla.engine.RenderEngineExtension;
+import de.bushnaq.abdalla.engine.IGameEngine;
 import de.bushnaq.abdalla.engine.camera.MovingCamera;
 import de.bushnaq.abdalla.engine.shader.effect.MyVfxGLUtils;
 
 import java.util.Random;
 
-public class SsaoEffect<T extends RenderEngineExtension> extends ShaderVfxEffect implements ChainVfxEffect {
+public class SsaoEffect<T extends IGameEngine> extends ShaderVfxEffect implements ChainVfxEffect {
 
     private static final String       uni_texture0_name = "uni_texture0";
     private static final String       uni_texture1_name = "uni_texture1";

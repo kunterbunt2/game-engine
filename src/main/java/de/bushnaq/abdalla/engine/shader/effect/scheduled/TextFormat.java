@@ -14,20 +14,19 @@
  * limitations under the License.
  */
 
-package de.bushnaq.abdalla.engine;
+package de.bushnaq.abdalla.engine.shader.effect.scheduled;
 
-/**
- * @author kunterbunt
- */
-public class Renderable<T extends IGameEngine> {
+import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 
-    public ObjectRenderer<T> renderer3D;
+public class TextFormat {
+    public Color      color;
+    public BitmapFont font;
+    public String     text;
 
-    public ObjectRenderer<T> get3DRenderer() {
-        return renderer3D;
-    }
-
-    public void set3DRenderer(final ObjectRenderer<T> renderer3D) {
-        this.renderer3D = renderer3D;
+    public TextFormat(final String text, final BitmapFont font, Color color) {
+        this.text  = text;
+        this.font  = font;
+        this.color = color;
     }
 }

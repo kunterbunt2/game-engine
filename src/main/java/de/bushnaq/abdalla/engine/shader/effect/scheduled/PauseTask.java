@@ -14,20 +14,18 @@
  * limitations under the License.
  */
 
-package de.bushnaq.abdalla.engine;
+package de.bushnaq.abdalla.engine.shader.effect.scheduled;
 
-/**
- * @author kunterbunt
- */
-public class Renderable<T extends IGameEngine> {
+import de.bushnaq.abdalla.engine.IGameEngine;
 
-    public ObjectRenderer<T> renderer3D;
+public class PauseTask<T extends IGameEngine> extends WaitAfterExecuteAbstractTask<T> {
 
-    public ObjectRenderer<T> get3DRenderer() {
-        return renderer3D;
+    public PauseTask(T gameEngine, float afterSeconds) {
+        super(gameEngine, afterSeconds);
     }
 
-    public void set3DRenderer(final ObjectRenderer<T> renderer3D) {
-        this.renderer3D = renderer3D;
+    @Override
+    public void subexecute(float deltaTime) {
     }
+
 }

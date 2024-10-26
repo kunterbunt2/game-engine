@@ -26,12 +26,12 @@ import com.badlogic.gdx.physics.bullet.dynamics.btSequentialImpulseConstraintSol
 import com.badlogic.gdx.physics.bullet.linearmath.btIDebugDraw;
 import com.badlogic.gdx.utils.Array;
 import de.bushnaq.abdalla.engine.GameObject;
-import de.bushnaq.abdalla.engine.RenderEngineExtension;
+import de.bushnaq.abdalla.engine.IGameEngine;
 import de.bushnaq.abdalla.engine.camera.MovingCamera;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class PhysicsEngine<T extends RenderEngineExtension> {
+public class PhysicsEngine<T extends IGameEngine> {
     public final static short                               ALL_FLAG    = -1;
     public final static short                               BOX_FLAG    = 1 << 8;
     public final static short                               MARBLE_FLAG = 1 << 9;

@@ -24,9 +24,9 @@ import com.badlogic.gdx.math.Vector3;
  * @author kunterbunt
  */
 public class MovingCamera extends PerspectiveCamera {
+    boolean dirty = false;
     public Vector3 lookat   = new Vector3(0f, 0f, 0f);
     public Vector3 velocity = new Vector3(0f, 0f, 0f);
-    boolean dirty = false;
 
     public MovingCamera(final float fieldOfViewY, final float viewportWidth, final float viewportHeight) {
         super(fieldOfViewY, viewportWidth, viewportHeight);
@@ -64,4 +64,5 @@ public class MovingCamera extends PerspectiveCamera {
     public void setDirty(final boolean dirty) {
         this.dirty = dirty;
     }
+
 }

@@ -16,18 +16,20 @@
 
 package de.bushnaq.abdalla.engine;
 
-/**
- * @author kunterbunt
- */
-public class Renderable<T extends IGameEngine> {
+import com.badlogic.gdx.graphics.g3d.utils.CameraInputController;
+import de.bushnaq.abdalla.engine.audio.AudioEngine;
+import de.bushnaq.abdalla.engine.camera.MovingCamera;
 
-    public ObjectRenderer<T> renderer3D;
+public interface IGameEngine {
+    AudioEngine getAudioEngine();
 
-    public ObjectRenderer<T> get3DRenderer() {
-        return renderer3D;
-    }
+    CameraInputController getCamController();
 
-    public void set3DRenderer(final ObjectRenderer<T> renderer3D) {
-        this.renderer3D = renderer3D;
-    }
+    MovingCamera getCamera();
+
+    RenderEngine3D<?> getRenderEngine();
+
+    void render2Dxz();
+
+    boolean updateEnvironment(final float timeOfDay);
 }

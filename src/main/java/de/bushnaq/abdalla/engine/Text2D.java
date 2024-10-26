@@ -31,10 +31,10 @@ public class Text2D {
     private Color color;
     BitmapFont font;
     String     text;
-    int        x;
-    int        y;
+    float      x;
+    float      y;
 
-    public Text2D(final String text, int x, int y, Color color, final BitmapFont font) {
+    public Text2D(final String text, float x, float y, Color color, final BitmapFont font) {
         this.text  = text;
         this.x     = x;
         this.y     = y;
@@ -59,11 +59,11 @@ public class Text2D {
         return text;
     }
 
-    public int getX() {
+    public float getX() {
         return x;
     }
 
-    public int getY() {
+    public float getY() {
         return y;
     }
 

@@ -57,6 +57,7 @@ import de.bushnaq.abdalla.engine.shader.GameShaderProvider;
 import de.bushnaq.abdalla.engine.shader.GameShaderProviderInterface;
 import de.bushnaq.abdalla.engine.shader.effect.DepthOfFieldEffect;
 import de.bushnaq.abdalla.engine.shader.effect.FadeEffect;
+import de.bushnaq.abdalla.engine.shader.effect.scheduled.ScheduledEffectEngine;
 import de.bushnaq.abdalla.engine.shader.effect.ssao.*;
 import de.bushnaq.abdalla.engine.shader.mirror.Mirror;
 import de.bushnaq.abdalla.engine.shader.util.GL32CMacIssueHandler;
@@ -90,7 +91,7 @@ import java.util.zip.Deflater;
  *
  * @author kunterbunt
  */
-public class RenderEngine3D<T extends RenderEngineExtension> {
+public class RenderEngine3D<T extends IGameEngine> {
     private       boolean                     alwaysDay                        = true;
     private       ColorAttribute              ambientLight;
     public        float                       angle;
@@ -160,6 +161,7 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
     private       Vector3                     sceneBoxMax                      = new Vector3(1000, 1000, 1000);
     private       Vector3                     sceneBoxMin                      = new Vector3(-1000, -1000, -1000);
     private final BoundingBox                 sceneBox                         = new BoundingBox(sceneBoxMin, sceneBoxMax);
+    private       ScheduledEffectEngine<T>    scheduledEffectEngine;
     private       boolean                     shadowEnabled                    = true;
     private       DirectionalShadowLight      shadowLight                      = null;
     private final Vector3                     shadowLightDirection             = new Vector3();
@@ -329,6 +331,7 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
         fadeEffect         = new FadeEffect(vfxManager, true);
 //        fadeEffect.setIntensity(.1f);
 //        vfxManager.addEffect(fadeEffect);
+        scheduledEffectEngine = new ScheduledEffectEngine<T>(getGameEngine(), true);
         createGraphs();
         physicsEngine = new PhysicsEngine();
         physicsEngine.create(getGameEngine());
@@ -645,6 +648,14 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
         return fixedDayTime;
     }
 
+    public Fog getFog() {
+        return fog;
+    }
+
+    public T getGameEngine() {
+        return gameEngine;
+    }
+
 //	private void createDepthOfFieldMeter() {
 //		if (isDebugMode()) {
 //
@@ -685,14 +696,6 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
 //		}
 //	}
 
-    public Fog getFog() {
-        return fog;
-    }
-
-    public T getGameEngine() {
-        return gameEngine;
-    }
-
     public GameObject<T> getGameObject(final int screenX, final int screenY) {
         final Ray ray = camera.getPickRay(screenX, screenY);
 //        createRay(ray, null);
@@ -727,6 +730,14 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
         return result;
     }
 
+    public Mirror getMirror() {
+        return mirror;
+    }
+
+    public ExtendedGLProfiler getProfiler() {
+        return profiler;
+    }
+
 //    private void fboToScreen() {
 //        clearViewport();
 //        Gdx.gl.glDisable(GL20.GL_DEPTH_TEST);
@@ -759,20 +770,16 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
 //		}
 //	}
 
-    public Mirror getMirror() {
-        return mirror;
-    }
-
-    public ExtendedGLProfiler getProfiler() {
-        return profiler;
-    }
-
     public Array<ModelInstance> getRenderableProviders() {
         return renderableProviders;
     }
 
     public BoundingBox getSceneBox() {
         return sceneBox;
+    }
+
+    public ScheduledEffectEngine<T> getScheduledEffectEngine() {
+        return scheduledEffectEngine;
     }
 
     public DirectionalShadowLight getShadowLight() {
@@ -851,13 +858,13 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
         return gammaCorrected;
     }
 
-//    public boolean isDepthOfField() {
-//        return depthOfField;
-//    }
-
     public boolean isMirrorPresent() {
         return mirror.isPresent() /* && isPbr() */;
     }
+
+//    public boolean isDepthOfField() {
+//        return depthOfField;
+//    }
 
     public boolean isNight() {
         return (!alwaysDay && (timeOfDay > 19 || timeOfDay <= 5));
@@ -889,6 +896,10 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
 
     public boolean isWaterPresent() {
         return water.isPresent() /* && isPbr() */;
+    }
+
+    public void remove(Text2D text2d) {
+        text2DList.remove(text2d);
     }
 
     public void remove(final PointLight pointLight, final boolean dynamic) {
@@ -1119,7 +1130,7 @@ public class RenderEngine3D<T extends RenderEngineExtension> {
 
 //        if (vfxManager.anyEnabledEffects() && render3D) postMSFbo.begin();
 //        if (vfxManager.anyEnabledEffects() && render3D) postMSFbo.end();
-
+        scheduledEffectEngine.executeTasks(deltaTime);
         renderEffects();
         render2DText();
         if (render3D) renderFbos(takeScreenShot);

@@ -28,8 +28,8 @@ import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
+import de.bushnaq.abdalla.engine.IGameEngine;
 import de.bushnaq.abdalla.engine.RenderEngine3D;
-import de.bushnaq.abdalla.engine.RenderEngineExtension;
 import de.bushnaq.abdalla.engine.audio.AudioEngine;
 import de.bushnaq.abdalla.engine.audio.OpenAlException;
 import de.bushnaq.abdalla.engine.camera.MovingCamera;
@@ -44,7 +44,7 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class BasicGameEngine implements ApplicationListener, InputProcessor, RenderEngineExtension {
+public abstract class BasicGameEngine implements ApplicationListener, InputProcessor, IGameEngine {
     private static final float                 CAMERA_OFFSET_X = 300f;
     private static final float                 CAMERA_OFFSET_Y = 500f;
     private static final float                 CAMERA_OFFSET_Z = 400f;
@@ -221,6 +221,16 @@ public abstract class BasicGameEngine implements ApplicationListener, InputProce
 
     public AudioEngine getAudioEngine() {
         return audioEngine;
+    }
+
+    @Override
+    public CameraInputController getCamController() {
+        return camController;
+    }
+
+    @Override
+    public MovingCamera getCamera() {
+        return camera;
     }
 
     public BasicRandomGenerator getRandomGenerator() {

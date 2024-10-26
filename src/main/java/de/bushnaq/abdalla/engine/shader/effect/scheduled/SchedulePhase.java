@@ -14,10 +14,8 @@
  * limitations under the License.
  */
 
-package de.bushnaq.abdalla.engine;
+package de.bushnaq.abdalla.engine.shader.effect.scheduled;
 
-public interface RenderEngineExtension {
-    void render2Dxz();
-
-    boolean updateEnvironment(final float timeOfDay);
+public enum SchedulePhase {
+    EXECUTE, START, WAIT
 }

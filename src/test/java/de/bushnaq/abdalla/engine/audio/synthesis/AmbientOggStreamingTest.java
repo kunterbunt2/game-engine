@@ -25,8 +25,8 @@ import org.slf4j.LoggerFactory;
 
 public class AmbientOggStreamingTest extends TranslationUtil {
     private static final int    NUMBER_OF_SOURCES = 1;
-    private final        Logger logger            = LoggerFactory.getLogger(this.getClass());
     OggCubeActor[] ccaa = new OggCubeActor[NUMBER_OF_SOURCES];
+    private final        Logger logger            = LoggerFactory.getLogger(this.getClass());
 
     @Test
     public void circularTranslatingSources() {

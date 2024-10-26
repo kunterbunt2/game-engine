@@ -20,7 +20,7 @@ package de.bushnaq.abdalla.engine;
 /**
  * @author kunterbunt
  */
-public abstract class ObjectRenderer<T extends RenderEngineExtension> {
+public abstract class ObjectRenderer<T extends IGameEngine> {
     public void create(final float x, final float y, final float z, final RenderEngine3D<T> renderEngine) {
     }
 

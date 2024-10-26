@@ -14,20 +14,16 @@
  * limitations under the License.
  */
 
-package de.bushnaq.abdalla.engine;
+package de.bushnaq.abdalla.engine.util;
 
-/**
- * @author kunterbunt
- */
-public class Renderable<T extends IGameEngine> {
+import com.badlogic.gdx.graphics.Color;
 
-    public ObjectRenderer<T> renderer3D;
-
-    public ObjectRenderer<T> get3DRenderer() {
-        return renderer3D;
-    }
-
-    public void set3DRenderer(final ObjectRenderer<T> renderer3D) {
-        this.renderer3D = renderer3D;
+public class ColorUtil {
+    public static Color mix(Color c1, Color c2, float f1) {
+        f1 = Math.max(f1, 0f);
+        f1 = Math.min(f1, 1f);
+        float f2 = 1 - f1;
+//        return new Color(c1.r * f1 + c2.r * f2, c1.g * f1 + c2.g * f2, c1.b * f1 + c2.b * f2, c1.a * f1 + c2.a * f2);
+        return new Color(c1.r * f1 + c2.r * f2, c1.g * f1 + c2.g * f2, c1.b * f1 + c2.b * f2, 1f);
     }
 }
