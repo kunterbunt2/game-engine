@@ -999,7 +999,6 @@ public class RenderEngine3D<T extends IGameEngine> {
             PBRCommon.enableSeamlessCubemaps();
         }
         if (render3D) computedEnvironement.shadowMap = environment.shadowMap;
-        // handleFrameBufferScreenshot(takeScreenShot);
 
         // FBO
         if (isWaterPresent() && render3D) {

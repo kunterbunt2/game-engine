@@ -38,11 +38,13 @@ public abstract class WaitAfterExecuteAbstractTask<T extends IGameEngine> extend
                 mode = WAIT;
             }
             case START -> {
+                logger.info(String.format("start %s", this.getClass().getSimpleName()));
                 mode          = EXECUTE;
                 taskStartTime = System.currentTimeMillis();
             }
             case WAIT -> {
                 if (taskStartTime + durationMs <= System.currentTimeMillis()) {
+                    logger.info(String.format("stop %s", this.getClass().getSimpleName()));
                     returnValue = true;
                 }
             }

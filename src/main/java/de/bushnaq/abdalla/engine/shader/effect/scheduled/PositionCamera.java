@@ -35,6 +35,7 @@ public class PositionCamera<T extends IGameEngine> extends ScheduledTask<T> {
 
     @Override
     public boolean execute(float deltaTime) {
+        logger.info("execute PositionCamera");
         gameEngine.getCamera().position.set(position);
         gameEngine.getCamera().up.set(0, 1, 0);
         gameEngine.getRenderEngine().getDepthOfFieldEffect().setFocalDepth(position.dst(lookat) + 10f);
