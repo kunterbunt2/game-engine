@@ -14,24 +14,28 @@
  * limitations under the License.
  */
 
-package de.bushnaq.abdalla.engine.shader.effect.scheduled;
+package de.bushnaq.abdalla.engine.chronos;
 
 import de.bushnaq.abdalla.engine.IGameEngine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static de.bushnaq.abdalla.engine.shader.effect.scheduled.SchedulePhase.EXECUTE;
-import static de.bushnaq.abdalla.engine.shader.effect.scheduled.SchedulePhase.START;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
-public class FadeInTask<T extends IGameEngine> extends ScheduledTask<T> {
-    protected final Logger        logger = LoggerFactory.getLogger(this.getClass());
-    private         SchedulePhase mode   = START;
+import static de.bushnaq.abdalla.engine.chronos.ChronosPhase.EXECUTE;
+import static de.bushnaq.abdalla.engine.chronos.ChronosPhase.START;
 
-    public FadeInTask(T gameEngine) {
-        super(gameEngine, 1);
-    }
+/**
+ * extend if you need a {@link Task Task} that executes {@link #subExecute(float) subExecute} every frame for durationSeconds.
+ *
+ * @param <T> GameEngine that implements IGameEngine
+ */
+public abstract class AbstractWaitDuringExecute<T extends IGameEngine> extends Task<T> {
+    protected final Logger       logger = LoggerFactory.getLogger(this.getClass());
+    private         ChronosPhase mode   = START;
 
-    public FadeInTask(T gameEngine, float durationSeconds) {
+    public AbstractWaitDuringExecute(T gameEngine, float durationSeconds) {
         super(gameEngine, durationSeconds);
     }
 
@@ -39,16 +43,17 @@ public class FadeInTask<T extends IGameEngine> extends ScheduledTask<T> {
         boolean returnValue = false;
         switch (mode) {
             case EXECUTE -> {
-                subexecute(deltaTime);
-                if (taskStartTime + durationMs < System.currentTimeMillis()) {
-                    logger.info("stop FadeInTask");
+                subExecute(deltaTime);
+                if (taskStartTime + durationMs <= System.currentTimeMillis()) {
                     returnValue = true;
                 }
             }
             case START -> {
-                logger.info("start FadeInTask");
                 mode          = EXECUTE;
                 taskStartTime = System.currentTimeMillis();
+                SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                String           date             = simpleDateFormat.format(new Date(taskStartTime));
+                logger.info(String.format("%s", date));
             }
         }
         return returnValue;
@@ -57,11 +62,6 @@ public class FadeInTask<T extends IGameEngine> extends ScheduledTask<T> {
     @Override
     public long secondToRun() {
         return taskStartTime + durationMs - System.currentTimeMillis();
-    }
-
-    public void subexecute(float deltaTime) {
-        long deltaSeconds = (System.currentTimeMillis() - taskStartTime);
-        gameEngine.getRenderEngine().getFadeEffect().setIntensity(deltaSeconds / ((float) durationMs));
     }
 
 }

@@ -14,18 +14,35 @@
  * limitations under the License.
  */
 
-package de.bushnaq.abdalla.engine.shader.effect.scheduled;
+package de.bushnaq.abdalla.engine.chronos;
 
+import com.badlogic.gdx.math.Vector3;
 import de.bushnaq.abdalla.engine.IGameEngine;
 
-public class PauseTask<T extends IGameEngine> extends WaitAfterExecuteAbstractTask<T> {
+public class RotateCamera<T extends IGameEngine> extends Task<T> {
+    private final float angle;
 
-    public PauseTask(T gameEngine, float afterSeconds) {
-        super(gameEngine, afterSeconds);
+    public RotateCamera(T gameEngine, float angle) {
+        super(gameEngine, 0);
+        this.angle = angle;
     }
 
     @Override
-    public void subexecute(float deltaTime) {
+    public boolean execute(float deltaTime) {
+        gameEngine.getCamera().rotateAround(gameEngine.getCamera().lookat, Vector3.Y, -angle);
+        gameEngine.getCamera().setDirty(true);
+        gameEngine.getCamera().update();
+        return true;
+    }
+
+    @Override
+    public long secondToRun() {
+        return 0;
+    }
+
+    @Override
+    public void subExecute(float deltaTime) {
+
     }
 
 }

@@ -14,27 +14,32 @@
  * limitations under the License.
  */
 
-package de.bushnaq.abdalla.engine.shader.effect.scheduled;
+package de.bushnaq.abdalla.engine.chronos;
 
 import de.bushnaq.abdalla.engine.IGameEngine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static de.bushnaq.abdalla.engine.shader.effect.scheduled.SchedulePhase.*;
+import static de.bushnaq.abdalla.engine.chronos.ChronosPhase.*;
 
-public abstract class WaitAfterExecuteAbstractTask<T extends IGameEngine> extends ScheduledTask<T> {
-    protected final Logger        logger = LoggerFactory.getLogger(this.getClass());
-    private         SchedulePhase mode   = START;
+/**
+ * extend if you need a {@link Task Task} that executes {@link #subExecute(float) subExecute} once and then waits for durationSeconds.
+ *
+ * @param <T> GameEngine that implements IGameEngine
+ */
+public abstract class AbstractWaitAfterExecute<T extends IGameEngine> extends Task<T> {
+    protected final Logger       logger = LoggerFactory.getLogger(this.getClass());
+    private         ChronosPhase mode   = START;
 
-    public WaitAfterExecuteAbstractTask(T gameEngine, float afterSeconds) {
-        super(gameEngine, afterSeconds);
+    public AbstractWaitAfterExecute(T gameEngine, float durationSeconds) {
+        super(gameEngine, durationSeconds);
     }
 
     public boolean execute(float deltaTime) {
         boolean returnValue = false;
         switch (mode) {
             case EXECUTE -> {
-                subexecute(deltaTime);
+                subExecute(deltaTime);
                 mode = WAIT;
             }
             case START -> {

@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
-package de.bushnaq.abdalla.engine.shader.effect.scheduled;
+package de.bushnaq.abdalla.engine.chronos;
 
 import de.bushnaq.abdalla.engine.IGameEngine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public abstract class ScheduledTask<T extends IGameEngine> {
+public abstract class Task<T extends IGameEngine> {
     public          long   durationMs;//duration of this task
     protected final T      gameEngine;
     protected final Logger logger = LoggerFactory.getLogger(this.getClass());
     long taskStartTime;
 
-    public ScheduledTask(T gameEngine, float durationSeconds) {
+    public Task(T gameEngine, float durationSeconds) {
         this.gameEngine = gameEngine;
         this.durationMs = (long) (durationSeconds * 1000L);
     }
@@ -38,5 +38,5 @@ public abstract class ScheduledTask<T extends IGameEngine> {
 
     public abstract long secondToRun();
 
-    public abstract void subexecute(float deltaTime);
+    public abstract void subExecute(float deltaTime);
 }

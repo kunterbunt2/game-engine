@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package de.bushnaq.abdalla.engine.shader.effect.scheduled;
+package de.bushnaq.abdalla.engine.chronos;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
@@ -23,33 +23,44 @@ import de.bushnaq.abdalla.engine.IGameEngine;
 import de.bushnaq.abdalla.engine.Text2D;
 import de.bushnaq.abdalla.engine.util.ColorUtil;
 
-import static de.bushnaq.abdalla.engine.shader.effect.scheduled.SchedulePhase.EXECUTE;
-import static de.bushnaq.abdalla.engine.shader.effect.scheduled.SchedulePhase.START;
+import static de.bushnaq.abdalla.engine.chronos.ChronosPhase.EXECUTE;
+import static de.bushnaq.abdalla.engine.chronos.ChronosPhase.START;
 
-public class TextTask<T extends IGameEngine> extends ScheduledTask<T> {
+/**
+ * Fades in {@link TextData textData} screen centered in fadeInSecond, waits durationSeconds, then fades out {@link TextData textData} in fadeOutSeconds.
+ *
+ * @param <T> GameEngine that implements IGameEngine
+ */
+public class ShowText<T extends IGameEngine> extends Task<T> {
 
-    private final long          end   = 500;
-    private final float         height;
-    private       SchedulePhase mode  = START;
-    private final long          start = 500;
-    private final TextFormat    text;
-    private       Text2D        text2D;
-    private final float         width;
+    private       long         fadeInMs  = 500;
+    private       long         fadeOutMs = 500;
+    private final float        height;
+    private       ChronosPhase mode      = START;
+    private       Text2D       text2D;
+    private final TextData     textData;
+    private final float        width;
 
-    public TextTask(T gameEngine, TextFormat text, float duration) {
-        super(gameEngine, duration);
-        this.text = text;
+    public ShowText(T gameEngine, TextData textData, float durationSeconds) {
+        this(gameEngine, textData, durationSeconds, .5f, .5f);
+    }
+
+    public ShowText(T gameEngine, TextData textData, float durationSeconds, float fadeInSecond, float fadeOutSeconds) {
+        super(gameEngine, durationSeconds);
+        this.textData  = textData;
+        this.fadeInMs  = (long) (fadeInSecond * 1000);
+        this.fadeOutMs = (long) (fadeOutSeconds * 1000);
         final GlyphLayout layout = new GlyphLayout();
-        layout.setText(text.font, text.text);
-        width  = layout.width;// contains the width of the current set text
-        height = layout.height;// contains the width of the current set text
+        layout.setText(textData.font, textData.text);
+        width  = layout.width;// contains the width of the current set textData
+        height = layout.height;// contains the width of the current set textData
     }
 
     public boolean execute(float deltaTime) {
         boolean returnValue = false;
         switch (mode) {
             case EXECUTE -> {
-                subexecute(deltaTime);
+                subExecute(deltaTime);
                 if (System.currentTimeMillis() > taskStartTime + durationMs) {
                     logger.info("stop TextTask");
                     gameEngine.getRenderEngine().remove(text2D);
@@ -62,7 +73,7 @@ public class TextTask<T extends IGameEngine> extends ScheduledTask<T> {
                 taskStartTime = System.currentTimeMillis();
                 float x = Gdx.graphics.getWidth() / 2f - width / 2;
                 float y = Gdx.graphics.getHeight() / 2f - height / 2;
-                text2D = new Text2D(text.text, x, y, Color.BLACK, text.font);
+                text2D = new Text2D(textData.text, x, y, Color.BLACK, textData.font);
                 gameEngine.getRenderEngine().add(text2D);
             }
         }
@@ -75,25 +86,25 @@ public class TextTask<T extends IGameEngine> extends ScheduledTask<T> {
     }
 
     @Override
-    public void subexecute(float deltaTime) {
+    public void subExecute(float deltaTime) {
 //        logger.info(String.format("%dms", (System.currentTimeMillis() - taskStartTime)));
 //        final GlyphLayout lastLayout = text.font.draw(gameEngine.getRenderEngine().renderEngine2D.batch, text.text, x, y, width, Align.left, true);
         //starting
-        if (System.currentTimeMillis() < taskStartTime + start) {
+        if (System.currentTimeMillis() < taskStartTime + fadeInMs) {
             //before start
-            float f = ((float) (System.currentTimeMillis() - taskStartTime)) / start;
+            float f = ((float) (System.currentTimeMillis() - taskStartTime)) / fadeInMs;
 //            logger.info(String.format("before start %f", f));
-            Color color = ColorUtil.mix(text.color, Color.BLACK, f);//fade-in
+            Color color = ColorUtil.mix(textData.color, Color.BLACK, f);//fade-in
             text2D.setColor(color);
-        } else if (System.currentTimeMillis() > taskStartTime + durationMs - end) {
+        } else if (System.currentTimeMillis() > taskStartTime + durationMs - fadeOutMs) {
             //before end
-            float f = ((float) (System.currentTimeMillis() - (taskStartTime + durationMs - end))) / end;
+            float f = ((float) (System.currentTimeMillis() - (taskStartTime + durationMs - fadeOutMs))) / fadeOutMs;
 //            logger.info(String.format("before end %f", f));
-            Color color = ColorUtil.mix(Color.BLACK, text.color, f);//fade-out
+            Color color = ColorUtil.mix(Color.BLACK, textData.color, f);//fade-out
             text2D.setColor(color);
         } else {
 //            logger.info(String.format("show %f", 1f));
-            text2D.setColor(text.color);
+            text2D.setColor(textData.color);
         }
     }
 

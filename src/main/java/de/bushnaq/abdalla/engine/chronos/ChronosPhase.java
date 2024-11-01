@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-package de.bushnaq.abdalla.engine.shader.effect.scheduled;
+package de.bushnaq.abdalla.engine.chronos;
 
-public enum SchedulePhase {
+public enum ChronosPhase {
     EXECUTE, START, WAIT
 }

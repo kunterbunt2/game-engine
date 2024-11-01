@@ -50,6 +50,7 @@ import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.crashinvaders.vfx.VfxManager;
 import de.bushnaq.abdalla.engine.camera.MovingCamera;
+import de.bushnaq.abdalla.engine.chronos.ChronosEngine;
 import de.bushnaq.abdalla.engine.physics.PhysicsEngine;
 import de.bushnaq.abdalla.engine.shader.GamePbrShaderProvider;
 import de.bushnaq.abdalla.engine.shader.GameSettings;
@@ -57,7 +58,6 @@ import de.bushnaq.abdalla.engine.shader.GameShaderProvider;
 import de.bushnaq.abdalla.engine.shader.GameShaderProviderInterface;
 import de.bushnaq.abdalla.engine.shader.effect.DepthOfFieldEffect;
 import de.bushnaq.abdalla.engine.shader.effect.FadeEffect;
-import de.bushnaq.abdalla.engine.shader.effect.scheduled.ScheduledEffectEngine;
 import de.bushnaq.abdalla.engine.shader.effect.ssao.*;
 import de.bushnaq.abdalla.engine.shader.mirror.Mirror;
 import de.bushnaq.abdalla.engine.shader.util.GL32CMacIssueHandler;
@@ -101,6 +101,7 @@ public class RenderEngine3D<T extends IGameEngine> {
     private final BitmapFont                  boldFont;
     private final MovingCamera                camera;
     private final OrthographicCamera          camera2D;
+    private       ChronosEngine<T>            chronosEngine;
     private final EnvironmentCache            computedEnvironement             = new EnvironmentCache();
     private final IContext                    context;
     public        Graph                       cpuGraph;
@@ -161,7 +162,6 @@ public class RenderEngine3D<T extends IGameEngine> {
     private       Vector3                     sceneBoxMax                      = new Vector3(1000, 1000, 1000);
     private       Vector3                     sceneBoxMin                      = new Vector3(-1000, -1000, -1000);
     private final BoundingBox                 sceneBox                         = new BoundingBox(sceneBoxMin, sceneBoxMax);
-    private       ScheduledEffectEngine<T>    scheduledEffectEngine;
     private       boolean                     shadowEnabled                    = true;
     private       DirectionalShadowLight      shadowLight                      = null;
     private final Vector3                     shadowLightDirection             = new Vector3();
@@ -331,7 +331,7 @@ public class RenderEngine3D<T extends IGameEngine> {
         fadeEffect         = new FadeEffect(vfxManager, true);
 //        fadeEffect.setIntensity(.1f);
 //        vfxManager.addEffect(fadeEffect);
-        scheduledEffectEngine = new ScheduledEffectEngine<T>(getGameEngine(), true);
+        chronosEngine = new ChronosEngine<T>(getGameEngine(), true);
         createGraphs();
         physicsEngine = new PhysicsEngine();
         physicsEngine.create(getGameEngine());
@@ -778,8 +778,8 @@ public class RenderEngine3D<T extends IGameEngine> {
         return sceneBox;
     }
 
-    public ScheduledEffectEngine<T> getScheduledEffectEngine() {
-        return scheduledEffectEngine;
+    public ChronosEngine<T> getScheduledEffectEngine() {
+        return chronosEngine;
     }
 
     public DirectionalShadowLight getShadowLight() {
@@ -1129,7 +1129,7 @@ public class RenderEngine3D<T extends IGameEngine> {
 
 //        if (vfxManager.anyEnabledEffects() && render3D) postMSFbo.begin();
 //        if (vfxManager.anyEnabledEffects() && render3D) postMSFbo.end();
-        scheduledEffectEngine.executeTasks(deltaTime);
+        chronosEngine.executeTasks(deltaTime);
         renderEffects();
         render2DText();
         if (render3D) renderFbos(takeScreenShot);

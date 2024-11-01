@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package de.bushnaq.abdalla.engine.shader.effect.scheduled;
+package de.bushnaq.abdalla.engine.chronos;
 
 import de.bushnaq.abdalla.engine.IGameEngine;
 import de.bushnaq.abdalla.engine.audio.OpenAlException;
@@ -24,18 +24,18 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ScheduledEffectEngine<T extends IGameEngine> {
-    private       boolean                enabled;
-    private final float                  fieldOfView;
+public class ChronosEngine<T extends IGameEngine> {
+    private       boolean       enabled;
+    private final float         fieldOfView;
     //    boolean firstTask = true;
-    private final T                      gameEngine;
-    public        int                    index  = 0;
-    private final Logger                 logger = LoggerFactory.getLogger(this.getClass());
-    public        long                   startTime;//start time of demo
-    private final List<ScheduledTask<T>> tasks  = new ArrayList<>();
-    private final float                  textY  = 0;
+    private final T             gameEngine;
+    public        int           index  = 0;
+    private final Logger        logger = LoggerFactory.getLogger(this.getClass());
+    public        long          startTime;//start time of demo
+    private final List<Task<T>> tasks  = new ArrayList<>();
+    private final float         textY  = 0;
 
-    public ScheduledEffectEngine(T gameEngine, boolean enabled) throws OpenAlException {
+    public ChronosEngine(T gameEngine, boolean enabled) throws OpenAlException {
         this.gameEngine  = gameEngine;
         this.enabled     = enabled;
         this.fieldOfView = gameEngine.getCamera().fieldOfView;
@@ -44,10 +44,10 @@ public class ScheduledEffectEngine<T extends IGameEngine> {
 //        }
     }
 
-    public void add(ScheduledTask<T> scheduledTask) {
+    public void add(Task<T> task) {
         if (tasks.isEmpty())
             startTime = System.currentTimeMillis();
-        tasks.add(scheduledTask);
+        tasks.add(task);
     }
 
     public void executeTasks(float deltaTime) throws OpenAlException {

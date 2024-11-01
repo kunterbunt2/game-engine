@@ -14,22 +14,30 @@
  * limitations under the License.
  */
 
-package de.bushnaq.abdalla.engine.shader.effect.scheduled;
+package de.bushnaq.abdalla.engine.chronos;
 
 import com.badlogic.gdx.math.Vector3;
 import de.bushnaq.abdalla.engine.IGameEngine;
 
-public class PositionCamera<T extends IGameEngine> extends ScheduledTask<T> {
+/**
+ * positions the {@link de.bushnaq.abdalla.engine.camera.MovingCamera gameEngine.getCamera()  } at <code>position</code>.<br>
+ * rotates the {@link de.bushnaq.abdalla.engine.camera.MovingCamera gameEngine.getCamera()  } to look at <code>lookat</code>.<br>
+ * sets {@link de.bushnaq.abdalla.engine.camera.MovingCamera gameEngine.getCamera().fieldOfView  } to <code>fieldOfView</code>.<br>
+ * sets focal depth of the {@link de.bushnaq.abdalla.engine.shader.effect.DepthOfFieldEffect gameEngine.getRenderEngine().getDepthOfFieldEffect()  } to <code>distance between camera and lookAt point+10</code>.<br>
+ *
+ * @param <T> GameEngine that implements IGameEngine
+ */
+public class PositionCamera<T extends IGameEngine> extends Task<T> {
     private final float   fieldOfView;
-    private final Vector3 lookat;
+    private final Vector3 lookAt;
     private final Vector3 position;
     private final int     zoomIndex;
 
-    public PositionCamera(T gameEngine, int zoomIndex, Vector3 position, Vector3 lookat, float fieldOfView) {
+    public PositionCamera(T gameEngine, int zoomIndex, Vector3 position, Vector3 lookAt, float fieldOfView) {
         super(gameEngine, 0);
         this.zoomIndex   = zoomIndex;
         this.position    = position;
-        this.lookat      = lookat;
+        this.lookAt      = lookAt;
         this.fieldOfView = fieldOfView;
     }
 
@@ -38,8 +46,8 @@ public class PositionCamera<T extends IGameEngine> extends ScheduledTask<T> {
         logger.info("execute PositionCamera");
         gameEngine.getCamera().position.set(position);
         gameEngine.getCamera().up.set(0, 1, 0);
-        gameEngine.getRenderEngine().getDepthOfFieldEffect().setFocalDepth(position.dst(lookat) + 10f);
-        gameEngine.getCamera().lookAt(lookat);
+        gameEngine.getRenderEngine().getDepthOfFieldEffect().setFocalDepth(position.dst(lookAt) + 10f);
+        gameEngine.getCamera().lookAt(lookAt);
         gameEngine.getCamera().fieldOfView = fieldOfView;
 //        gameEngine.getCamController().setTargetZoomIndex(zoomIndex);
 //        gameEngine.getCamController().zoomIndex = zoomIndex;
@@ -55,7 +63,7 @@ public class PositionCamera<T extends IGameEngine> extends ScheduledTask<T> {
     }
 
     @Override
-    public void subexecute(float deltaTime) {
+    public void subExecute(float deltaTime) {
 
     }
 }

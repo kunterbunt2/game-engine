@@ -14,17 +14,20 @@
  * limitations under the License.
  */
 
-package de.bushnaq.abdalla.engine.shader.effect.scheduled;
+package de.bushnaq.abdalla.engine.chronos;
 
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 
-public class TextFormat {
+/**
+ * holds information needed to show text on the screen with formatting.
+ */
+public class TextData {
     public Color      color;
     public BitmapFont font;
     public String     text;
 
-    public TextFormat(final String text, final BitmapFont font, Color color) {
+    public TextData(final String text, final BitmapFont font, Color color) {
         this.text  = text;
         this.font  = font;
         this.color = color;
