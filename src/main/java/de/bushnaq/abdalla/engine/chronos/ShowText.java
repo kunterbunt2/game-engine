@@ -33,6 +33,7 @@ import static de.bushnaq.abdalla.engine.chronos.ChronosPhase.START;
  */
 public class ShowText<T extends IGameEngine> extends Task<T> {
 
+    private final Color        backgroundColor;
     private       long         fadeInMs  = 500;
     private       long         fadeOutMs = 500;
     private final float        height;
@@ -41,15 +42,16 @@ public class ShowText<T extends IGameEngine> extends Task<T> {
     private final TextData     textData;
     private final float        width;
 
-    public ShowText(T gameEngine, TextData textData, float durationSeconds) {
-        this(gameEngine, textData, durationSeconds, .5f, .5f);
+    public ShowText(T gameEngine, Color backgroundColor, TextData textData, float durationSeconds) {
+        this(gameEngine, backgroundColor, textData, durationSeconds, .5f, .5f);
     }
 
-    public ShowText(T gameEngine, TextData textData, float durationSeconds, float fadeInSecond, float fadeOutSeconds) {
+    public ShowText(T gameEngine, Color backgroundColor, TextData textData, float durationSeconds, float fadeInSecond, float fadeOutSeconds) {
         super(gameEngine, durationSeconds);
-        this.textData  = textData;
-        this.fadeInMs  = (long) (fadeInSecond * 1000);
-        this.fadeOutMs = (long) (fadeOutSeconds * 1000);
+        this.backgroundColor = backgroundColor;
+        this.textData        = textData;
+        this.fadeInMs        = (long) (fadeInSecond * 1000);
+        this.fadeOutMs       = (long) (fadeOutSeconds * 1000);
         final GlyphLayout layout = new GlyphLayout();
         layout.setText(textData.font, textData.text);
         width  = layout.width;// contains the width of the current set textData
@@ -73,7 +75,7 @@ public class ShowText<T extends IGameEngine> extends Task<T> {
                 taskStartTime = System.currentTimeMillis();
                 float x = Gdx.graphics.getWidth() / 2f - width / 2;
                 float y = Gdx.graphics.getHeight() / 2f - height / 2;
-                text2D = new Text2D(textData.text, x, y, Color.BLACK, textData.font);
+                text2D = new Text2D(textData.text, x, y, backgroundColor, textData.font);
                 gameEngine.getRenderEngine().add(text2D);
             }
         }
@@ -91,16 +93,16 @@ public class ShowText<T extends IGameEngine> extends Task<T> {
 //        final GlyphLayout lastLayout = text.font.draw(gameEngine.getRenderEngine().renderEngine2D.batch, text.text, x, y, width, Align.left, true);
         //starting
         if (System.currentTimeMillis() < taskStartTime + fadeInMs) {
-            //before start
+            //fade in
             float f = ((float) (System.currentTimeMillis() - taskStartTime)) / fadeInMs;
-//            logger.info(String.format("before start %f", f));
-            Color color = ColorUtil.mix(textData.color, Color.BLACK, f);//fade-in
+            Color color = ColorUtil.mix(textData.color, backgroundColor, f);//fade-in
+//            logger.info(String.format("fade in %f", f));
             text2D.setColor(color);
         } else if (System.currentTimeMillis() > taskStartTime + durationMs - fadeOutMs) {
-            //before end
+            //fade out
             float f = ((float) (System.currentTimeMillis() - (taskStartTime + durationMs - fadeOutMs))) / fadeOutMs;
-//            logger.info(String.format("before end %f", f));
-            Color color = ColorUtil.mix(Color.BLACK, textData.color, f);//fade-out
+//            logger.info(String.format("fade out %f", f));
+            Color color = ColorUtil.mix(backgroundColor, textData.color, f);//fade-out
             text2D.setColor(color);
         } else {
 //            logger.info(String.format("show %f", 1f));

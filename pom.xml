@@ -27,7 +27,7 @@
     <properties>
         <file.encoding>utf-8</file.encoding>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <libgdxVersion>1.12.2-SNAPSHOT</libgdxVersion>
+        <libgdxVersion>1.13.0</libgdxVersion>
         <gdx.vfx.version>0.5.4</gdx.vfx.version>
         <!-- Java Code Compliance Level -->
         <source.level>21</source.level>
@@ -85,7 +85,7 @@
         <dependency>
             <groupId>com.github.mgsx-dev.gdx-gltf</groupId>
             <artifactId>gltf</artifactId>
-            <version>2.1.0</version>
+            <version>2.2.1</version>
             <exclusions>
                 <exclusion>
                     <groupId>com.badlogicgames.gdx</groupId>

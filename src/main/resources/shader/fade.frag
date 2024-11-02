@@ -16,6 +16,7 @@ const vec3 grayscale = vec3(0.3, 0.59, 0.11);
 
 uniform float u_saturation;
 uniform float u_saturationMul;
+uniform vec3 u_backgroundColor;
 
 // 0 = totally desaturated
 // 1 = saturation unchanged
@@ -29,6 +30,7 @@ vec3 adjustSaturation(vec3 color, float saturation) {
 void main() {
     vec3 rgb = texture2D(u_texture0, v_texCoords).xyz;
     rgb = rgb * u_intensity;
+    rgb = mix(u_backgroundColor,rgb, u_intensity);
 
     #ifdef CONTROL_SATURATION
     rgb = adjustSaturation(rgb, u_saturation) * u_saturationMul;

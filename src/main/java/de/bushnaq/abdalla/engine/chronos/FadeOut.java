@@ -16,6 +16,7 @@
 
 package de.bushnaq.abdalla.engine.chronos;
 
+import com.badlogic.gdx.graphics.Color;
 import de.bushnaq.abdalla.engine.IGameEngine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,15 +25,17 @@ import static de.bushnaq.abdalla.engine.chronos.ChronosPhase.EXECUTE;
 import static de.bushnaq.abdalla.engine.chronos.ChronosPhase.START;
 
 public class FadeOut<T extends IGameEngine> extends Task<T> {
-    protected final Logger       logger = LoggerFactory.getLogger(this.getClass());
+    private         Color  backgroundColor =Color.BLACK;
+    protected final Logger logger          = LoggerFactory.getLogger(this.getClass());
     private         ChronosPhase mode   = START;
 
     public FadeOut(T gameEngine) {
         super(gameEngine, 1);
     }
 
-    public FadeOut(T gameEngine, float durationSeconds) {
+    public FadeOut(T gameEngine, Color backgroundColor, float durationSeconds) {
         super(gameEngine, durationSeconds);
+        this.backgroundColor = backgroundColor;
     }
 
     public boolean execute(float deltaTime) {
@@ -62,6 +65,7 @@ public class FadeOut<T extends IGameEngine> extends Task<T> {
     public void subExecute(float deltaTime) {
         long deltaSeconds = (System.currentTimeMillis() - taskStartTime);
         gameEngine.getRenderEngine().getFadeEffect().setIntensity(1f - ((float) deltaSeconds / durationMs));
+        gameEngine.getRenderEngine().getFadeEffect().setBackgroundColor(backgroundColor);
     }
 
 }
