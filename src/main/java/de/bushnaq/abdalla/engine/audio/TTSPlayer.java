@@ -71,7 +71,7 @@ public class TTSPlayer extends AbstractAudioProducer {
             case COQUI:
                 try {
                     arrayIndex = 0;
-                    byte[] wavFileBytes = CoquiTTS.generateSpeech(msg, coquiSampleRate);
+                    byte[] wavFileBytes = CoquiTTS.generateSpeech(msg);
                     bytes = extractAudioDataFromWav(wavFileBytes);
                     System.out.println("TTS: " + msg + " (extracted " + bytes.length + " audio bytes from " + wavFileBytes.length + " total bytes)");
                 } catch (Exception e) {

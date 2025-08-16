@@ -18,19 +18,17 @@
 package de.bushnaq.abdalla.engine.audio.synthesis;
 
 import de.bushnaq.abdalla.engine.audio.CoquiTTS;
+import de.bushnaq.abdalla.engine.audio.synthesis.util.TTSBase;
 import org.junit.jupiter.api.*;
 
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-public class SimpleCuquiTest {
+public class SimpleTTSTest extends TTSBase {
 
     private static final int     MAX_STARTUP_WAIT_SECONDS = 300; // Increased to 5 minutes for build time
     private static final String  TTS_SERVICE_URL          = "http://localhost:5000";
@@ -212,7 +210,7 @@ public class SimpleCuquiTest {
     static void setUpClass() throws Exception {
         System.out.println("Starting TTS Docker container...");
         System.out.println("Note: First build may take several minutes to download dependencies...");
-        SimpleCuquiTest testInstance = new SimpleCuquiTest();
+        SimpleTTSTest testInstance = new SimpleTTSTest();
         testInstance.buildAndStartDockerContainer();
         testInstance.waitForServiceToBeReady();
     }
@@ -315,22 +313,23 @@ public class SimpleCuquiTest {
         String[] testText = {"Hello, this is a test of the Coqui TTS system running in Docker.", " This is a longer sentence to ensure we can handle various lengths of text.", " Let's see how it performs with different inputs."};
 
         for (String text : testText) {
+            long time = System.currentTimeMillis();
             System.out.println("Testing TTS with text: " + text);
             // Call the TTS service
 
-            byte[] audioData = CoquiTTS.generateSpeech(text, 22050);
+            byte[] audioData = CoquiTTS.generateSpeech(text);
 
             // Verify we got audio data
             assertNotNull(audioData, "Audio data should not be null");
             assertTrue(audioData.length > 0, "Audio data should not be empty");
 
             // Save the audio file for verification (optional)
-            Path outputPath = Paths.get("test-output.wav");
-            Files.write(outputPath, audioData);
+            CoquiTTS.writeWav(audioData, "test-output.wav");
 
-            System.out.println("Speech generated successfully! Audio saved to: " + outputPath.toAbsolutePath());
+            playBlocking("test-output.wav");
+            System.out.println("Speech generated successfully!");
             System.out.println("Audio file size: " + audioData.length + " bytes");
-            break;
+            System.out.println("Time taken for TTS: " + (System.currentTimeMillis() - time) + " ms");
         }
     }
 
@@ -374,4 +373,5 @@ public class SimpleCuquiTest {
 
         throw new RuntimeException("TTS service did not become ready within " + MAX_STARTUP_WAIT_SECONDS + " seconds");
     }
+
 }
