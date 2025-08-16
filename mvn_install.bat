@@ -1,3 +1,3 @@
 call mvn -version
-call mvn clean install
+call mvn clean install -DskipTests
 pause

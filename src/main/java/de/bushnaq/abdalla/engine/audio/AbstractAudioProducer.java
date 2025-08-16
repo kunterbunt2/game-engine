@@ -31,14 +31,14 @@ public abstract class AbstractAudioProducer implements AudioProducer {
     protected       boolean      play         = false;//is the source playing?
     protected final Vector3      position     = new Vector3();//position of the audio source
     private         boolean      radio        = false;
-    protected final int          samplerate;
+    protected       int          sampleRate;
     protected       OpenAlSource source       = null;//if enabled, this will hold the attached openal source, otherwise null
     private         float        sourceGain;
     protected final Vector3      velocity     = new Vector3();//velocity of the audio source
 
-    public AbstractAudioProducer(int samplerate) {
-        this.samplerate = samplerate;
-        filters         = new Filters(samplerate, this);
+    public AbstractAudioProducer(int sampleRate) {
+        this.sampleRate = sampleRate;
+        filters         = new Filters(sampleRate, this);
     }
 
     /**
@@ -98,8 +98,8 @@ public abstract class AbstractAudioProducer implements AudioProducer {
     }
 
     @Override
-    public int getSamplerate() {
-        return samplerate;
+    public int getSampleRate() {
+        return sampleRate;
     }
 
     public void ignore(boolean value) {

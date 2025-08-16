@@ -56,7 +56,7 @@ public class OggPlayer extends AbstractAudioProducer {
     }
 
     @Override
-    public int getSamplerate() {
+    public int getSampleRate() {
         return sampleRate;
     }
 

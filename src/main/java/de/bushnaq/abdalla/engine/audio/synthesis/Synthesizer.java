@@ -26,12 +26,12 @@ import java.util.List;
 
 public class Synthesizer extends AbstractAudioProducer {
 
-    private final List<Lfo>       lfos          = new ArrayList<>();
-    private final List<Oscilator> oscillators   = new ArrayList<>();
     //	private boolean play = false;//is the source playing?
     //	private final Vector3 position = new Vector3();//position of the audio source
     volatile      double          lastFrequency = 0.0;
     long lastIndex;
+    private final List<Lfo>       lfos          = new ArrayList<>();
+    private final List<Oscilator> oscillators   = new ArrayList<>();
     //	private boolean enabled = false;//a disabled synth does not possess an audio source and any of the source attached resource like filters and buffers
     //	private float gain = 1.0f;
     //	private OpenAlSource source = null;//if enabled, this will hold the attached openal source, otherwise null
@@ -42,7 +42,7 @@ public class Synthesizer extends AbstractAudioProducer {
     }
 
     public void add(final Lfo lfo) {
-        lfo.setSampleRate(samplerate);
+        lfo.setSampleRate(sampleRate);
         lfos.add(lfo);
     }
 
@@ -55,7 +55,7 @@ public class Synthesizer extends AbstractAudioProducer {
     //	}
 
     public void add(final Oscilator generator) {
-        generator.setSampleRate(samplerate);
+        generator.setSampleRate(sampleRate);
         oscillators.add(generator);
     }
 
@@ -123,6 +123,36 @@ public class Synthesizer extends AbstractAudioProducer {
         return AL10.AL_FORMAT_MONO16;
     }
 
+    public short process(final long i) {
+        float value = 0;
+        for (final Oscilator osc : oscillators) {
+            value += osc.gen(i) / oscillators.size();
+            lastFrequency = osc.getFrequency();
+        }
+        for (final Lfo lfo : lfos) {
+            value *= (1 + lfo.gen(i)) / (1 + lfo.getFactor());
+        }
+
+        if (filters.bassBoost != null)
+            value = filters.bassBoost.process(value);
+
+        //Short.MAX_VALUE;
+        return (short) (32760 * value);
+
+    }
+
+    //	/**
+    //	 * Convenience method used for debugging
+    //	 * @throws OpenAlcException
+    //	 */
+    //	public void renderBuffer() throws OpenAlcException {
+    //		if (isEnabled()) {
+    //			source.renderBuffer();
+    //		} else {
+    //			throw new OpenAlcException("Synth is disabled");
+    //		}
+    //	}
+
     @Override
     public void processBuffer(final ByteBuffer byteBuffer) throws OpenAlcException {
         double              f1                  = -1;
@@ -148,36 +178,6 @@ public class Synthesizer extends AbstractAudioProducer {
             byteBufferContainer.endFrequency   = f2;
         }
         lastIndex += source.getSamples();
-    }
-
-    //	/**
-    //	 * Convenience method used for debugging
-    //	 * @throws OpenAlcException
-    //	 */
-    //	public void renderBuffer() throws OpenAlcException {
-    //		if (isEnabled()) {
-    //			source.renderBuffer();
-    //		} else {
-    //			throw new OpenAlcException("Synth is disabled");
-    //		}
-    //	}
-
-    public short process(final long i) {
-        float value = 0;
-        for (final Oscilator osc : oscillators) {
-            value += osc.gen(i) / oscillators.size();
-            lastFrequency = osc.getFrequency();
-        }
-        for (final Lfo lfo : lfos) {
-            value *= (1 + lfo.gen(i)) / (1 + lfo.getFactor());
-        }
-
-        if (filters.bassBoost != null)
-            value = filters.bassBoost.process(value);
-
-        //Short.MAX_VALUE;
-        return (short) (32760 * value);
-
     }
 
 

@@ -1,0 +1,14 @@
+FROM ghcr.io/coqui-ai/tts:latest
+
+# Install Flask for REST API (Coqui TTS is already installed)
+RUN pip3 install --no-cache-dir flask
+
+# Copy server script
+COPY tts_server.py /app/tts_server.py
+WORKDIR /app
+
+# Expose port
+EXPOSE 5000
+
+# Override entrypoint to run our server directly
+ENTRYPOINT ["python3", "tts_server.py"]

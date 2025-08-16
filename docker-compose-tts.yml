@@ -1,0 +1,23 @@
+services:
+  tts-server:
+    build:
+      context: .
+      dockerfile: Dockerfile.tts
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./tts_cache:/root/.cache/tts
+      - ./tts_server.py:/app/tts_server.py
+    restart: unless-stopped
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [ gpu ]
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:5000/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3

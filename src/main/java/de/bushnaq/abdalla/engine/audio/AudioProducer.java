@@ -39,7 +39,7 @@ public interface AudioProducer {
 
     Vector3 getPosition();
 
-    int getSamplerate();
+    int getSampleRate();
 
     void ignore(boolean b);
 

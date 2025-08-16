@@ -39,112 +39,40 @@ import static org.lwjgl.openal.EXTEfx.*;
  * @author abdalla bushnaq
  */
 public class AudioEngine {
-    private static final int                 START_RADIUS     = 1500;
-    private static final int                 STOP_RADIUS      = 2000;
-    private static       ALCapabilities      alCapabilities;
-    private static       ALCCapabilities     alcCapabilities;
-    private static       long                device;
-    private static       Logger              logger           = LoggerFactory.getLogger(AudioEngine.class);
-    private final        int                 bits;
-    private final        Vector3             direction        = new Vector3();//direction of the listener (what direction is he looking to)
-    private final        float               disableRadius2   = STOP_RADIUS * STOP_RADIUS;//all audio streams that are located further away will be stopped and removed
-    private final        float               enableRadius2    = START_RADIUS * START_RADIUS;//an audio streams that gets closer will get added and started
-    private final        Vector3             listenerPosition = new Vector3();//position of the listener, usually the camera
-    private final        Vector3             listenerVelocity = new Vector3();//the velocity of the listener, usually the camera
-    private final        int                 samplerate;
-    private final        int                 samples;
+    private static final int             START_RADIUS   = 1500;
+    private static final int             STOP_RADIUS    = 2000;
+    private static final Logger          logger         = LoggerFactory.getLogger(AudioEngine.class);
+    private static       ALCapabilities  alCapabilities;
+    private static       ALCCapabilities alcCapabilities;
+    private final        int             bits;
+    private              long            context;
+    public               CoquiTTS        coquiTTS;
+    private static       long            device;
+    private final        Vector3         direction      = new Vector3();//direction of the listener (what direction is he looking to)
+    private final        float           disableRadius2 = STOP_RADIUS * STOP_RADIUS;//all audio streams that are located further away will be stopped and removed
+    int distortionEffectSlot;
+    private final float enableRadius2           = START_RADIUS * START_RADIUS;//an audio streams that gets closer will get added and started
+    private       int   enabledAudioSourceCount = 0;
+    Map<String, AbstractSynthesizerFactory<? extends AudioProducer>> factoryMap = new HashMap<>();
+    private final Vector3             listenerPosition = new Vector3();//position of the listener, usually the camera
+    private final Vector3             listenerVelocity = new Vector3();//the velocity of the listener, usually the camera
+    private       int                 mainEffectSlot;
+    private       int                 maxMonoSources   = 0;
+    private       int                 numberOfSources  = 0;
+    public        RadioTTS            radioTTS;
+    private final int                 samplerate;
+    private final int                 samples;
     //	private MovingCamera camera;
     //	private final SynthesizerFactory<T> synthFactory;
-    private final        List<AudioProducer> synths           = new UnsortedList<>();
-    private final        List<OpenAlSource>  unusedSources    = new ArrayList<>();
-    private final        Vector3             up               = new Vector3();//what is up direction for the listener?
-    public               RadioTTS            radioTTS;
-    int                                                              distortionEffectSlot;
-    Map<String, AbstractSynthesizerFactory<? extends AudioProducer>> factoryMap = new HashMap<>();
-    private long context;
-    private int  enabledAudioSourceCount = 0;
-    private int  mainEffectSlot;
-    private int  maxMonoSources          = 0;
-    private int  numberOfSources         = 0;
+    private final List<AudioProducer> synths           = new UnsortedList<>();
+    private final List<OpenAlSource>  unusedSources    = new ArrayList<>();
+    private final Vector3             up               = new Vector3();//what is up direction for the listener?
 
     public AudioEngine(final int samples, final int samplerate, final int bits/*, final int channels*/) {
         this.samples    = samples;
         this.samplerate = samplerate;
         this.bits       = bits;
         //		this.channels = channels;
-    }
-
-    public static void checkAlError(final String message) throws OpenAlException {
-        final int error = AL10.alGetError();
-        if (error != AL10.AL_NO_ERROR) {
-            final String msg = message + error + " " + getALErrorString(error);
-            logger.error(msg);
-            throw new OpenAlException(msg);
-        }
-    }
-
-    public static void checkAlcError(final String message) throws OpenAlException {
-        final int error = ALC10.alcGetError(device);
-        if (error != ALC10.ALC_NO_ERROR) {
-            final String msg = message + error + " " + getALCErrorString(error);
-            logger.error(msg);
-            throw new OpenAlcException(msg);
-        }
-    }
-
-    public static void checkAlcError(final boolean result, final String message) throws OpenAlException {
-        final int error = ALC10.alcGetError(device);
-        if (error != ALC10.ALC_NO_ERROR) {
-            final String msg = "Alc operation failed " + message + error + " " + getALCErrorString(error);
-            logger.error(msg);
-            throw new OpenAlcException(msg);
-        }
-    }
-
-    /**
-     * 1) Identify the error code.
-     * 2) Return the error as a string.
-     */
-    public static String getALCErrorString(final int err) {
-        switch (err) {
-            case ALC10.ALC_NO_ERROR:
-                return "AL_NO_ERROR";
-            case ALC10.ALC_INVALID_DEVICE:
-                return "ALC_INVALID_DEVICE";
-            case ALC10.ALC_INVALID_CONTEXT:
-                return "ALC_INVALID_CONTEXT";
-            case ALC10.ALC_INVALID_ENUM:
-                return "ALC_INVALID_ENUM";
-            case ALC10.ALC_INVALID_VALUE:
-                return "ALC_INVALID_VALUE";
-            case ALC10.ALC_OUT_OF_MEMORY:
-                return "ALC_OUT_OF_MEMORY";
-            default:
-                return "no such error code";
-        }
-    }
-
-    /**
-     * 1) Identify the error code.
-     * 2) Return the error as a string.
-     */
-    public static String getALErrorString(final int err) {
-        switch (err) {
-            case AL10.AL_NO_ERROR:
-                return "AL_NO_ERROR";
-            case AL10.AL_INVALID_NAME:
-                return "AL_INVALID_NAME";
-            case AL10.AL_INVALID_ENUM:
-                return "AL_INVALID_ENUM";
-            case AL10.AL_INVALID_VALUE:
-                return "AL_INVALID_VALUE";
-            case AL10.AL_INVALID_OPERATION:
-                return "AL_INVALID_OPERATION";
-            case AL10.AL_OUT_OF_MEMORY:
-                return "AL_OUT_OF_MEMORY";
-            default:
-                return "No such error code";
-        }
     }
 
     public void add(final AbstractSynthesizerFactory<? extends AudioProducer> factory) {
@@ -173,6 +101,33 @@ public class AudioEngine {
                 updateCamera();
             }
             cullSynths();
+        }
+    }
+
+    public static void checkAlError(final String message) throws OpenAlException {
+        final int error = AL10.alGetError();
+        if (error != AL10.AL_NO_ERROR) {
+            final String msg = message + error + " " + getALErrorString(error);
+            logger.error(msg);
+            throw new OpenAlException(msg);
+        }
+    }
+
+    public static void checkAlcError(final String message) throws OpenAlException {
+        final int error = ALC10.alcGetError(device);
+        if (error != ALC10.ALC_NO_ERROR) {
+            final String msg = message + error + " " + getALCErrorString(error);
+            logger.error(msg);
+            throw new OpenAlcException(msg);
+        }
+    }
+
+    public static void checkAlcError(final boolean result, final String message) throws OpenAlException {
+        final int error = ALC10.alcGetError(device);
+        if (error != ALC10.ALC_NO_ERROR) {
+            final String msg = "Alc operation failed " + message + error + " " + getALCErrorString(error);
+            logger.error(msg);
+            throw new OpenAlcException(msg);
         }
     }
 
@@ -224,6 +179,7 @@ public class AudioEngine {
         setListenerOrientation(new Vector3(0, 0, -1), new Vector3(0, 1, 0));
         createAuxiliaryEffectSlots();
         radioTTS = new RadioTTS(this, assetFolderName);
+        coquiTTS = new CoquiTTS();
         logger.info("----------------------------------------------------------------------------------");
     }
 
@@ -338,9 +294,6 @@ public class AudioEngine {
         }
     }
 
-    //	MercatorSynthesizerFactory mercatorSynthesizerFactory = new MercatorSynthesizerFactory();
-    //	Mp3PlayerFactory mp3PlayerFactory = new Mp3PlayerFactory();
-
     public void disableHrtf(final int index) throws OpenAlException {
         int         i    = 0;
         final int[] attr = new int[5];
@@ -366,6 +319,9 @@ public class AudioEngine {
             //do nothing
         }
     }
+
+    //	MercatorSynthesizerFactory mercatorSynthesizerFactory = new MercatorSynthesizerFactory();
+    //	Mp3PlayerFactory mp3PlayerFactory = new Mp3PlayerFactory();
 
     public void dispose() throws OpenAlException {
         radioTTS.dispose();
@@ -427,17 +383,17 @@ public class AudioEngine {
                 //TODO we cannot reuse sources without reconfiguring them, e.g. mono/stereo, ambient,...
                 source = unusedSources.remove(unusedSources.size() - 1);
                 if (synth instanceof TTSPlayer) {
-                    source.reset(samples, synth.getSamplerate(), bits, synth.getChannels(), synth.getGain(), distortionEffectSlot, synth.isAmbient());
+                    source.reset(samples, synth.getSampleRate(), bits, synth.getChannels(), synth.getGain(), distortionEffectSlot, synth.isAmbient());
                 } else {
-                    source.reset(samples, synth.getSamplerate(), bits, synth.getChannels(), synth.getGain(), mainEffectSlot, synth.isAmbient());
+                    source.reset(samples, synth.getSampleRate(), bits, synth.getChannels(), synth.getGain(), mainEffectSlot, synth.isAmbient());
                 }
                 synth.enable(source);
             } else {
                 if (numberOfSources < 255) {
                     if (synth instanceof TTSPlayer) {
-                        source = new OpenAlSource(samples, synth.getSamplerate(), bits, synth.getChannels(), synth.getGain(), distortionEffectSlot, synth.isAmbient(), synth.isRadio());
+                        source = new OpenAlSource(samples, synth.getSampleRate(), bits, synth.getChannels(), synth.getGain(), distortionEffectSlot, synth.isAmbient(), synth.isRadio());
                     } else {
-                        source = new OpenAlSource(samples, synth.getSamplerate(), bits, synth.getChannels(), synth.getGain(), mainEffectSlot, synth.isAmbient(), synth.isRadio());
+                        source = new OpenAlSource(samples, synth.getSampleRate(), bits, synth.getChannels(), synth.getGain(), mainEffectSlot, synth.isAmbient(), synth.isRadio());
                     }
                     numberOfSources++;
                     synth.enable(source);
@@ -450,6 +406,52 @@ public class AudioEngine {
     }
 
     public void end() {
+    }
+
+    /**
+     * 1) Identify the error code.
+     * 2) Return the error as a string.
+     */
+    public static String getALCErrorString(final int err) {
+        switch (err) {
+            case ALC10.ALC_NO_ERROR:
+                return "AL_NO_ERROR";
+            case ALC10.ALC_INVALID_DEVICE:
+                return "ALC_INVALID_DEVICE";
+            case ALC10.ALC_INVALID_CONTEXT:
+                return "ALC_INVALID_CONTEXT";
+            case ALC10.ALC_INVALID_ENUM:
+                return "ALC_INVALID_ENUM";
+            case ALC10.ALC_INVALID_VALUE:
+                return "ALC_INVALID_VALUE";
+            case ALC10.ALC_OUT_OF_MEMORY:
+                return "ALC_OUT_OF_MEMORY";
+            default:
+                return "no such error code";
+        }
+    }
+
+    /**
+     * 1) Identify the error code.
+     * 2) Return the error as a string.
+     */
+    public static String getALErrorString(final int err) {
+        switch (err) {
+            case AL10.AL_NO_ERROR:
+                return "AL_NO_ERROR";
+            case AL10.AL_INVALID_NAME:
+                return "AL_INVALID_NAME";
+            case AL10.AL_INVALID_ENUM:
+                return "AL_INVALID_ENUM";
+            case AL10.AL_INVALID_VALUE:
+                return "AL_INVALID_VALUE";
+            case AL10.AL_INVALID_OPERATION:
+                return "AL_INVALID_OPERATION";
+            case AL10.AL_OUT_OF_MEMORY:
+                return "AL_OUT_OF_MEMORY";
+            default:
+                return "No such error code";
+        }
     }
 
     public int getDisabledAudioSourceCount() {
