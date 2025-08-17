@@ -1,0 +1,11 @@
+FROM ollama/ollama:latest
+
+# Expose the default Ollama port
+EXPOSE 11434
+
+# Create a script to pull the model and start the server
+COPY pull_model.sh /usr/local/bin/pull_model.sh
+RUN chmod +x /usr/local/bin/pull_model.sh
+
+# Set the entrypoint to our custom script
+ENTRYPOINT ["/usr/local/bin/pull_model.sh"]

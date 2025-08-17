@@ -42,7 +42,7 @@ public class TTSPlayer extends AbstractAudioProducer {
     //    private       float              highGain = 0.0f;
     private       Wav.WavInputStream input;
     private final Logger             logger          = LoggerFactory.getLogger(this.getClass());
-    private final List<String>       messages        = new ArrayList<>();
+    private final List<RadioMessage> messages        = new ArrayList<>();
     //    private       float              lowGain  = 1.0f;
     private       boolean            optIn           = false;//by default ttsPlayer is opting out, which means that it is disabled by  the AudioEngine
     //    private       int                sampleRate = 16000;//default for tts
@@ -60,20 +60,20 @@ public class TTSPlayer extends AbstractAudioProducer {
     private boolean bufferNextMessage() {
         if (messages.isEmpty())
             return false;
-        String msg = messages.remove(0);
-        logger.info(String.format("TTS: %s", msg));
+        RadioMessage msg = messages.remove(0);
+        logger.info(String.format("TTS: %s", msg.message));
         switch (ttsEngine) {
-            case FREETTS:
-                file = audioEngine.radioTTS.getFileHandle(msg);
-                input = new Wav.WavInputStream(file);
-                setup(input.channels, input.sampleRate);
-                break;
+//            case FREETTS:
+//                file = audioEngine.radioTTS.getFileHandle(msg.message);
+//                input = new Wav.WavInputStream(file);
+//                setup(input.channels, input.sampleRate);
+//                break;
             case COQUI:
                 try {
                     arrayIndex = 0;
-                    byte[] wavFileBytes = CoquiTTS.generateSpeech(msg);
+                    byte[] wavFileBytes = CoquiTTS.generateSpeech(msg.message, nameToIndex(msg.from.getName()));
                     bytes = extractAudioDataFromWav(wavFileBytes);
-                    System.out.println("TTS: " + msg + " (extracted " + bytes.length + " audio bytes from " + wavFileBytes.length + " total bytes)");
+//                    System.out.println("TTS: " + msg + " (extracted " + bytes.length + " audio bytes from " + wavFileBytes.length + " total bytes)");
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }
@@ -146,7 +146,7 @@ public class TTSPlayer extends AbstractAudioProducer {
                 // Read bits per sample (2 bytes, little-endian)
                 bitsPerSample = (wavFileBytes[formatOffset + 14] & 0xFF) | ((wavFileBytes[formatOffset + 15] & 0xFF) << 8);
 
-                logger.info("WAV format: " + numChannels + " channels, " + sampleRate + "Hz, " + bitsPerSample + " bits");
+//                logger.info("WAV format: " + numChannels + " channels, " + sampleRate + "Hz, " + bitsPerSample + " bits");
 
             } else if ("data".equals(chunkId)) {
                 // Found data chunk, extract audio data
@@ -156,7 +156,7 @@ public class TTSPlayer extends AbstractAudioProducer {
                 audioData = new byte[audioDataLength];
                 System.arraycopy(wavFileBytes, audioDataStart, audioData, 0, audioDataLength);
 
-                logger.info("WAV header parsed: found data chunk at offset " + audioDataStart + ", audio data length: " + audioDataLength + " bytes");
+//                logger.info("WAV header parsed: found data chunk at offset " + audioDataStart + ", audio data length: " + audioDataLength + " bytes");
             }
 
             // Move to next chunk
@@ -199,6 +199,10 @@ public class TTSPlayer extends AbstractAudioProducer {
     @Override
     public boolean isOptIn() {
         return optIn;
+    }
+
+    private int nameToIndex(String name) {
+        return Integer.parseInt(name.substring(2));
     }
 
     @Override
@@ -313,12 +317,12 @@ public class TTSPlayer extends AbstractAudioProducer {
         this.sampleRate = samplerate;
     }
 
-    public void speak(String msg) {
+    public void speak(RadioMessage msg) {
         switch (ttsEngine) {
-            case FREETTS:
-                List<String> tokens = audioEngine.radioTTS.tokenize(msg);
-                messages.addAll(tokens);
-                break;
+//            case FREETTS:
+//                List<String> tokens = audioEngine.radioTTS.tokenize(msg);
+//                messages.addAll(tokens);
+//                break;
             case COQUI:
                 messages.add(msg);
                 break;

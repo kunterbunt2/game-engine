@@ -1,0 +1,6 @@
+{
+  "model": "llama3.2:3b-instruct-q4_0",
+  "prompt": "Hello, how are you?",
+  "stream": false
+}
+

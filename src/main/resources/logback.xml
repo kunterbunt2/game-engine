@@ -24,4 +24,7 @@
     <root level="debug">
         <appender-ref ref="STDOUT"/>
     </root>
+    <!-- Apache HttpClient (version 5) -->
+    <logger name="org.apache.hc.client5.http" level="INFO"/>
+    <logger name="org.apache.hc.core5.http" level="INFO"/>
 </configuration>

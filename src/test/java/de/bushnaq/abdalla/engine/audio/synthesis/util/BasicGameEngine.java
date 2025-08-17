@@ -32,6 +32,7 @@ import de.bushnaq.abdalla.engine.IGameEngine;
 import de.bushnaq.abdalla.engine.RenderEngine3D;
 import de.bushnaq.abdalla.engine.audio.AudioEngine;
 import de.bushnaq.abdalla.engine.audio.OpenAlException;
+import de.bushnaq.abdalla.engine.audio.RadioTTS;
 import de.bushnaq.abdalla.engine.camera.MovingCamera;
 import net.mgsx.gltf.scene3d.attributes.PBRCubemapAttribute;
 import net.mgsx.gltf.scene3d.attributes.PBRFloatAttribute;
@@ -114,7 +115,7 @@ public abstract class BasicGameEngine implements ApplicationListener, InputProce
             createEnvironment();
             getAudioEngine().create("E:/github/game-engine/app/assets");
             audioEngine.radioTTS.loadResource(this.getClass());
-            audioEngine.radioTTS.loadAudio();
+//            audioEngine.radioTTS.loadAudio();
         } catch (final Exception e) {
             logger.error(e.getMessage(), e);
         }
@@ -144,18 +145,18 @@ public abstract class BasicGameEngine implements ApplicationListener, InputProce
         config.setTitle("game-engine-test");
         {
             ShaderProgram.prependVertexCode   = "#version 330\n"//
-                    + "#define GLSL3\n"//
-                    + "#ifdef GLSL3\n"//
-                    + "#define attribute in\n"//
-                    + "#define varying out\n"//
-                    + "#endif\n";//
+                                                + "#define GLSL3\n"//
+                                                + "#ifdef GLSL3\n"//
+                                                + "#define attribute in\n"//
+                                                + "#define varying out\n"//
+                                                + "#endif\n";//
             ShaderProgram.prependFragmentCode = "#version 330\n"//
-                    + "#define GLSL3\n"//
-                    + "#ifdef GLSL3\n"//
-                    + "#define textureCube texture\n"//
-                    + "#define texture2D texture\n"//
-                    + "#define varying in\n"//
-                    + "#endif\n";//
+                                                + "#define GLSL3\n"//
+                                                + "#ifdef GLSL3\n"//
+                                                + "#define textureCube texture\n"//
+                                                + "#define texture2D texture\n"//
+                                                + "#define varying in\n"//
+                                                + "#endif\n";//
         }
         final Monitor[]   monitors    = Lwjgl3ApplicationConfiguration.getMonitors();
         final DisplayMode primaryMode = Lwjgl3ApplicationConfiguration.getDisplayMode(monitors[1]);
@@ -231,6 +232,10 @@ public abstract class BasicGameEngine implements ApplicationListener, InputProce
     @Override
     public MovingCamera getCamera() {
         return camera;
+    }
+
+    public RadioTTS getRadioTTS() {
+        return audioEngine.radioTTS;
     }
 
     public BasicRandomGenerator getRandomGenerator() {

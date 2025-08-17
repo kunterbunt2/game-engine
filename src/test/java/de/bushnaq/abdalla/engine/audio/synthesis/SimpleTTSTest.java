@@ -310,7 +310,11 @@ public class SimpleTTSTest extends TTSBase {
 
     @Test
     public void testTextToSpeech() throws Exception {
-        String[] testText = {"Hello, this is a test of the Coqui TTS system running in Docker.", " This is a longer sentence to ensure we can handle various lengths of text.", " Let's see how it performs with different inputs."};
+        String[] testText = {
+                "Tango 4, 4, 4,... to Papa 4, 6, 1,... requesting approval to dock.",//
+                "Tango 4 4 4 to Papa 4 6 1 requesting approval to dock.",//
+                " Let's see how it performs with different inputs."//
+        };
 
         for (String text : testText) {
             long time = System.currentTimeMillis();

@@ -656,6 +656,40 @@ public class RenderEngine3D<T extends IGameEngine> {
         return gameEngine;
     }
 
+    public GameObject<T> getGameObject(final int screenX, final int screenY) {
+        final Ray ray = camera.getPickRay(screenX, screenY);
+//        createRay(ray, null);
+        GameObject<T> result   = null;
+        float         distance = -1;
+        for (int i = 0; i < dynamicGameObjects.size; ++i) {
+            final GameObject<T> instance = dynamicGameObjects.get(i);
+            if (instance.interactive != null) {
+                instance.instance.transform.getTranslation(position);
+                position.add(instance.center);
+                final float dist2 = ray.origin.dst2(position);
+                if (distance >= 0f && dist2 > distance) continue;
+                if (Intersector.intersectRayBoundsFast(ray, instance.transformedBoundingBox)) {
+                    result   = instance;
+                    distance = dist2;
+                }
+            }
+        }
+        for (int i = 0; i < staticGameObjects.size; ++i) {
+            final GameObject<T> instance = staticGameObjects.get(i);
+            if (instance.interactive != null) {
+                instance.instance.transform.getTranslation(position);
+                position.add(instance.center);
+                final float dist2 = ray.origin.dst2(position);
+                if (distance >= 0f && dist2 > distance) continue;
+                if (Intersector.intersectRayBoundsFast(ray, instance.transformedBoundingBox)) {
+                    result   = instance;
+                    distance = dist2;
+                }
+            }
+        }
+        return result;
+    }
+
 //	private void createDepthOfFieldMeter() {
 //		if (isDebugMode()) {
 //
@@ -695,40 +729,6 @@ public class RenderEngine3D<T extends IGameEngine> {
 //			}
 //		}
 //	}
-
-    public GameObject<T> getGameObject(final int screenX, final int screenY) {
-        final Ray ray = camera.getPickRay(screenX, screenY);
-//        createRay(ray, null);
-        GameObject<T> result   = null;
-        float         distance = -1;
-        for (int i = 0; i < dynamicGameObjects.size; ++i) {
-            final GameObject<T> instance = dynamicGameObjects.get(i);
-            if (instance.interactive != null) {
-                instance.instance.transform.getTranslation(position);
-                position.add(instance.center);
-                final float dist2 = ray.origin.dst2(position);
-                if (distance >= 0f && dist2 > distance) continue;
-                if (Intersector.intersectRayBoundsFast(ray, instance.transformedBoundingBox)) {
-                    result   = instance;
-                    distance = dist2;
-                }
-            }
-        }
-        for (int i = 0; i < staticGameObjects.size; ++i) {
-            final GameObject<T> instance = staticGameObjects.get(i);
-            if (instance.interactive != null) {
-                instance.instance.transform.getTranslation(position);
-                position.add(instance.center);
-                final float dist2 = ray.origin.dst2(position);
-                if (distance >= 0f && dist2 > distance) continue;
-                if (Intersector.intersectRayBoundsFast(ray, instance.transformedBoundingBox)) {
-                    result   = instance;
-                    distance = dist2;
-                }
-            }
-        }
-        return result;
-    }
 
     public Mirror getMirror() {
         return mirror;

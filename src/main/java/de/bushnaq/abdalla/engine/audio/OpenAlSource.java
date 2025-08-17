@@ -18,7 +18,6 @@ package de.bushnaq.abdalla.engine.audio;
 
 import com.badlogic.gdx.math.Vector3;
 import org.lwjgl.openal.AL10;
-import org.lwjgl.openal.AL11;
 import org.lwjgl.openal.EXTEfx;
 import org.lwjgl.system.libc.LibCStdlib;
 import org.slf4j.Logger;
@@ -34,6 +33,8 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
+
+import static org.lwjgl.openal.AL11.alSource3i;
 
 public class OpenAlSource extends Thread {
     private static final int                       BUFFER_COUNT         = 3;
@@ -101,16 +102,21 @@ public class OpenAlSource extends Thread {
         if (EXTEfx.alIsFilter(filter)) {
             if (radio) {
                 // Set Filter type to Low-Pass and set parameters
-                EXTEfx.alFilteri(filter, EXTEfx.AL_FILTER_TYPE, EXTEfx.AL_FILTER_HIGHPASS);
-                AudioEngine.checkAlError("Low pass filter not supported error #");
+//                EXTEfx.alFilteri(filter, EXTEfx.AL_FILTER_TYPE, EXTEfx.AL_FILTER_HIGHPASS);
+//                AudioEngine.checkAlError("Low pass filter not supported error #");
 
 //                EXTEfx.alFilterf(filter, EXTEfx.AL_HIGHPASS_GAIN, 1.0f);
 //                AudioEngine.checkAlError("Failed to set filter lowGain with error #");
 //
 //                EXTEfx.alFilterf(filter, EXTEfx.AL_HIGHPASS_GAINLF, 0.05f);
 //                AudioEngine.checkAlError("Failed to set filter highgain with error #");
-                EXTEfx.alFilteri(filter, EXTEfx.AL_FILTER_TYPE, EXTEfx.AL_FILTER_HIGHPASS);
+//                EXTEfx.alFilteri(filter, EXTEfx.AL_FILTER_TYPE, EXTEfx.AL_FILTER_HIGHPASS);
+//                AudioEngine.checkAlError("Low pass filter not supported error #");
+                EXTEfx.alFilteri(filter, EXTEfx.AL_FILTER_TYPE, EXTEfx.AL_FILTER_BANDPASS);
                 AudioEngine.checkAlError("Low pass filter not supported error #");
+
+//                EXTEfx.alFilteri(filter, EXTEfx.AL_FILTER_TYPE, EXTEfx.AL_FILTER_BANDPASS);
+//                AudioEngine.checkAlError("Low pass filter not supported error #");
             } else {
                 // Set Filter type to Low-Pass and set parameters
                 EXTEfx.alFilteri(filter, EXTEfx.AL_FILTER_TYPE, EXTEfx.AL_FILTER_LOWPASS);
@@ -156,8 +162,8 @@ public class OpenAlSource extends Thread {
         AL10.alDopplerVelocity(1.0f);
         AudioEngine.checkAlError("Openal error #");
 
-//        alSource3i(source, AL_AUXILIARY_SEND_FILTER, distortionEffectSlot, 0, AL_FILTER_NULL);
-        AL11.alSource3i(source, EXTEfx.AL_AUXILIARY_SEND_FILTER, auxiliaryEffectSlot, 1, filter);
+
+        alSource3i(source, EXTEfx.AL_AUXILIARY_SEND_FILTER, auxiliaryEffectSlot, 1, filter);
     }
 
     void dispose() throws OpenAlException {

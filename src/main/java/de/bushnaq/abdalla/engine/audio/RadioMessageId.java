@@ -17,5 +17,5 @@
 package de.bushnaq.abdalla.engine.audio;
 
 public enum RadioMessageId {
-    REQUEST_TO_DOCK, APPROVE_TO_DOCK
+    REQUEST_TO_DOCK, APPROVE_TO_DOCK, REQUEST_TO_UNDOCK, APPROVE_TO_UNDOCK
 }

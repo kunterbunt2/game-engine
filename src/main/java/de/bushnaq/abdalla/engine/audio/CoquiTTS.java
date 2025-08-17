@@ -26,15 +26,28 @@ public class CoquiTTS {
         }
     }
 
+    public static byte[] generateSpeech(String text, int speakerId) throws Exception {
+        String speaker = null;
+        if (speakerInfo.isMultiSpeaker() && speakerInfo.getSpeakerCount() > 1) {
+            speaker = speakerInfo.getSpeakers().get(speakerId % speakerInfo.getSpeakerCount());
+        }
+        String language = null;
+        if (languageInfo.getLanguageCount() > 0) {
+            language = languageInfo.getLanguages().getFirst();
+        }
+
+        return generateSpeech(text, speaker, language);
+    }
+
     // Basic speech generation methods
     public static byte[] generateSpeech(String text) throws Exception {
         String speaker = null;
         if (speakerInfo.isMultiSpeaker() && speakerInfo.getSpeakerCount() > 1) {
-            speaker = speakerInfo.getSpeakers().get((int) (Math.random() * speakerInfo.getSpeakerCount()));
+            speaker = speakerInfo.getSpeakers().getFirst();
         }
         String language = null;
         if (languageInfo.getLanguageCount() > 0) {
-            language = languageInfo.getLanguages().get((int) (Math.random() * languageInfo.getLanguageCount()));
+            language = languageInfo.getLanguages().getFirst();
         }
 
         return generateSpeech(text, speaker, language);
@@ -45,7 +58,7 @@ public class CoquiTTS {
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 
         // Set up the request
-        System.out.println("Connecting to TTS service at " + TTS_SERVICE_URL);
+//        System.out.println("Connecting to TTS service at " + TTS_SERVICE_URL);
         conn.setRequestMethod("POST");
         conn.setRequestProperty("Content-Type", "application/json");
         conn.setDoOutput(true);
@@ -63,7 +76,7 @@ public class CoquiTTS {
         }
 
         String jsonPayload = objectMapper.writeValueAsString(jsonMap);
-        System.out.println("JSON payload: " + jsonPayload);
+//        System.out.println("JSON payload: " + jsonPayload);
 
         try (OutputStream os = conn.getOutputStream()) {
             byte[] input = jsonPayload.getBytes(StandardCharsets.UTF_8);
@@ -72,7 +85,7 @@ public class CoquiTTS {
 
         // Check response code
         int responseCode = conn.getResponseCode();
-        System.out.println("TTS service response code: " + responseCode);
+//        System.out.println("TTS service response code: " + responseCode);
         if (responseCode != 200) {
             String error = readProcessOutput(conn.getErrorStream());
             throw new RuntimeException("TTS service returned error " + responseCode + ": " + error);
@@ -89,7 +102,7 @@ public class CoquiTTS {
             }
 
             byte[] byteArray = baos.toByteArray();
-            System.out.println("TTS audio data received successfully " + byteArray.length + " bytes.");
+//            System.out.println("TTS audio data received successfully " + byteArray.length + " bytes.");
             return byteArray;
         }
     }

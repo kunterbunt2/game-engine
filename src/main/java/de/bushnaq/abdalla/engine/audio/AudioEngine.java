@@ -39,34 +39,34 @@ import static org.lwjgl.openal.EXTEfx.*;
  * @author abdalla bushnaq
  */
 public class AudioEngine {
-    private static final int             START_RADIUS   = 1500;
-    private static final int             STOP_RADIUS    = 2000;
-    private static final Logger          logger         = LoggerFactory.getLogger(AudioEngine.class);
-    private static       ALCapabilities  alCapabilities;
-    private static       ALCCapabilities alcCapabilities;
-    private final        int             bits;
-    private              long            context;
-    public               CoquiTTS        coquiTTS;
-    private static       long            device;
-    private final        Vector3         direction      = new Vector3();//direction of the listener (what direction is he looking to)
-    private final        float           disableRadius2 = STOP_RADIUS * STOP_RADIUS;//all audio streams that are located further away will be stopped and removed
-    int distortionEffectSlot;
-    private final float enableRadius2           = START_RADIUS * START_RADIUS;//an audio streams that gets closer will get added and started
-    private       int   enabledAudioSourceCount = 0;
-    Map<String, AbstractSynthesizerFactory<? extends AudioProducer>> factoryMap = new HashMap<>();
-    private final Vector3             listenerPosition = new Vector3();//position of the listener, usually the camera
-    private final Vector3             listenerVelocity = new Vector3();//the velocity of the listener, usually the camera
-    private       int                 mainEffectSlot;
-    private       int                 maxMonoSources   = 0;
-    private       int                 numberOfSources  = 0;
-    public        RadioTTS            radioTTS;
-    private final int                 samplerate;
-    private final int                 samples;
+    private static final int                                                              START_RADIUS            = 1500;
+    private static final int                                                              STOP_RADIUS             = 2000;
+    private static final Logger                                                           logger                  = LoggerFactory.getLogger(AudioEngine.class);
+    private static       ALCapabilities                                                   alCapabilities;
+    private static       ALCCapabilities                                                  alcCapabilities;
+    private final        int                                                              bits;
+    private              long                                                             context;
+    public               CoquiTTS                                                         coquiTTS;
+    private static       long                                                             device;
+    private final        Vector3                                                          direction               = new Vector3();//direction of the listener (what direction is he looking to)
+    private final        float                                                            disableRadius2          = STOP_RADIUS * STOP_RADIUS;//all audio streams that are located further away will be stopped and removed
+    private              int                                                              distortionEffectSlot;
+    private final        float                                                            enableRadius2           = START_RADIUS * START_RADIUS;//an audio streams that gets closer will get added and started
+    private              int                                                              enabledAudioSourceCount = 0;
+    private final        Map<String, AbstractSynthesizerFactory<? extends AudioProducer>> factoryMap              = new HashMap<>();
+    private final        Vector3                                                          listenerPosition        = new Vector3();//position of the listener, usually the camera
+    private final        Vector3                                                          listenerVelocity        = new Vector3();//the velocity of the listener, usually the camera
+    private              int                                                              mainEffectSlot;
+    private              int                                                              maxMonoSources          = 0;
+    private              int                                                              numberOfSources         = 0;
+    public               RadioTTS                                                         radioTTS;
+    private final        int                                                              samplerate;
+    private final        int                                                              samples;
     //	private MovingCamera camera;
     //	private final SynthesizerFactory<T> synthFactory;
-    private final List<AudioProducer> synths           = new UnsortedList<>();
-    private final List<OpenAlSource>  unusedSources    = new ArrayList<>();
-    private final Vector3             up               = new Vector3();//what is up direction for the listener?
+    private final        List<AudioProducer>                                              synths                  = new UnsortedList<>();
+    private final        List<OpenAlSource>                                               unusedSources           = new ArrayList<>();
+    private final        Vector3                                                          up                      = new Vector3();//what is up direction for the listener?
 
     public AudioEngine(final int samples, final int samplerate, final int bits/*, final int channels*/) {
         this.samples    = samples;
