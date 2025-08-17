@@ -32,6 +32,8 @@ public interface IGameEngine {
 
     RenderEngine3D<?> getRenderEngine();
 
+    ISubtitles getSubtitles();
+
     void render2Dxz();
 
     boolean updateEnvironment(final float timeOfDay);

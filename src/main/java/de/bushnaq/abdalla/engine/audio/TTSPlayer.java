@@ -18,35 +18,50 @@ package de.bushnaq.abdalla.engine.audio;
 
 import com.badlogic.gdx.backends.lwjgl3.audio.Wav;
 import com.badlogic.gdx.files.FileHandle;
-import com.badlogic.gdx.utils.StreamUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.nio.ByteBuffer;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import static org.lwjgl.openal.AL10.AL_FORMAT_MONO16;
 import static org.lwjgl.openal.AL10.AL_FORMAT_STEREO16;
 
 public class TTSPlayer extends AbstractAudioProducer {
-    private       int                arrayIndex      = 0;
-    private final AudioEngine        audioEngine;
-    private       byte[]             bytes           = null;
-    private final int                channels        = 1;
+    private       int                      arrayIndex   = 0;
+    private final AudioEngine              audioEngine;
+    private       byte[]                   bytes        = null;
+    private final int                      channels     = 1;
     // Configurable sample rate for COQUI TTS
-    private       int                coquiSampleRate = 22050; // Default to 22050Hz for better quality
-    protected     FileHandle         file;
-    private       int                format          = AL_FORMAT_MONO16;
+//    private       int         coquiSampleRate = 22050; // Default to 22050Hz for better quality
+    private       RadioMessage             currentRadioMessage;//currently playing
+    protected     FileHandle               file;
+    private       int                      format       = AL_FORMAT_MONO16;
+    private final DateTimeFormatter        formatter    = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     //    private       float              highGain = 0.0f;
-    private       Wav.WavInputStream input;
-    private final Logger             logger          = LoggerFactory.getLogger(this.getClass());
-    private final List<RadioMessage> messages        = new ArrayList<>();
+    private       Wav.WavInputStream       input;
+    private final Logger                   logger       = LoggerFactory.getLogger(this.getClass());
+    private final List<RadioMessage>       messages     = new ArrayList<>();
+    private final Object                   messagesLock = new Object(); // Lock for thread-safe access to messages
     //    private       float              lowGain  = 1.0f;
-    private       boolean            optIn           = false;//by default ttsPlayer is opting out, which means that it is disabled by  the AudioEngine
+    private       boolean                  optIn        = false;//by default ttsPlayer is opting out, which means that it is disabled by  the AudioEngine
+    // Thread management for silent message checking
+    private       ScheduledExecutorService silentMessageChecker;
+    private       long                     startTime;//time we started rendering
+    private       long                     stopTime;
     //    private       int                sampleRate = 16000;//default for tts
-    private final TtsEngine          ttsEngine       = TtsEngine.COQUI;
+    private final TtsEngine                ttsEngine    = TtsEngine.COQUI;
+
 
     public TTSPlayer(AudioEngine audioEngine) throws OpenAlException {
         super(22050);
@@ -55,13 +70,24 @@ public class TTSPlayer extends AbstractAudioProducer {
         this.audioEngine = audioEngine;
 //        filters.highGain = 1.0f;
 //        filters.lowGain  = 0.05f;
+        File eventsFile = new File("radio.txt");
+        if (eventsFile.exists()) {
+            boolean deleted = eventsFile.delete();
+            if (!deleted) {
+                logger.warn("Could not delete existing radio.txt file");
+            }
+        }
+        startSilentMessageChecker();
     }
 
     private boolean bufferNextMessage() {
-        if (messages.isEmpty())
-            return false;
-        RadioMessage msg = messages.remove(0);
-        logger.info(String.format("TTS: %s", msg.message));
+        synchronized (messagesLock) {
+            if (messages.isEmpty())
+                return false;
+            RadioMessage firstMessage = messages.get(0);
+            currentRadioMessage = messages.remove(0);
+        }
+//        logger.info(String.format("TTS: %s to %s", currentRadioMessage.message, currentRadioMessage.to.getName()));
         switch (ttsEngine) {
 //            case FREETTS:
 //                file = audioEngine.radioTTS.getFileHandle(msg.message);
@@ -70,8 +96,9 @@ public class TTSPlayer extends AbstractAudioProducer {
 //                break;
             case COQUI:
                 try {
+                    writeRadioToFile(currentRadioMessage);
                     arrayIndex = 0;
-                    byte[] wavFileBytes = CoquiTTS.generateSpeech(msg.message, nameToIndex(msg.from.getName()));
+                    byte[] wavFileBytes = CoquiTTS.generateSpeech(currentRadioMessage.message, nameToIndex(currentRadioMessage.from.getName()));
                     bytes = extractAudioDataFromWav(wavFileBytes);
 //                    System.out.println("TTS: " + msg + " (extracted " + bytes.length + " audio bytes from " + wavFileBytes.length + " total bytes)");
                 } catch (Exception e) {
@@ -85,6 +112,44 @@ public class TTSPlayer extends AbstractAudioProducer {
         return true;
     }
 
+    /**
+     * Check if the first message in the queue is a silent message that has expired
+     */
+    private void checkSilentMessages() {
+        synchronized (messagesLock) {
+            if (startTime == 0) {
+                if (!messages.isEmpty()) {
+                    startTime = System.currentTimeMillis();
+                    stopTime  = startTime + messages.getFirst().message.length() * 120L;//estimate time to speak the message
+                }
+            } else {
+                // Calculate the end time for this silent message
+                long currentTime = System.currentTimeMillis();
+                if (stopTime < currentTime) {
+                    // Silent message has expired, remove it
+                    if (!messages.isEmpty()) {
+                        RadioMessage msg = messages.removeFirst();
+//                        logger.debug("Removed expired silent message: {} (expired at {}ms, current time {}ms)", msg.message, stopTime, currentTime);
+                        // Notify the partner that the silent message is finished
+                        if (msg.to != null) {
+                            msg.to.notifyFinishedTalking(msg);
+                        }
+                        startTime = 0;
+                    }
+                }
+
+            }
+        }
+    }
+
+    @Override
+    public OpenAlSource disable() throws OpenAlException {
+        final OpenAlSource sourceBuffer = super.disable();
+        startSilentMessageChecker();
+        return sourceBuffer;
+    }
+
+    @Override
     public void enable(final OpenAlSource source) throws OpenAlException {
         enabled     = true;
         this.source = source;
@@ -95,6 +160,7 @@ public class TTSPlayer extends AbstractAudioProducer {
         if (isPlaying())
             this.source.play();//we should be playing
         this.source.unparkOrStartThread();
+        stopSilentMessageChecker();
     }
 
     /**
@@ -187,9 +253,9 @@ public class TTSPlayer extends AbstractAudioProducer {
         return channels;
     }
 
-    public int getCoquiSampleRate() {
-        return coquiSampleRate;
-    }
+//    public int getCoquiSampleRate() {
+//        return coquiSampleRate;
+//    }
 
     @Override
     public int getOpenAlFormat() {
@@ -205,12 +271,52 @@ public class TTSPlayer extends AbstractAudioProducer {
         return Integer.parseInt(name.substring(2));
     }
 
+    //    private void processWaveFile(ByteBuffer byteBuffer) {
+//        if (input == null) {
+//            if (!bufferNextMessage()) {
+//                fastZero(byteBuffer);
+//                return;
+//            }
+//        }
+//        for (int i = 0; i < byteBuffer.capacity() / 2; i += 1) {
+//            int byte1;
+//            int byte2;
+//            try {
+//                byte1 = input.read();
+//                byte2 = input.read();
+//                if (byte2 == -1) {
+//                    if (!bufferNextMessage()) {
+//                        input = null;
+//                        fastZero(byteBuffer);
+//                        return;
+//                    } else {
+//                        byte1 = input.read();
+//                        byte2 = input.read();
+//                    }
+//                }
+//                {
+//                    byteBuffer.put(i * 2, (byte) byte1);
+//                    byteBuffer.put(i * 2 + 1, (byte) byte2);
+//                }
+//            } catch (IOException e) {
+//                throw new RuntimeException(e);
+//            }
+//        }
+//    }
+    private void notifyPartner() {
+        if (currentRadioMessage != null) {
+//            System.out.println("TTSPLayer=" + currentRadioMessage.to.getName());
+            currentRadioMessage.to.notifyFinishedTalking(currentRadioMessage);
+            currentRadioMessage = null; // Clear after notifying
+        }
+    }
+
     @Override
     public void processBuffer(final ByteBuffer byteBuffer) {
         switch (ttsEngine) {
-            case FREETTS:
-                processWaveFile(byteBuffer);
-                break;
+//            case FREETTS:
+//                processWaveFile(byteBuffer);
+//                break;
             case COQUI:
                 processBytesArray(byteBuffer);
                 break;
@@ -221,7 +327,11 @@ public class TTSPlayer extends AbstractAudioProducer {
         for (int i = 0; i < byteBuffer.capacity() / 2; i += 1) {
             int byte1;
             int byte2;
-            if (bytes == null || arrayIndex > bytes.length - 2) {
+            if (bytes == null || (bytes.length > 0 && arrayIndex > bytes.length - 2)) {
+                if (bytes != null) {
+//                    logger.info("arrayIndex=" + arrayIndex);
+                    notifyPartner();
+                }
                 byte2 = -1;
                 if (!bufferNextMessage()) {
                     input = null;
@@ -243,71 +353,19 @@ public class TTSPlayer extends AbstractAudioProducer {
         }
     }
 
-    private void processWaveFile(ByteBuffer byteBuffer) {
-        if (input == null) {
-            if (!bufferNextMessage()) {
-                fastZero(byteBuffer);
-                return;
-            }
-        }
-        for (int i = 0; i < byteBuffer.capacity() / 2; i += 1) {
-            int byte1;
-            int byte2;
-            try {
-                byte1 = input.read();
-                byte2 = input.read();
-                if (byte2 == -1) {
-                    if (!bufferNextMessage()) {
-                        input = null;
-//                    logger.info("break");
-                        fastZero(byteBuffer);
-                        return;
-                    } else {
-                        byte1 = input.read();
-                        byte2 = input.read();
-                    }
-                }
-//                if (filters.filter != null) {
-//                    int   intValue1   = byte1 + (byte2 << 8);
-//                    float floatValue1 = (float) intValue1 / 32768 - 1f;
-//                    float floatValue2 = filters.filter.process(floatValue1);
-//                    int   intValue2   = (int) ((floatValue2 + 1f) * 32768);
-//                    intValue2 = Math.max(intValue2, 0);
-//                    intValue2 = (int) Math.min((long) intValue2, 256L * 256L);
-//                    int nbyte2 = intValue2 >> 8;
-//                    int nbyte1 = intValue2 & 0xff;
-//                    if (nbyte1 != byte1)
-//                        logger.info(String.format("%d %d", byte1, nbyte1));
-//                    if (nbyte2 != byte2)
-//                        logger.info(String.format("%d %d", byte2, nbyte2));
-//                    logger.info(String.format("%d %d %d %f %f", byte1, byte2, intValue1, floatValue1, floatValue2));
-//                    byteBuffer.put(i * 2, (byte) nbyte1);
-//                    byteBuffer.put(i * 2 + 1, (byte) nbyte2);
-//                } else
-                {
-                    byteBuffer.put(i * 2, (byte) byte1);
-                    byteBuffer.put(i * 2 + 1, (byte) byte2);
-                }
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }
-    }
-
-    public void reset() {
-        StreamUtils.closeQuietly(input);
-        input = null;
-    }
+//    public void reset() {
+//        StreamUtils.closeQuietly(input);
+//        input = null;
+//    }
 
     /**
      * Set the sample rate for COQUI TTS generation
      * Common values: 16000 (telephone quality), 22050 (CD quality/2), 44100 (CD quality)
      */
-    public void setCoquiSampleRate(int sampleRate) {
-        this.coquiSampleRate = sampleRate;
-        logger.info("COQUI TTS sample rate set to: " + sampleRate + "Hz");
-    }
-
+//    public void setCoquiSampleRate(int sampleRate) {
+//        this.coquiSampleRate = sampleRate;
+//        logger.info("COQUI TTS sample rate set to: " + sampleRate + "Hz");
+//    }
     public void setOptIn(boolean optIn) {
         this.optIn = optIn;
     }
@@ -324,9 +382,57 @@ public class TTSPlayer extends AbstractAudioProducer {
 //                messages.addAll(tokens);
 //                break;
             case COQUI:
-                messages.add(msg);
+                if (!msg.silent)
+                    logger.info("speak" + msg.message);
+                synchronized (messagesLock) {
+                    messages.add(msg);
+                }
                 break;
         }
     }
 
+    /**
+     * Start the background thread that checks for expired silent messages
+     */
+    private void startSilentMessageChecker() {
+        if (silentMessageChecker == null) {
+            silentMessageChecker = Executors.newSingleThreadScheduledExecutor(r -> {
+                Thread t = new Thread(r, "TTSPlayer-SilentMessageChecker");
+                t.setDaemon(true); // Don't prevent JVM shutdown
+                return t;
+            });
+
+            // Check every 100ms for expired silent messages
+            silentMessageChecker.scheduleAtFixedRate(this::checkSilentMessages, 0, 100, TimeUnit.MILLISECONDS);
+//            logger.info("Silent message checker thread started");
+        }
+    }
+
+    /**
+     * Stop the silent message checker thread
+     */
+    public void stopSilentMessageChecker() {
+        if (silentMessageChecker != null && !silentMessageChecker.isShutdown()) {
+            silentMessageChecker.shutdown();
+            try {
+                if (!silentMessageChecker.awaitTermination(1, TimeUnit.SECONDS)) {
+                    silentMessageChecker.shutdownNow();
+                }
+            } catch (InterruptedException e) {
+                silentMessageChecker.shutdownNow();
+                Thread.currentThread().interrupt();
+            }
+//            logger.info("Silent message checker thread stopped");
+            silentMessageChecker = null;
+        }
+    }
+
+    private void writeRadioToFile(RadioMessage rm) {
+        try (PrintWriter writer = new PrintWriter(new FileWriter("radio.txt", true))) {
+            String formattedEvent = String.format("%s %s->%s: %s", LocalDateTime.now().format(formatter), rm.from.getName(), rm.to.getName(), rm.message);
+            writer.println(formattedEvent);
+        } catch (IOException e) {
+            logger.error("Failed to write event to file", e);
+        }
+    }
 }

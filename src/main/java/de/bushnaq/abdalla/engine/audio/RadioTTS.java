@@ -178,10 +178,14 @@ public class RadioTTS implements IRadio {
     //    public String resolveString(String stringID) {
 //        return radioProperties.getProperty(stringID);
 //    }
-    public String resolveString(String id) {
-        String text = cleanupAiAnswer(askAi(id));
-        if (text != null) {
-            return text;
+    public String resolveString(String id, boolean silent) {
+        //lets not use ai for silent messages
+        if (!silent) {
+
+            String text = cleanupAiAnswer(askAi(id));
+            if (text != null) {
+                return text;
+            }
         }
         //not an AI message id
         List<String> options = stringOptions.get(id);

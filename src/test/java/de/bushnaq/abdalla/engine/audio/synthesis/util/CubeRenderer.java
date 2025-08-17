@@ -105,8 +105,8 @@ public class CubeRenderer extends ObjectRenderer<BasicGameEngine> implements Com
                     ttsPlayer.setGain(1.0f);
                     ttsPlayer.setAmbient(true);
                     ttsPlayer.setOptIn(true);
-                    String string = RadioMessage.createMessage(renderEngine.getGameEngine().getAudioEngine().radioTTS.resolveString(REQUESTING_APPROVAL_TO_DOCK), SHIP_TAG, "T-38", STATION_TAG, "P-81");
-                    ttsPlayer.speak(new RadioMessage(0, this, null, RadioMessageId.REQUEST_TO_DOCK, string));
+                    String string = RadioMessage.createMessage(renderEngine.getGameEngine().getAudioEngine().radioTTS.resolveString(REQUESTING_APPROVAL_TO_DOCK, true), SHIP_TAG, "T-38", STATION_TAG, "P-81");
+                    ttsPlayer.speak(new RadioMessage(0, this, null, RadioMessageId.REQUEST_TO_DOCK, string, false));
                 }
             }
         } catch (final Exception e) {
@@ -152,6 +152,11 @@ public class CubeRenderer extends ObjectRenderer<BasicGameEngine> implements Com
     @Override
     public boolean isSelected() {
         return true;//make sure we are heard
+    }
+
+    @Override
+    public void notifyFinishedTalking(RadioMessage currentRadioMessage) {
+
     }
 
     @Override

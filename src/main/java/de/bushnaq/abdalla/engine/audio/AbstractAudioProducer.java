@@ -54,7 +54,9 @@ public abstract class AbstractAudioProducer implements AudioProducer {
     @Override
     public OpenAlSource disable() throws OpenAlException {
         enabled = false;
-        source.pause();
+        if (source != null) {
+            source.pause();
+        }
         final OpenAlSource sourceBuffer = source;
         source = null;
         return sourceBuffer;

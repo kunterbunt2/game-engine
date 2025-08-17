@@ -23,6 +23,8 @@ public interface CommunicationPartner {
 
     boolean isSelected();
 
+    void notifyFinishedTalking(RadioMessage msg);
+
     void radio(RadioMessage message);
 
     void select() throws OpenAlException;

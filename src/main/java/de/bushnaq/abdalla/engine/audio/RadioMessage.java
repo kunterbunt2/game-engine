@@ -50,15 +50,17 @@ public class RadioMessage {
     public               CommunicationPartner   from;
     public               RadioMessageId         id;
     public               String                 message;
+    public               boolean                silent;
     public               long                   time;
     public               CommunicationPartner   to;
 
-    public RadioMessage(long currentTime, CommunicationPartner from, CommunicationPartner to, RadioMessageId id, String message) {
+    public RadioMessage(long currentTime, CommunicationPartner from, CommunicationPartner to, RadioMessageId id, String message, boolean silent) {
         time         = currentTime;
         this.from    = from;
         this.to      = to;
         this.id      = id;
         this.message = message;
+        this.silent  = silent;
     }
 
     public static String addCommaAndSpace(String input) {
@@ -83,7 +85,7 @@ public class RadioMessage {
     }
 
     public static String createMessage(String message, String fromTag, String from, String toTag, String to) {
-        System.out.printf("Creating message from %s to %s: %s%n", from, to, message);
+//        System.out.printf("Creating message from %s to %s: %s%n", from, to, message);
         return message.replaceAll(fromTag, from).replaceAll(toTag, to);
 //        return String.format(message, convertCallerName(from), convertCallerName(to));
     }

@@ -29,6 +29,7 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import de.bushnaq.abdalla.engine.IGameEngine;
+import de.bushnaq.abdalla.engine.ISubtitles;
 import de.bushnaq.abdalla.engine.RenderEngine3D;
 import de.bushnaq.abdalla.engine.audio.AudioEngine;
 import de.bushnaq.abdalla.engine.audio.OpenAlException;
@@ -72,6 +73,7 @@ public abstract class BasicGameEngine implements ApplicationListener, InputProce
     protected     Cubemap                         specularCubemap;
     private       Stage                           stage;
     private       StringBuilder                   stringBuilder;
+    private final ISubtitles                      subtitles       = new BasicSubtitles();
     private       boolean                         takeScreenShot  = false;
     private       long                            timeDelta       = 0L;
 
@@ -244,6 +246,10 @@ public abstract class BasicGameEngine implements ApplicationListener, InputProce
 
     public RenderEngine3D<BasicGameEngine> getRenderEngine() {
         return renderEngine;
+    }
+
+    public ISubtitles getSubtitles() {
+        return subtitles;
     }
 
 //    public boolean isSimulateBassBoost() {
