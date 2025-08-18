@@ -17,6 +17,7 @@
 package de.bushnaq.abdalla.engine.audio;
 
 import de.bushnaq.abdalla.engine.LLMPrompt;
+import de.bushnaq.abdalla.engine.ai.PromptTags;
 import de.bushnaq.abdalla.engine.ai.ollama.OllamaClient;
 import de.bushnaq.abdalla.engine.ai.ollama.OllamaException;
 import org.slf4j.Logger;
@@ -33,8 +34,6 @@ import java.util.regex.Pattern;
  */
 public class RadioTTS implements IRadio {
     private static final Pattern                   KEY_PATTERN     = Pattern.compile("(.+)\\.(\\d+)$");
-    public static final  String                    SHIP_TAG        = "<ship>";
-    public static final  String                    STATION_TAG     = "<station>";
     private static final OllamaClient              client          = new OllamaClient();
     //    private final        String                    assetFolderName;
     private final        AudioEngine               audioEngine;
@@ -54,9 +53,9 @@ public class RadioTTS implements IRadio {
         logger.info("initialized tts");
     }
 
-    private String askAi(String id) {
+    private String askAi(String id, PromptTags tags) {
         try {
-            LLMPrompt systemPrompt = systemPromptMap.get(id);
+            LLMPrompt systemPrompt = new LLMPrompt(systemPromptMap.get(id), tags);
             if (systemPrompt != null)
                 return client.generate("llama3.2:3b", systemPrompt.getPrompt(), systemPrompt.getSystemPrompt()).getResponse();
             return null;
@@ -178,11 +177,11 @@ public class RadioTTS implements IRadio {
     //    public String resolveString(String stringID) {
 //        return radioProperties.getProperty(stringID);
 //    }
-    public String resolveString(String id, boolean silent) {
+    public String resolveString(String id, PromptTags tags, boolean silent) {
         //lets not use ai for silent messages
         if (!silent) {
 
-            String text = cleanupAiAnswer(askAi(id));
+            String text = cleanupAiAnswer(askAi(id, tags));
             if (text != null) {
                 return text;
             }

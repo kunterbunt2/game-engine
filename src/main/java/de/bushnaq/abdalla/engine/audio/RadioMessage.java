@@ -16,6 +16,8 @@
 
 package de.bushnaq.abdalla.engine.audio;
 
+import de.bushnaq.abdalla.engine.ai.PromptTags;
+
 import java.util.Map;
 
 public class RadioMessage {
@@ -84,9 +86,11 @@ public class RadioMessage {
         return NATO_MAP.getOrDefault(upper, String.valueOf(upper)) + ",... " + from.substring(2);
     }
 
-    public static String createMessage(String message, String fromTag, String from, String toTag, String to) {
+    public static String createMessage(String message, PromptTags tags) {
+
 //        System.out.printf("Creating message from %s to %s: %s%n", from, to, message);
-        return message.replaceAll(fromTag, from).replaceAll(toTag, to);
+        return message = tags.replaceAllPreTags(message);
+//        return message.replaceAll(fromTag, from).replaceAll(toTag, to);
 //        return String.format(message, convertCallerName(from), convertCallerName(to));
     }
 }

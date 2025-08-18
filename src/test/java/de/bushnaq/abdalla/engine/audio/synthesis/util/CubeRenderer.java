@@ -28,6 +28,7 @@ import com.badlogic.gdx.math.Vector3;
 import de.bushnaq.abdalla.engine.GameObject;
 import de.bushnaq.abdalla.engine.ObjectRenderer;
 import de.bushnaq.abdalla.engine.RenderEngine3D;
+import de.bushnaq.abdalla.engine.ai.PromptTags;
 import de.bushnaq.abdalla.engine.audio.*;
 import de.bushnaq.abdalla.engine.audio.synthesis.Synthesizer;
 import de.bushnaq.abdalla.engine.util.ModelCreator;
@@ -37,8 +38,6 @@ import net.mgsx.gltf.scene3d.model.ModelInstanceHack;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static de.bushnaq.abdalla.engine.audio.RadioTTS.SHIP_TAG;
-import static de.bushnaq.abdalla.engine.audio.RadioTTS.STATION_TAG;
 import static de.bushnaq.abdalla.engine.audio.synthesis.util.TranslationUtil.CUBE_NAME_COLOR;
 
 public class CubeRenderer extends ObjectRenderer<BasicGameEngine> implements CommunicationPartner {
@@ -105,7 +104,10 @@ public class CubeRenderer extends ObjectRenderer<BasicGameEngine> implements Com
                     ttsPlayer.setGain(1.0f);
                     ttsPlayer.setAmbient(true);
                     ttsPlayer.setOptIn(true);
-                    String string = RadioMessage.createMessage(renderEngine.getGameEngine().getAudioEngine().radioTTS.resolveString(REQUESTING_APPROVAL_TO_DOCK, true), SHIP_TAG, "T-38", STATION_TAG, "P-81");
+                    PromptTags tags = new PromptTags();
+                    tags.addPreTag("ship", "T-38");
+                    tags.addPreTag("station", "P-81");
+                    String string = RadioMessage.createMessage(renderEngine.getGameEngine().getAudioEngine().radioTTS.resolveString(REQUESTING_APPROVAL_TO_DOCK, tags, true), tags);
                     ttsPlayer.speak(new RadioMessage(0, this, null, RadioMessageId.REQUEST_TO_DOCK, string, false));
                 }
             }
