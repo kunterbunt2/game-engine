@@ -98,7 +98,7 @@ public class TTSPlayer extends AbstractAudioProducer {
                 try {
                     writeRadioToFile(currentRadioMessage);
                     arrayIndex = 0;
-                    byte[] wavFileBytes = CoquiTTS.generateSpeech(currentRadioMessage.message, nameToIndex(currentRadioMessage.from.getName()));
+                    byte[] wavFileBytes = CoquiTTS.generateSpeech(currentRadioMessage.message, currentRadioMessage.from.getId());
                     bytes = extractAudioDataFromWav(wavFileBytes);
 //                    System.out.println("TTS: " + msg + " (extracted " + bytes.length + " audio bytes from " + wavFileBytes.length + " total bytes)");
                 } catch (Exception e) {
@@ -267,9 +267,6 @@ public class TTSPlayer extends AbstractAudioProducer {
         return optIn;
     }
 
-    private int nameToIndex(String name) {
-        return Integer.parseInt(name.substring(2));
-    }
 
     //    private void processWaveFile(ByteBuffer byteBuffer) {
 //        if (input == null) {

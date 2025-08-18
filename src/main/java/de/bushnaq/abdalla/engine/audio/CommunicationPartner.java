@@ -19,6 +19,8 @@ package de.bushnaq.abdalla.engine.audio;
 public interface CommunicationPartner {
     long RADIO_ANSWER_DELAY = 4000;//ms
 
+    int getId();
+
     String getName();
 
     boolean isSelected();
