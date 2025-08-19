@@ -102,6 +102,7 @@ public class AudioEngine {
                 updateCamera();
             }
             cullSynths();
+            radio.renderRadio();
         }
     }
 

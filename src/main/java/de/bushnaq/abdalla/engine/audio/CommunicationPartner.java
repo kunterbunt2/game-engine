@@ -23,7 +23,11 @@ public interface CommunicationPartner {
 
     String getName();
 
+    void handleRadioRequest(RadioRequest rr);
+
     boolean isSelected();
+
+//    boolean isSilent();
 
     void notifyFinishedTalking(RadioMessage msg);
 

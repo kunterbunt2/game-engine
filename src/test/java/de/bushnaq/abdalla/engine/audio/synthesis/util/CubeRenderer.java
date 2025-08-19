@@ -157,6 +157,11 @@ public class CubeRenderer extends ObjectRenderer<BasicGameEngine> implements Com
     }
 
     @Override
+    public void handleRadioRequest(RadioRequest rr) {
+
+    }
+
+    @Override
     public boolean isSelected() {
         return true;//make sure we are heard
     }

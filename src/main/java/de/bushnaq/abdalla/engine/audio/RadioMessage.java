@@ -49,20 +49,23 @@ public class RadioMessage {
             Map.entry('Y', "Yankee"),
             Map.entry('Z', "Zulu")
     );
-    public               CommunicationPartner   from;
-    public               RadioMessageId         id;
-    public               String                 message;
-    public               boolean                silent;
-    public               long                   time;
-    public               CommunicationPartner   to;
-
+    private final long                 endTime;
+    public        CommunicationPartner from;
+    public        RadioMessageId       id;
+    public        String               message;
+    public        boolean              silent;
+    public        long                 time;//universe time
+    public        long                 timeSent;
+    public        CommunicationPartner to;
     public RadioMessage(long currentTime, CommunicationPartner from, CommunicationPartner to, RadioMessageId id, String message, boolean silent) {
         time         = currentTime;
+        timeSent     = System.currentTimeMillis();
         this.from    = from;
         this.to      = to;
         this.id      = id;
         this.message = message;
         this.silent  = silent;
+        this.endTime = timeSent + estimatedDuration();
     }
 
     public static String addCommaAndSpace(String input) {
@@ -92,5 +95,17 @@ public class RadioMessage {
         return message = tags.replaceAllPreTags(message);
 //        return message.replaceAll(fromTag, from).replaceAll(toTag, to);
 //        return String.format(message, convertCallerName(from), convertCallerName(to));
+    }
+
+    public long estimatedDuration() {
+        return message.length() * 120L;
+    }
+
+    public long getEndTime() {
+        return endTime;
+    }
+
+    public boolean isFinished() {
+        return System.currentTimeMillis() > endTime;
     }
 }

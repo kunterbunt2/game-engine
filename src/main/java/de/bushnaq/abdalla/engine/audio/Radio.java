@@ -26,6 +26,9 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -37,15 +40,20 @@ public class Radio implements IRadio {
     private static final OllamaClient              client          = new OllamaClient();
     private final        AudioEngine               audioEngine;
     private final        Logger                    logger          = LoggerFactory.getLogger(this.getClass());
+    private final        Object                    messagesLock    = new Object(); // Lock for thread-safe access to messages
+    private final        List<RadioRequest>        radioRequests   = new ArrayList<>();
     private final        Random                    random          = new Random();
+    private              ScheduledExecutorService  spokenMessageChecker;
     private final        Map<String, List<String>> stringOptions   = new HashMap<>();//every id can have a list of string options
     private final        Map<String, LLMPrompt>    systemPromptMap = new HashMap<>();//have to be registered, can be used to generate radio messages via AI
+    private final        TTSPlayer                 ttsPlayer;
 
     public Radio(AudioEngine audioEngine) throws OpenAlException {
         this.audioEngine = audioEngine;
-
-
+        this.ttsPlayer   = audioEngine.createAudioProducer(TTSPlayer.class);
+        this.ttsPlayer.setGain(1f);
         logger.info("initialized tts");
+        startSpokenMessageChecker();
     }
 
     private String askAi(String id, PromptTags tags) {
@@ -65,6 +73,18 @@ public class Radio implements IRadio {
     }
 
     public void dispose() {
+    }
+
+    /**
+     * Check if the first message in the queue is a silent message that has expired
+     */
+    private void generateSpokenMessages() {
+        synchronized (messagesLock) {
+            while (!radioRequests.isEmpty()) {
+                RadioRequest rr = radioRequests.removeFirst();
+                rr.getFrom().handleRadioRequest(rr);
+            }
+        }
     }
 
     public void loadResource(Class<?> clazz) throws IOException {
@@ -92,8 +112,29 @@ public class Radio implements IRadio {
         }
     }
 
+    @Override
+    public void queueRadioMessageGeneration(RadioRequest rr) {
+        if (rr.isSilent()) {
+            rr.getFrom().handleRadioRequest(rr);
+        } else {
+//            System.out.println("queueRadioMessageGeneration: " + rr.getFrom() + " -> " + rr.getTo() + " : " + rr.getMessageId());
+            radioRequests.add(rr);//queue spoken message generation
+        }
+    }
+
+    @Override
+    public void radio(RadioMessage rm) {
+        rm.to.radio(rm);// send to partner
+        say(rm);
+    }
+
     public void registerSystemPrompt(String id, LLMPrompt systemPrompt) {
         systemPromptMap.put(id, systemPrompt);
+    }
+
+    @Override
+    public void renderRadio() throws OpenAlException {
+        ttsPlayer.play();
     }
 
     public String resolveString(String id, PromptTags tags, boolean silent) {
@@ -113,9 +154,47 @@ public class Radio implements IRadio {
         return options.get(random.nextInt(options.size()));
     }
 
-    @Override
-    public void talk(RadioMessage rm) {
-        rm.to.radio(rm);// send to partner
+    public void say(RadioMessage msg) {
+//        if (Debug.isFilterPlanet(planet.getName())) {
+//            logger.info(String.format("say %s selected=%b", msg, isSelected()));
+//        }
+        ttsPlayer.speak(msg);
+    }
+
+    /**
+     * Start the background thread that checks for expired silent messages
+     */
+    private void startSpokenMessageChecker() {
+        if (spokenMessageChecker == null) {
+            spokenMessageChecker = Executors.newSingleThreadScheduledExecutor(r -> {
+                Thread t = new Thread(r, "TTSPlayer-SilentMessageChecker");
+                t.setDaemon(true); // Don't prevent JVM shutdown
+                return t;
+            });
+
+            // Check every 100ms for expired silent messages
+            spokenMessageChecker.scheduleAtFixedRate(this::generateSpokenMessages, 0, 100, TimeUnit.MILLISECONDS);
+//            logger.info("Silent message checker thread started");
+        }
+    }
+
+    /**
+     * Stop the silent message checker thread
+     */
+    public void stopSpokenMessageChecker() {
+        if (spokenMessageChecker != null && !spokenMessageChecker.isShutdown()) {
+            spokenMessageChecker.shutdown();
+            try {
+                if (!spokenMessageChecker.awaitTermination(1, TimeUnit.SECONDS)) {
+                    spokenMessageChecker.shutdownNow();
+                }
+            } catch (InterruptedException e) {
+                spokenMessageChecker.shutdownNow();
+                Thread.currentThread().interrupt();
+            }
+//            logger.info("Silent message checker thread stopped");
+            spokenMessageChecker = null;
+        }
     }
 
 }

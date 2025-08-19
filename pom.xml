@@ -97,7 +97,7 @@
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
-            <version>1.4.14</version>
+            <version>1.5.13</version>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
@@ -116,16 +116,6 @@
             <artifactId>freetts</artifactId>
             <version>1.2.2</version>
         </dependency>
-        <!--        <dependency>-->
-        <!--            <groupId>org.mobicents.external.freetts</groupId>-->
-        <!--            <artifactId>cmu_us_kal</artifactId>-->
-        <!--            <version>1.0</version>-->
-        <!--        </dependency>-->
-        <!--        <dependency>-->
-        <!--            <groupId>io.github.jonelo</groupId>-->
-        <!--            <artifactId>jadapter-for-native-tts</artifactId>-->
-        <!--            <version>0.12.0</version>-->
-        <!--        </dependency>-->
         <dependency>
             <groupId>uk.me.berndporr</groupId>
             <artifactId>iirj</artifactId>
@@ -145,6 +135,12 @@
             <groupId>org.apache.httpcomponents.client5</groupId>
             <artifactId>httpclient5</artifactId>
             <version>5.3</version>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.18.38</version>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 
