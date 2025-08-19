@@ -5,8 +5,16 @@
 | com.scottlogic.util                            | SortedList.java                  | src      |       91 |      226 |       68 |      519 |      904 |
 | com.scottlogic.util                            | UnsortedList.java                | src      |       19 |       80 |       24 |      120 |      243 |
 +------------------------------------------------+----------------------------------+----------+----------+----------+----------+----------+----------+
+| de.bushnaq.abdalla.engine.ai.coqui             | CoquiTTS.java                    | src      |       53 |        0 |       29 |      208 |      290 |
+| de.bushnaq.abdalla.engine.ai.coqui             | TtsEngine.java                   | src      |        1 |        0 |        0 |        4 |        5 |
+| de.bushnaq.abdalla.engine.ai.coqui             | TtsHealthInfo.java               | src      |       12 |        0 |        3 |       47 |       62 |
+| de.bushnaq.abdalla.engine.ai.coqui             | TtsLanguageInfo.java             | src      |       14 |        0 |        3 |       48 |       65 |
+| de.bushnaq.abdalla.engine.ai.coqui             | TtsModelList.java                | src      |        7 |        0 |        2 |       21 |       30 |
+| de.bushnaq.abdalla.engine.ai.coqui             | TtsSpeakerInfo.java              | src      |       14 |        0 |        3 |       48 |       65 |
+| de.bushnaq.abdalla.engine.ai.coqui             | TtsVocoderList.java              | src      |        9 |        0 |        3 |       30 |       42 |
++------------------------------------------------+----------------------------------+----------+----------+----------+----------+----------+----------+
 | de.bushnaq.abdalla.engine.ai.ollama            | Llama32TestClient.java           | src      |       14 |        3 |        7 |       80 |      104 |
-| de.bushnaq.abdalla.engine.ai.ollama            | OllamaClient.java                | src      |       52 |       99 |        8 |      277 |      436 |
+| de.bushnaq.abdalla.engine.ai.ollama            | OllamaClient.java                | src      |       52 |       99 |        8 |      282 |      441 |
 | de.bushnaq.abdalla.engine.ai.ollama            | OllamaClientTest.java            | src      |       15 |        4 |        3 |       54 |       76 |
 | de.bushnaq.abdalla.engine.ai.ollama            | OllamaExample.java               | src      |       16 |        3 |       11 |       59 |       89 |
 | de.bushnaq.abdalla.engine.ai.ollama            | OllamaException.java             | src      |        4 |        3 |        0 |       12 |       19 |
@@ -16,7 +24,7 @@
 | de.bushnaq.abdalla.engine.ai                   | PromptTags.java                  | src      |        9 |        0 |        0 |       41 |       50 |
 +------------------------------------------------+----------------------------------+----------+----------+----------+----------+----------+----------+
 | de.bushnaq.abdalla.engine.audio.synthesis.util | ApplicationProperties.java       | src      |       47 |        3 |       22 |      290 |      362 |
-| de.bushnaq.abdalla.engine.audio.synthesis.util | BasciRadio.java                  | src      |        3 |        0 |        0 |        9 |       12 |
+| de.bushnaq.abdalla.engine.audio.synthesis.util | BasciRadio.java                  | src      |        5 |        0 |        0 |       13 |       18 |
 | de.bushnaq.abdalla.engine.audio.synthesis.util | BasicAtlasManager.java           | src      |       10 |        0 |       15 |       73 |       98 |
 | de.bushnaq.abdalla.engine.audio.synthesis.util | BasicAudioEngine.java            | src      |        6 |        0 |       15 |       18 |       39 |
 | de.bushnaq.abdalla.engine.audio.synthesis.util | BasicDesktopContext.java         | src      |       21 |        3 |       34 |       87 |      145 |
@@ -28,7 +36,7 @@
 | de.bushnaq.abdalla.engine.audio.synthesis.util | CircularCubeRenderer.java        | src      |       11 |        0 |       15 |       40 |       66 |
 | de.bushnaq.abdalla.engine.audio.synthesis.util | Context.java                     | src      |       24 |        3 |       15 |      152 |      194 |
 | de.bushnaq.abdalla.engine.audio.synthesis.util | CubeActor.java                   | src      |        5 |        0 |       15 |        8 |       28 |
-| de.bushnaq.abdalla.engine.audio.synthesis.util | CubeRenderer.java                | src      |       26 |        0 |       22 |      227 |      275 |
+| de.bushnaq.abdalla.engine.audio.synthesis.util | CubeRenderer.java                | src      |       27 |        0 |       22 |      231 |      280 |
 | de.bushnaq.abdalla.engine.audio.synthesis.util | ExampleSynthesizer.java          | src      |       18 |        5 |       52 |       62 |      137 |
 | de.bushnaq.abdalla.engine.audio.synthesis.util | ExampleSynthesizerFactory.java   | src      |        6 |        0 |       15 |       14 |       35 |
 | de.bushnaq.abdalla.engine.audio.synthesis.util | LiniarCubeActor.java             | src      |        5 |        0 |       15 |        7 |       27 |
@@ -62,7 +70,7 @@
 | de.bushnaq.abdalla.engine.audio.synthesis      | PositionalOggStreamingTest.java  | src      |        7 |        0 |       15 |       32 |       54 |
 | de.bushnaq.abdalla.engine.audio.synthesis      | SawOscillator.java               | src      |       14 |        6 |       24 |       37 |       81 |
 | de.bushnaq.abdalla.engine.audio.synthesis      | SawOscillatorTest.java           | src      |       15 |        0 |       18 |      115 |      148 |
-| de.bushnaq.abdalla.engine.audio.synthesis      | SimpleTTSTest.java               | src      |       59 |        0 |       43 |      279 |      381 |
+| de.bushnaq.abdalla.engine.audio.synthesis      | SimpleTTSTest.java               | src      |       60 |        0 |       46 |      285 |      391 |
 | de.bushnaq.abdalla.engine.audio.synthesis      | SinOscillator.java               | src      |       12 |        6 |       16 |       47 |       81 |
 | de.bushnaq.abdalla.engine.audio.synthesis      | SinOscilliatorTest.java          | src      |       15 |        0 |       18 |      119 |      152 |
 | de.bushnaq.abdalla.engine.audio.synthesis      | Synthesizer.java                 | src      |       34 |        0 |      101 |      104 |      239 |
@@ -71,32 +79,25 @@
 | de.bushnaq.abdalla.engine.audio.synthesis      | TTSStreamingTest.java            | src      |        7 |        0 |       15 |       32 |       54 |
 +------------------------------------------------+----------------------------------+----------+----------+----------+----------+----------+----------+
 | de.bushnaq.abdalla.engine.audio                | AbstractAudioProducer.java       | src      |       31 |       16 |       25 |      173 |      245 |
-| de.bushnaq.abdalla.engine.audio                | AudioEngine.java                 | src      |       58 |       22 |       92 |      388 |      560 |
+| de.bushnaq.abdalla.engine.audio                | AudioEngine.java                 | src      |       58 |       22 |       92 |      389 |      561 |
 | de.bushnaq.abdalla.engine.audio                | AudioProducer.java               | src      |       29 |        0 |       16 |       30 |       75 |
 | de.bushnaq.abdalla.engine.audio                | ByteBufferContainer.java         | src      |        4 |        0 |       20 |        7 |       31 |
-| de.bushnaq.abdalla.engine.audio                | CommunicationPartner.java        | src      |        8 |        0 |       15 |       10 |       33 |
-| de.bushnaq.abdalla.engine.audio                | CoquiTTS.java                    | src      |       53 |        0 |       29 |      208 |      290 |
+| de.bushnaq.abdalla.engine.audio                | CommunicationPartner.java        | src      |        9 |        0 |       15 |       11 |       35 |
 | de.bushnaq.abdalla.engine.audio                | Filter.java                      | src      |       10 |        0 |       15 |       34 |       59 |
 | de.bushnaq.abdalla.engine.audio                | Filter1.java                     | src      |       13 |        0 |       24 |       55 |       92 |
 | de.bushnaq.abdalla.engine.audio                | Filters.java                     | src      |       15 |        0 |       19 |       73 |      107 |
-| de.bushnaq.abdalla.engine.audio                | IRadio.java                      | src      |        3 |        3 |        0 |        5 |       11 |
+| de.bushnaq.abdalla.engine.audio                | IRadio.java                      | src      |        3 |        3 |        0 |        6 |       12 |
 | de.bushnaq.abdalla.engine.audio                | OggPlayer.java                   | src      |       15 |        0 |       18 |       69 |      102 |
 | de.bushnaq.abdalla.engine.audio                | OggPlayerFactory.java            | src      |        6 |        0 |       15 |       12 |       33 |
 | de.bushnaq.abdalla.engine.audio                | OpenAlException.java             | src      |        4 |        0 |       15 |        6 |       25 |
 | de.bushnaq.abdalla.engine.audio                | OpenAlSource.java                | src      |       61 |        6 |       75 |      379 |      521 |
 | de.bushnaq.abdalla.engine.audio                | OpenAlcException.java            | src      |        4 |        0 |       15 |        6 |       25 |
+| de.bushnaq.abdalla.engine.audio                | Radio.java                       | src      |       20 |        3 |       18 |       80 |      121 |
 | de.bushnaq.abdalla.engine.audio                | RadioMessage.java                | src      |       10 |        0 |       19 |       67 |       96 |
 | de.bushnaq.abdalla.engine.audio                | RadioMessageId.java              | src      |        2 |        0 |       15 |        4 |       21 |
-| de.bushnaq.abdalla.engine.audio                | RadioTTS.java                    | src      |       35 |        6 |      219 |       77 |      337 |
-| de.bushnaq.abdalla.engine.audio                | TTSPlayer.java                   | src      |       48 |       16 |      108 |      266 |      438 |
+| de.bushnaq.abdalla.engine.audio                | TTSPlayer.java                   | src      |       48 |       16 |      108 |      265 |      437 |
 | de.bushnaq.abdalla.engine.audio                | TTSPlayerFactory.java            | src      |        6 |        0 |       15 |       12 |       33 |
 | de.bushnaq.abdalla.engine.audio                | TTSToken.java                    | src      |        3 |        0 |       15 |        4 |       22 |
-| de.bushnaq.abdalla.engine.audio                | TtsEngine.java                   | src      |        1 |        0 |        0 |        4 |        5 |
-| de.bushnaq.abdalla.engine.audio                | TtsHealthInfo.java               | src      |       12 |        0 |        3 |       47 |       62 |
-| de.bushnaq.abdalla.engine.audio                | TtsLanguageInfo.java             | src      |       14 |        0 |        3 |       48 |       65 |
-| de.bushnaq.abdalla.engine.audio                | TtsModelList.java                | src      |        7 |        0 |        2 |       21 |       30 |
-| de.bushnaq.abdalla.engine.audio                | TtsSpeakerInfo.java              | src      |       14 |        0 |        3 |       48 |       65 |
-| de.bushnaq.abdalla.engine.audio                | TtsVocoderList.java              | src      |        9 |        0 |        3 |       30 |       42 |
 +------------------------------------------------+----------------------------------+----------+----------+----------+----------+----------+----------+
 | de.bushnaq.abdalla.engine.camera               | MovingCamera.java                | src      |       10 |        8 |       18 |       32 |       68 |
 +------------------------------------------------+----------------------------------+----------+----------+----------+----------+----------+----------+
@@ -192,5 +193,5 @@
 | de.bushnaq.abdalla.engine                      | renderLightTest.java             | src      |       15 |        0 |       15 |       99 |      129 |
 | de.bushnaq.abdalla.engine                      | renderTest.java                  | src      |       14 |        0 |       45 |       99 |      158 |
 +------------------------------------------------+----------------------------------+----------+----------+----------+----------+----------+----------+
-| 17 package(s)                                  | 174 file(s)                      | java     |     2606 |      885 |     4135 |    13379 |    21005 |
+| 18 package(s)                                  | 174 file(s)                      | java     |     2596 |      882 |     3937 |    13403 |    20818 |
 +------------------------------------------------+----------------------------------+----------+----------+----------+----------+----------+----------+

@@ -1,6 +1,6 @@
 package de.bushnaq.abdalla.engine.audio.synthesis;
 
-import de.bushnaq.abdalla.engine.audio.*;
+import de.bushnaq.abdalla.engine.ai.coqui.*;
 import de.bushnaq.abdalla.engine.audio.synthesis.util.TTSBase;
 
 public class TTSMultiSpeakerExample extends TTSBase {

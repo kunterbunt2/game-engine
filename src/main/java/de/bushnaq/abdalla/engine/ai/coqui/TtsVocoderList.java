@@ -1,4 +1,4 @@
-package de.bushnaq.abdalla.engine.audio;
+package de.bushnaq.abdalla.engine.ai.coqui;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -6,7 +6,7 @@ import java.util.List;
 
 public class TtsVocoderList {
     @JsonProperty("vocoder_count")
-    private int vocoderCount;
+    private int          vocoderCount;
     @JsonProperty("vocoders")
     private List<String> vocoders;
 

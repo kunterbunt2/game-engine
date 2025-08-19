@@ -107,7 +107,7 @@ public class CubeRenderer extends ObjectRenderer<BasicGameEngine> implements Com
                     PromptTags tags = new PromptTags();
                     tags.addPreTag("ship", "T-38");
                     tags.addPreTag("station", "P-81");
-                    String string = RadioMessage.createMessage(renderEngine.getGameEngine().getAudioEngine().radioTTS.resolveString(REQUESTING_APPROVAL_TO_DOCK, tags, true), tags);
+                    String string = RadioMessage.createMessage(renderEngine.getGameEngine().getAudioEngine().radio.resolveString(REQUESTING_APPROVAL_TO_DOCK, tags, true), tags);
                     ttsPlayer.speak(new RadioMessage(0, this, null, RadioMessageId.REQUEST_TO_DOCK, string, false));
                 }
             }
@@ -140,6 +140,11 @@ public class CubeRenderer extends ObjectRenderer<BasicGameEngine> implements Com
             default:
                 return Color.WHITE;
         }
+    }
+
+    @Override
+    public int getId() {
+        return 0;
     }
 
     @Override

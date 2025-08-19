@@ -17,7 +17,8 @@
 
 package de.bushnaq.abdalla.engine.audio.synthesis;
 
-import de.bushnaq.abdalla.engine.audio.CoquiTTS;
+import de.bushnaq.abdalla.engine.ai.coqui.CoquiTTS;
+import de.bushnaq.abdalla.engine.ai.coqui.TtsModelList;
 import de.bushnaq.abdalla.engine.audio.synthesis.util.TTSBase;
 import org.junit.jupiter.api.*;
 
@@ -311,16 +312,25 @@ public class SimpleTTSTest extends TTSBase {
     @Test
     public void testTextToSpeech() throws Exception {
         String[] testText = {
-                "Tango 4, 4, 4,... to Papa 4, 6, 1,... requesting approval to dock.",//
+                "Hi,. this is testing the pause feature,. and if it can be extended.",//
                 "Tango 4 4 4 to Papa 4 6 1 requesting approval to dock.",//
-                " Let's see how it performs with different inputs."//
+                "Let's see how it performs, with different inputs."//
         };
 
+        TtsModelList ttsModelList = CoquiTTS.listModels();
+        for (String model : ttsModelList.getModels()) {
+            System.out.println(model);
+        }
+
+
+//        CoquiTTS.loadModel("tts_models/multilingual/multi-dataset/bark");
+//        CoquiTTS.loadModel("tts_models/multilingual/multi-dataset/your_tts");
+//        CoquiTTS.loadModel("tts_models/multilingual/multi-dataset/xtts_v2");
+        CoquiTTS.loadModel("tts_models/en/vctk/vits");
         for (String text : testText) {
             long time = System.currentTimeMillis();
             System.out.println("Testing TTS with text: " + text);
             // Call the TTS service
-
             byte[] audioData = CoquiTTS.generateSpeech(text);
 
             // Verify we got audio data

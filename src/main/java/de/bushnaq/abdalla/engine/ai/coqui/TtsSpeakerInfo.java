@@ -1,4 +1,4 @@
-package de.bushnaq.abdalla.engine.audio;
+package de.bushnaq.abdalla.engine.ai.coqui;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -9,9 +9,9 @@ public class TtsSpeakerInfo {
     private String currentModel;
 
     @JsonProperty("is_multi_speaker")
-    private boolean isMultiSpeaker;
+    private boolean      isMultiSpeaker;
     @JsonProperty("speaker_count")
-    private int speakerCount;
+    private int          speakerCount;
     @JsonProperty("speakers")
     private List<String> speakers;
 

@@ -8,4 +8,5 @@ import de.bushnaq.abdalla.engine.ai.PromptTags;
 public interface IRadio {
     String resolveString(String id, PromptTags tags, boolean silent);
 
+    void talk(RadioMessage rm);
 }

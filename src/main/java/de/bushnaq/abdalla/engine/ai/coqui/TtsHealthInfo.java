@@ -1,16 +1,16 @@
-package de.bushnaq.abdalla.engine.audio;
+package de.bushnaq.abdalla.engine.ai.coqui;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class TtsHealthInfo {
     @JsonProperty("current_model")
-    private String currentModel;
+    private String  currentModel;
     @JsonProperty("current_vocoder")
-    private String currentVocoder;
+    private String  currentVocoder;
     @JsonProperty("model_loaded")
     private boolean modelLoaded;
     @JsonProperty("status")
-    private String status;
+    private String  status;
 
     // Default constructor for Jackson
     public TtsHealthInfo() {

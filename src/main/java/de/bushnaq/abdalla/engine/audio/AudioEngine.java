@@ -18,6 +18,7 @@ package de.bushnaq.abdalla.engine.audio;
 
 import com.badlogic.gdx.math.Vector3;
 import com.scottlogic.util.UnsortedList;
+import de.bushnaq.abdalla.engine.ai.coqui.CoquiTTS;
 import de.bushnaq.abdalla.engine.audio.synthesis.AbstractSynthesizerFactory;
 import de.bushnaq.abdalla.engine.camera.MovingCamera;
 import org.lwjgl.openal.*;
@@ -59,7 +60,7 @@ public class AudioEngine {
     private              int                                                              mainEffectSlot;
     private              int                                                              maxMonoSources          = 0;
     private              int                                                              numberOfSources         = 0;
-    public               RadioTTS                                                         radioTTS;
+    public               Radio                                                            radio;
     private final        int                                                              samplerate;
     private final        int                                                              samples;
     //	private MovingCamera camera;
@@ -178,7 +179,7 @@ public class AudioEngine {
         }
         setListenerOrientation(new Vector3(0, 0, -1), new Vector3(0, 1, 0));
         createAuxiliaryEffectSlots();
-        radioTTS = new RadioTTS(this, assetFolderName);
+        radio    = new Radio(this);
         coquiTTS = new CoquiTTS();
         logger.info("----------------------------------------------------------------------------------");
     }
@@ -324,7 +325,7 @@ public class AudioEngine {
     //	Mp3PlayerFactory mp3PlayerFactory = new Mp3PlayerFactory();
 
     public void dispose() throws OpenAlException {
-        radioTTS.dispose();
+        radio.dispose();
         for (final AudioProducer synth : synths) {
             synth.dispose();
         }
@@ -523,7 +524,7 @@ public class AudioEngine {
 
 //    public void say(RadioMessage rm) {
 //        if (rm.from.isSelected() || rm.to.isSelected()) {
-//            radioTTS.speak(rm.message);
+//            radio.speak(rm.message);
 //            logger.info(rm.message);
 //        }
 //    }

@@ -18,6 +18,8 @@ package de.bushnaq.abdalla.engine.audio;
 
 import com.badlogic.gdx.backends.lwjgl3.audio.Wav;
 import com.badlogic.gdx.files.FileHandle;
+import de.bushnaq.abdalla.engine.ai.coqui.CoquiTTS;
+import de.bushnaq.abdalla.engine.ai.coqui.TtsEngine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -90,7 +92,7 @@ public class TTSPlayer extends AbstractAudioProducer {
 //        logger.info(String.format("TTS: %s to %s", currentRadioMessage.message, currentRadioMessage.to.getName()));
         switch (ttsEngine) {
 //            case FREETTS:
-//                file = audioEngine.radioTTS.getFileHandle(msg.message);
+//                file = audioEngine.radio.getFileHandle(msg.message);
 //                input = new Wav.WavInputStream(file);
 //                setup(input.channels, input.sampleRate);
 //                break;
@@ -375,7 +377,7 @@ public class TTSPlayer extends AbstractAudioProducer {
     public void speak(RadioMessage msg) {
         switch (ttsEngine) {
 //            case FREETTS:
-//                List<String> tokens = audioEngine.radioTTS.tokenize(msg);
+//                List<String> tokens = audioEngine.radio.tokenize(msg);
 //                messages.addAll(tokens);
 //                break;
             case COQUI:

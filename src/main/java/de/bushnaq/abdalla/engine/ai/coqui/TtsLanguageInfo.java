@@ -1,4 +1,4 @@
-package de.bushnaq.abdalla.engine.audio;
+package de.bushnaq.abdalla.engine.ai.coqui;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -9,9 +9,9 @@ public class TtsLanguageInfo {
     private String currentModel;
 
     @JsonProperty("is_multi_lingual")
-    private boolean isMultiLingual;
+    private boolean      isMultiLingual;
     @JsonProperty("language_count")
-    private int languageCount;
+    private int          languageCount;
     @JsonProperty("languages")
     private List<String> languages;
 

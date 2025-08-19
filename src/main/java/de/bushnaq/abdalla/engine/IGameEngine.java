@@ -18,7 +18,7 @@ package de.bushnaq.abdalla.engine;
 
 import com.badlogic.gdx.graphics.g3d.utils.CameraInputController;
 import de.bushnaq.abdalla.engine.audio.AudioEngine;
-import de.bushnaq.abdalla.engine.audio.RadioTTS;
+import de.bushnaq.abdalla.engine.audio.Radio;
 import de.bushnaq.abdalla.engine.camera.MovingCamera;
 
 public interface IGameEngine {
@@ -28,7 +28,7 @@ public interface IGameEngine {
 
     MovingCamera getCamera();
 
-    RadioTTS getRadioTTS();
+    Radio getRadio();
 
     RenderEngine3D<?> getRenderEngine();
 
