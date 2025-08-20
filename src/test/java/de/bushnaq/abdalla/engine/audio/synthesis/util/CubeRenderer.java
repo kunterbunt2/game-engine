@@ -108,7 +108,7 @@ public class CubeRenderer extends ObjectRenderer<BasicGameEngine> implements Com
                     tags.addPreTag("ship", "T-38");
                     tags.addPreTag("station", "P-81");
                     String string = RadioMessage.createMessage(renderEngine.getGameEngine().getAudioEngine().radio.resolveString(REQUESTING_APPROVAL_TO_DOCK, tags, true), tags);
-                    ttsPlayer.speak(new RadioMessage(0, this, null, RadioMessageId.REQUEST_TO_DOCK, string, false));
+                    ttsPlayer.speak(new RadioMessage(0, this, null, "REQUESTING_APPROVAL_TO_UNDOCK", string, false));
                 }
             }
         } catch (final Exception e) {

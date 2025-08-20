@@ -49,23 +49,24 @@ public class RadioMessage {
             Map.entry('Y', "Yankee"),
             Map.entry('Z', "Zulu")
     );
-    private final long                 endTime;
-    public        CommunicationPartner from;
-    public        RadioMessageId       id;
-    public        String               message;
-    public        boolean              silent;
-    public        long                 time;//universe time
-    public        long                 timeSent;
-    public        CommunicationPartner to;
-    public RadioMessage(long currentTime, CommunicationPartner from, CommunicationPartner to, RadioMessageId id, String message, boolean silent) {
-        time         = currentTime;
-        timeSent     = System.currentTimeMillis();
-        this.from    = from;
-        this.to      = to;
-        this.id      = id;
-        this.message = message;
-        this.silent  = silent;
-        this.endTime = timeSent + estimatedDuration();
+    private final        long                   endTime;
+    public               CommunicationPartner   from;
+    public               String                 message;
+    public               String                 radioMessageId;
+    public               boolean                silent;
+    public               long                   time;//universe time
+    public               long                   timeSent;
+    public               CommunicationPartner   to;
+
+    public RadioMessage(long currentTime, CommunicationPartner from, CommunicationPartner to, String radioMessageId, String message, boolean silent) {
+        time                = currentTime;
+        timeSent            = System.currentTimeMillis();
+        this.from           = from;
+        this.to             = to;
+        this.radioMessageId = radioMessageId;
+        this.message        = message;
+        this.silent         = silent;
+        this.endTime        = timeSent + estimatedDuration();
     }
 
     public static String addCommaAndSpace(String input) {
