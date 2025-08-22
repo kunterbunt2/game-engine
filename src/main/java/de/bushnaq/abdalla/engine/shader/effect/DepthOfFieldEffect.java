@@ -30,20 +30,21 @@ import de.bushnaq.abdalla.engine.camera.MovingCamera;
 
 public class DepthOfFieldEffect<T extends IGameEngine> extends ShaderVfxEffect implements ChainVfxEffect {
 
-    private static final String       Texture0       = "u_sourceTexture";
-    private static final String       Texture1       = "u_depthTexture";
+    public static final  float        DISTANT_FOCAL_DEPTH_MULTIPLIER = 1.5f * 2;
+    private static final String       Texture0                       = "u_sourceTexture";
+    private static final String       Texture1                       = "u_depthTexture";
     private final        MovingCamera camera;
-    private              boolean      enabled        = false;
-    private              float        focalDepth     = 100f;
-    private              float        farDofStart    = focalDepth / 20f;
-    private              float        farDofDist     = focalDepth * 1.5f;
-    private              float        gain           = 100;
-    private              float        nearDofDist    = focalDepth * 1.5f;
-    private final        boolean      nearDofEnabled = false;
-    private              float        nearDofStart   = focalDepth / 20f;
+    private              boolean      enabled                        = false;
+    private              float        focalDepth                     = 100f;
+    private              float        farDofStart                    = focalDepth / 20f;
+    private              float        farDofDist                     = focalDepth * DISTANT_FOCAL_DEPTH_MULTIPLIER;
+    private              float        gain                           = 100;
+    private              float        nearDofDist                    = focalDepth * DISTANT_FOCAL_DEPTH_MULTIPLIER;
+    private final        boolean      nearDofEnabled                 = true;
+    private              float        nearDofStart                   = focalDepth / 20f;
     private final        FrameBuffer  postFbo;
-    private final        Vector2      resolution     = new Vector2();
-    private              float        threshold      = .9f;
+    private final        Vector2      resolution                     = new Vector2();
+    private              float        threshold                      = .9f;
     private final        VfxManager   vfxManager;
 
     public DepthOfFieldEffect(VfxManager vfxManager, final FrameBuffer postFbo, final MovingCamera camera) {
@@ -146,13 +147,13 @@ public class DepthOfFieldEffect<T extends IGameEngine> extends ShaderVfxEffect i
         this.focalDepth = focalDepth;
         if (nearDofEnabled) {
             nearDofStart = focalDepth / 20f;
-            nearDofDist  = focalDepth * 1.5f;
+            nearDofDist  = focalDepth * DISTANT_FOCAL_DEPTH_MULTIPLIER;
         } else {
-            nearDofStart = focalDepth * 1.5f;
-            nearDofDist  = focalDepth * 1.5f;
+            nearDofStart = focalDepth * DISTANT_FOCAL_DEPTH_MULTIPLIER;
+            nearDofDist  = focalDepth * DISTANT_FOCAL_DEPTH_MULTIPLIER;
         }
         farDofStart = focalDepth / 20f;
-        farDofDist  = focalDepth * 1.5f;
+        farDofDist  = focalDepth * DISTANT_FOCAL_DEPTH_MULTIPLIER;
     }
 
     public void setGain(float gain) {
