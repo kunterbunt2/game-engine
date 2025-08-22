@@ -181,6 +181,7 @@ public class RenderEngine3D<T extends IGameEngine> {
     //        public        int                         testCase                         = 1;
     private final Set<Text2D>                 text2DList                       = new HashSet<>();
     private       float                       timeOfDay                        = 8;                                                                    // 24h time
+    private final Vector3                     tmpV1                            = new Vector3();
     private final boolean                     useDynamicCache                  = false;
     private final boolean                     useStaticCache                   = true;
     private       VfxManager                  vfxManager                       = null;
@@ -656,40 +657,6 @@ public class RenderEngine3D<T extends IGameEngine> {
         return gameEngine;
     }
 
-    public GameObject<T> getGameObject(final int screenX, final int screenY) {
-        final Ray ray = camera.getPickRay(screenX, screenY);
-//        createRay(ray, null);
-        GameObject<T> result   = null;
-        float         distance = -1;
-        for (int i = 0; i < dynamicGameObjects.size; ++i) {
-            final GameObject<T> instance = dynamicGameObjects.get(i);
-            if (instance.interactive != null) {
-                instance.instance.transform.getTranslation(position);
-                position.add(instance.center);
-                final float dist2 = ray.origin.dst2(position);
-                if (distance >= 0f && dist2 > distance) continue;
-                if (Intersector.intersectRayBoundsFast(ray, instance.transformedBoundingBox)) {
-                    result   = instance;
-                    distance = dist2;
-                }
-            }
-        }
-        for (int i = 0; i < staticGameObjects.size; ++i) {
-            final GameObject<T> instance = staticGameObjects.get(i);
-            if (instance.interactive != null) {
-                instance.instance.transform.getTranslation(position);
-                position.add(instance.center);
-                final float dist2 = ray.origin.dst2(position);
-                if (distance >= 0f && dist2 > distance) continue;
-                if (Intersector.intersectRayBoundsFast(ray, instance.transformedBoundingBox)) {
-                    result   = instance;
-                    distance = dist2;
-                }
-            }
-        }
-        return result;
-    }
-
 //	private void createDepthOfFieldMeter() {
 //		if (isDebugMode()) {
 //
@@ -730,12 +697,42 @@ public class RenderEngine3D<T extends IGameEngine> {
 //		}
 //	}
 
-    public Mirror getMirror() {
-        return mirror;
+    public GameObject<T> getGameObject(final int screenX, final int screenY) {
+        final Ray ray = camera.getPickRay(screenX, screenY);
+//        createRay(ray, null);
+        GameObject<T> result   = null;
+        float         distance = -1;
+        for (int i = 0; i < dynamicGameObjects.size; ++i) {
+            final GameObject<T> instance = dynamicGameObjects.get(i);
+            if (instance.interactive != null) {
+                instance.instance.transform.getTranslation(position);
+                position.add(instance.center);
+                final float dist2 = ray.origin.dst2(position);
+                if (distance >= 0f && dist2 > distance) continue;
+                if (Intersector.intersectRayBoundsFast(ray, instance.transformedBoundingBox)) {
+                    result   = instance;
+                    distance = dist2;
+                }
+            }
+        }
+        for (int i = 0; i < staticGameObjects.size; ++i) {
+            final GameObject<T> instance = staticGameObjects.get(i);
+            if (instance.interactive != null) {
+                instance.instance.transform.getTranslation(position);
+                position.add(instance.center);
+                final float dist2 = ray.origin.dst2(position);
+                if (distance >= 0f && dist2 > distance) continue;
+                if (Intersector.intersectRayBoundsFast(ray, instance.transformedBoundingBox)) {
+                    result   = instance;
+                    distance = dist2;
+                }
+            }
+        }
+        return result;
     }
 
-    public ExtendedGLProfiler getProfiler() {
-        return profiler;
+    public Mirror getMirror() {
+        return mirror;
     }
 
 //    private void fboToScreen() {
@@ -769,6 +766,10 @@ public class RenderEngine3D<T extends IGameEngine> {
 //			}
 //		}
 //	}
+
+    public ExtendedGLProfiler getProfiler() {
+        return profiler;
+    }
 
     public Array<ModelInstance> getRenderableProviders() {
         return renderableProviders;
@@ -858,13 +859,13 @@ public class RenderEngine3D<T extends IGameEngine> {
         return gammaCorrected;
     }
 
-    public boolean isMirrorPresent() {
-        return mirror.isPresent() /* && isPbr() */;
-    }
-
 //    public boolean isDepthOfField() {
 //        return depthOfField;
 //    }
+
+    public boolean isMirrorPresent() {
+        return mirror.isPresent() /* && isPbr() */;
+    }
 
     public boolean isNight() {
         return (!alwaysDay && (timeOfDay > 19 || timeOfDay <= 5));
@@ -1435,13 +1436,13 @@ public class RenderEngine3D<T extends IGameEngine> {
         this.enableProfiling = enableProfiling;
     }
 
-    public void setFixedDayTime(float fixedDayTime) {
-        this.fixedDayTime = fixedDayTime;
-    }
-
 //    public void setDepthOfField(final boolean depthOfField) {
 //        this.depthOfField = depthOfField;
 //    }
+
+    public void setFixedDayTime(float fixedDayTime) {
+        this.fixedDayTime = fixedDayTime;
+    }
 
     public void setFixedShadowDirection(boolean fixedShadowDirection) {
         this.fixedShadowDirection = fixedShadowDirection;
@@ -1462,10 +1463,6 @@ public class RenderEngine3D<T extends IGameEngine> {
         this.nightSkyBox = nightSkyBox;
     }
 
-    public void setPbr(boolean pbr) {
-        this.pbr = pbr;
-    }
-
 //    public void setReflectionClippingPlane(float distance) {
 //        reflectionClippingPlane.d = distance;
 //    }
@@ -1473,6 +1470,10 @@ public class RenderEngine3D<T extends IGameEngine> {
 //    public void setRefractionClippingPlane(float distance) {
 //        refractionClippingPlane.d = distance;
 //    }
+
+    public void setPbr(boolean pbr) {
+        this.pbr = pbr;
+    }
 
     public void setRenderBokeh(boolean renderBokeh) {
         this.renderBokeh = renderBokeh;
@@ -1504,7 +1505,6 @@ public class RenderEngine3D<T extends IGameEngine> {
         this.skyBox = skyBox;
     }
 
-
     /**
      * should be called in order to perform light culling, skybox update and animations.
      *
@@ -1528,20 +1528,47 @@ public class RenderEngine3D<T extends IGameEngine> {
 //		effect1.setPasses(passes);
     }
 
-    public void updateCamera(final float centerXD, final float centerYD, final float centerZD) {
-        if (centerXD != 0f || centerYD != 0f || centerZD != 0f)//TODO do not update if nothing has changed
-        {
-            Vector3 backup = new Vector3(camera.lookat);
-            camera.translate(centerXD, centerYD, centerZD);
-            camera.lookat.add(centerXD, centerYD, centerZD);
+    public void updateCameraRotationY(float centerRDY) {
+        if (centerRDY != 0f) {
+            final MovingCamera movingCamera = camera;
+            tmpV1.set(movingCamera.direction).crs(movingCamera.up)/*.y = 0f*/;
+//            if (isDebugMode()) {
+//                movingCamera.rotateAround(movingCamera.lookat, tmpV1.nor(), deltaY * rotateAngle);
+//            }
+            movingCamera.rotateAround(movingCamera.lookat, Vector3.Y, centerRDY);
+            movingCamera.setDirty(true);
+            movingCamera.update();
+        }
+    }
+
+    public void updateCameraXZ(final float centerXD, final float centerYD, final float centerZD) {
+        if (centerXD != 0f || centerYD != 0f || centerZD != 0f) {
+            // Calculate the camera's forward direction (normalized direction from position to lookat), but we want to stay on our current xy plane
+            Vector3 lookatButSameHeightAsCamera = new Vector3(camera.lookat);
+            lookatButSameHeightAsCamera.y = camera.position.y;
+            Vector3 forward = new Vector3(lookatButSameHeightAsCamera).sub(camera.position).nor();
+
+            // Calculate the camera's right direction (cross product of forward and up)
+            Vector3 right = new Vector3(forward).crs(Vector3.Y).nor();
+
+            // Transform the movement based on camera orientation
+            // centerXD is left/right movement (use right vector)
+            // centerZD is forward/backward movement (use forward vector)
+            // centerYD is up/down movement (use up vector, typically world up)
+            Vector3 movement = new Vector3();
+            movement.add(new Vector3(right).scl(centerXD));      // Right/left movement
+            movement.add(new Vector3(Vector3.Y).scl(centerYD));  // Up/down movement
+            movement.add(new Vector3(forward).scl(centerZD));    // Forward/backward movement
+
+            // Apply the transformed movement to both position and lookat
+            camera.position.add(movement);
+            camera.lookat.add(movement);
+
             camera.up.set(0, 1, 0);
-//            camera.lookAt(backup/*camera.lookat*/);
-//            camera.lookAt(camera.lookat);
             camera.update();
             camera.setDirty(true);
-//            System.out.println("updateCamera");
         }
-//        if (testCase == 1) {
+        // ...existing code...
         if (camera.isDirty()) {
             Vector3 v1 = new Vector3(camera.position);
             Vector3 v2 = new Vector3(camera.position);
@@ -1556,7 +1583,6 @@ public class RenderEngine3D<T extends IGameEngine> {
             m.rotate(xVector, -90);
             renderutils2Dxz.batch.setTransformMatrix(m);
         }
-//        }
 //        if (testCase == 2) {
 ////            if (camera2D.isDirty())
 //            {
