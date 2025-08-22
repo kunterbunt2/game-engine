@@ -170,7 +170,7 @@ public class RenderEngine3D<T extends IGameEngine> {
     private final SpotLightsAttribute         spotLights                       = new SpotLightsAttribute();
     private final Ssao                        ssao                             = new Ssao();
     private       ModelBatch                  ssaoBatch;
-    private       SsaoCombineEffect<T>        ssaoComboneEffect;
+    private       SsaoCombineEffect<T>        ssaoCombineEffect;
     private       SsaoEffect<T>               ssaoEffect;
     private       Stage                       stage;
     private final ModelCache                  staticCache                      = new ModelCache();
@@ -327,7 +327,7 @@ public class RenderEngine3D<T extends IGameEngine> {
 //		vfxManager.addEffect(new OldTvEffect());
         vfxManager         = new VfxManager(Pixmap.Format.RGBA8888);
         ssaoEffect         = new SsaoEffect<T>(vfxManager, postFbo, camera, ssao);
-        ssaoComboneEffect  = new SsaoCombineEffect<T>(vfxManager, postFbo, camera, ssao);
+        ssaoCombineEffect  = new SsaoCombineEffect<T>(vfxManager, postFbo, camera, ssao);
         depthOfFieldEffect = new DepthOfFieldEffect<T>(vfxManager, postFbo, camera);
         fadeEffect         = new FadeEffect(vfxManager, true);
 //        fadeEffect.setIntensity(.1f);
@@ -474,8 +474,8 @@ public class RenderEngine3D<T extends IGameEngine> {
         } else {
             depthBatch = new ModelBatch(new DepthShaderProvider());
         }
-        batch         = new ModelBatch(createShaderProvider(), renderableSorter);
-        ssaoBatch     = new ModelBatch(createSsaoShaderProvider(), renderableSorter);
+        batch = new ModelBatch(createShaderProvider(), renderableSorter);
+//        ssaoBatch     = new ModelBatch(createSsaoShaderProvider(), renderableSorter);
         geometryBatch = new ModelBatch(createGeometryShaderProvider(), renderableSorter);
 //        batch2D = new CustomizedSpriteBatch(5460, ShaderCompatibilityHelper.mustUse32CShader() ? GL32CMacIssueHandler.createSpriteBatchShader() : null);
         batch2D = new CustomizedSpriteBatch(5460, ShaderCompatibilityHelper.mustUse32CShader() ? GL32CMacIssueHandler.createSpriteBatchShader() : null);
@@ -500,14 +500,14 @@ public class RenderEngine3D<T extends IGameEngine> {
         }
     }
 
-    private SsaoShaderProvider createSsaoShaderProvider() {
-        final PBRShaderConfig config = PBRShaderProvider.createDefaultConfig();
-        config.numBones             = 0;
-        config.numDirectionalLights = 0;
-        config.numPointLights       = 0;
-        config.numSpotLights        = 0;
-        return SsaoShaderProvider.createDefault(config, ssao, postFbo);
-    }
+//    private SsaoShaderProvider createSsaoShaderProvider() {
+//        final PBRShaderConfig config = PBRShaderProvider.createDefaultConfig();
+//        config.numBones             = 0;
+//        config.numDirectionalLights = 0;
+//        config.numPointLights       = 0;
+//        config.numSpotLights        = 0;
+//        return SsaoShaderProvider.createDefault(config, ssao, postFbo);
+//    }
 
     private void createStage() {
         stage = new Stage(new ScreenViewport(), renderEngine2D.batch);
@@ -787,8 +787,8 @@ public class RenderEngine3D<T extends IGameEngine> {
         return shadowLight;
     }
 
-    public SsaoCombineEffect<T> getSsaoComboneEffect() {
-        return ssaoComboneEffect;
+    public SsaoCombineEffect<T> getSsaoCombineEffect() {
+        return ssaoCombineEffect;
     }
 
     public SsaoEffect getSsaoEffect() {

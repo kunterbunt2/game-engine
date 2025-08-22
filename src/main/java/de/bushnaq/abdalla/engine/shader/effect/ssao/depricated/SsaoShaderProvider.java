@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package de.bushnaq.abdalla.engine.shader.effect.ssao;
+package de.bushnaq.abdalla.engine.shader.effect.ssao.depricated;
 
 import com.badlogic.gdx.Application.ApplicationType;
 import com.badlogic.gdx.Gdx;
@@ -23,6 +23,8 @@ import com.badlogic.gdx.graphics.g3d.Shader;
 import com.badlogic.gdx.graphics.g3d.shaders.DefaultShader;
 import com.badlogic.gdx.graphics.g3d.shaders.DefaultShader.Config;
 import com.badlogic.gdx.graphics.glutils.FrameBuffer;
+import de.bushnaq.abdalla.engine.shader.effect.ssao.Ssao;
+import de.bushnaq.abdalla.engine.shader.effect.ssao.SsaoShader;
 import net.mgsx.gltf.scene3d.shaders.PBRShader;
 import net.mgsx.gltf.scene3d.shaders.PBRShaderConfig;
 import net.mgsx.gltf.scene3d.shaders.PBRShaderProvider;
@@ -30,6 +32,7 @@ import net.mgsx.gltf.scene3d.shaders.PBRShaderProvider;
 /**
  * @author kunterbunt
  */
+@Deprecated
 public class SsaoShaderProvider extends PBRShaderProvider {
 
     private final FrameBuffer postFbo;

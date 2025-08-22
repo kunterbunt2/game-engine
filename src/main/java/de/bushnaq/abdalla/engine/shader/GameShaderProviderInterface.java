@@ -26,7 +26,7 @@ public interface GameShaderProviderInterface extends ShaderProvider {
     @Override
     void dispose();
 
-    boolean isSsaoEnabled();
+//    boolean isSsaoEnabled();
 
     void setClippingPlane(final Plane clippingPlane);
 

@@ -43,7 +43,7 @@ public class GameShaderProvider extends DefaultShaderProvider implements GameSha
     private final FrameBuffer  postFbo;
     public        MyShader     shader;
     private final Ssao         ssao;
-    private       boolean      ssaoEnabled = false;
+    //    private       boolean      ssaoEnabled = false;
     public        SsaoShader   ssaoShader;
     //	private final float			waterTiling;
 //	private float				waveSpeed;
@@ -98,8 +98,9 @@ public class GameShaderProvider extends DefaultShaderProvider implements GameSha
 
     @Override
     protected Shader createShader(final Renderable renderable) {
-        if (ssaoEnabled) return createSsaoShader(renderable);
-        else if (renderable.material.id.equals("water")) {
+//        if (ssaoEnabled) return createSsaoShader(renderable);
+//        else
+        if (renderable.material.id.equals("water")) {
             return createWaterShader(renderable);
         } else if (renderable.material.id.equals("shader/mirror")) {
             return createMirrorShader(renderable);
@@ -118,15 +119,15 @@ public class GameShaderProvider extends DefaultShaderProvider implements GameSha
 //	protected PBRShader createShader(final Renderable renderable, final Config config, final String prefix) {
 //		return new MyPBRShader(renderable, config, prefix);
 //	}
-    private Shader createSsaoShader(final Renderable renderable) {
-        final String prefix = createPrefixBase(renderable, config);
-        final Config config = new Config();
-        config.vertexShader   = Gdx.files.internal("shader/mirror/ssao_vertex.glsl").readString();
-        config.fragmentShader = Gdx.files.internal("shader/mirror/ssao_fragment.glsl").readString();
-        ssaoShader            = new SsaoShader(renderable, config, prefix, ssao, postFbo);
-        return ssaoShader;
-
-    }
+//    private Shader createSsaoShader(final Renderable renderable) {
+//        final String prefix = createPrefixBase(renderable, config);
+//        final Config config = new Config();
+//        config.vertexShader   = Gdx.files.internal("shader/mirror/ssao_vertex.glsl").readString();
+//        config.fragmentShader = Gdx.files.internal("shader/mirror/ssao_fragment.glsl").readString();
+//        ssaoShader            = new SsaoShader(renderable, config, prefix, ssao, postFbo);
+//        return ssaoShader;
+//
+//    }
 
     private Shader createWaterShader(final Renderable renderable) {
         final String prefix = createPrefixBase(renderable, config);
@@ -152,9 +153,9 @@ public class GameShaderProvider extends DefaultShaderProvider implements GameSha
         return Gdx.graphics.getGLVersion().isVersionEqualToOrHigher(3, 0);
     }
 
-    public boolean isSsaoEnabled() {
-        return ssaoEnabled;
-    }
+//    public boolean isSsaoEnabled() {
+//        return ssaoEnabled;
+//    }
 
     @Override
     public void setClippingPlane(final Plane clippingPlane) {
@@ -175,9 +176,9 @@ public class GameShaderProvider extends DefaultShaderProvider implements GameSha
 //		return Gdx.graphics.getGLVersion().isVersionEqualToOrHigher(3, 0);
 //	}
 
-    public void setSsaoEnabled(boolean ssaoEnabled) {
-        this.ssaoEnabled = ssaoEnabled;
-    }
+//    public void setSsaoEnabled(boolean ssaoEnabled) {
+//        this.ssaoEnabled = ssaoEnabled;
+//    }
 
 //	@Override
 //	public void setWaterAttribute(WaterAttribute waterAttribute) {

@@ -284,7 +284,7 @@ public abstract class BasicGameEngine implements ApplicationListener, InputProce
                 return true;
             case Input.Keys.F4:
                 renderEngine.getSsaoEffect().setEnabled(!renderEngine.getSsaoEffect().isEnabled());
-                renderEngine.getSsaoComboneEffect().setEnabled(!renderEngine.getSsaoComboneEffect().isEnabled());
+                renderEngine.getSsaoCombineEffect().setEnabled(!renderEngine.getSsaoCombineEffect().isEnabled());
                 if (renderEngine.getSsaoEffect().isEnabled()) logger.info("ssao on");
                 else logger.info("ssao off");
                 return true;

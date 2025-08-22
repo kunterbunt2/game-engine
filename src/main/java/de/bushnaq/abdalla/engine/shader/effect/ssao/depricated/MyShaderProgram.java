@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package de.bushnaq.abdalla.engine.shader.effect.ssao;
+package de.bushnaq.abdalla.engine.shader.effect.ssao.depricated;
 
 import com.badlogic.gdx.Application;
 import com.badlogic.gdx.Gdx;
@@ -23,6 +23,7 @@ import com.badlogic.gdx.graphics.g3d.Renderable;
 import com.badlogic.gdx.graphics.g3d.shaders.DefaultShader;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 
+@Deprecated
 public class MyShaderProgram extends ShaderProgram {
     public MyShaderProgram(String vertexShader, String fragmentShader) {
         super(vertexShader, fragmentShader);
