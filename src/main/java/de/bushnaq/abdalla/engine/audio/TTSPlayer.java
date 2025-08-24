@@ -79,7 +79,7 @@ public class TTSPlayer extends AbstractAudioProducer {
             arrayIndex = 0;
             byte[] wavFileBytes = CoquiTTS.generateSpeech(spokenRadioMessage.message, spokenRadioMessage.from.getId());
             bytes = extractAudioDataFromWav(wavFileBytes);
-            logger.info(spokenRadioMessage.message);
+            logger.info("tts starts speaking: " + spokenRadioMessage.message);
 //                    System.out.println("TTS: " + msg + " (extracted " + bytes.length + " audio bytes from " + wavFileBytes.length + " total bytes)");
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -240,6 +240,7 @@ public class TTSPlayer extends AbstractAudioProducer {
             int byte2;
             if (bytes == null || (bytes.length > 0 && arrayIndex > bytes.length - 2)) {
                 if (bytes != null) {
+                    //finished speaking
 //                    logger.info("arrayIndex=" + arrayIndex);
                     notifyPartner();
                 }
@@ -321,7 +322,7 @@ public class TTSPlayer extends AbstractAudioProducer {
     }
 
     private void writeRadioToFile(RadioMessage rm) {
-        try (PrintWriter writer = new PrintWriter(new FileWriter("radio.txt", true))) {
+        try (PrintWriter writer = new PrintWriter(new FileWriter("debug/radio.txt", true))) {
             String formattedEvent = String.format("%s %s->%s: %s", LocalDateTime.now().format(formatter), rm.from.getName(), rm.to.getName(), rm.message);
             writer.println(formattedEvent);
         } catch (IOException e) {

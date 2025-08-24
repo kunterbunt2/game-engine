@@ -76,13 +76,13 @@ public class Radio implements IRadio {
     }
 
     /**
-     * Check if the first message in the queue is a silent message that has expired
+     * Process messages one by one asynchronously.
      */
     private void generateSpokenMessages() {
         synchronized (messagesLock) {
             while (!radioRequests.isEmpty()) {
                 RadioRequest rr = radioRequests.removeFirst();
-                rr.getFrom().handleRadioRequest(rr);
+                rr.getFrom().processRadioMessage(rr);//processed by the sender
             }
         }
     }
@@ -115,16 +115,15 @@ public class Radio implements IRadio {
     @Override
     public void queueRadioMessageGeneration(RadioRequest rr) {
         if (rr.isSilent()) {
-            rr.getFrom().handleRadioRequest(rr);
+            rr.getFrom().processRadioMessage(rr);
         } else {
-//            System.out.println("queueRadioMessageGeneration: " + rr.getFrom() + " -> " + rr.getTo() + " : " + rr.getMessageId());
             radioRequests.add(rr);//queue spoken message generation
         }
     }
 
     @Override
     public void radio(RadioMessage rm) {
-        rm.to.radio(rm);// send to partner
+        rm.to.notifyStartedTalking(rm);// send to partner
         say(rm);
     }
 

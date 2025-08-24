@@ -31,6 +31,7 @@ import de.bushnaq.abdalla.engine.RenderEngine3D;
 import de.bushnaq.abdalla.engine.ai.PromptTags;
 import de.bushnaq.abdalla.engine.audio.*;
 import de.bushnaq.abdalla.engine.audio.synthesis.Synthesizer;
+import de.bushnaq.abdalla.engine.event.IEventManager;
 import de.bushnaq.abdalla.engine.util.ModelCreator;
 import net.mgsx.gltf.scene3d.attributes.PBRColorAttribute;
 import net.mgsx.gltf.scene3d.attributes.PBRFloatAttribute;
@@ -143,6 +144,11 @@ public class CubeRenderer extends ObjectRenderer<BasicGameEngine> implements Com
     }
 
     @Override
+    public IEventManager getEventManager() {
+        return null;
+    }
+
+    @Override
     public int getId() {
         return 0;
     }
@@ -157,11 +163,6 @@ public class CubeRenderer extends ObjectRenderer<BasicGameEngine> implements Com
     }
 
     @Override
-    public void handleRadioRequest(RadioRequest rr) {
-
-    }
-
-    @Override
     public boolean isSelected() {
         return true;//make sure we are heard
     }
@@ -172,7 +173,12 @@ public class CubeRenderer extends ObjectRenderer<BasicGameEngine> implements Com
     }
 
     @Override
-    public void radio(RadioMessage message) {
+    public void notifyStartedTalking(RadioMessage message) {
+
+    }
+
+    @Override
+    public void processRadioMessage(RadioRequest rr) {
 
     }
 
