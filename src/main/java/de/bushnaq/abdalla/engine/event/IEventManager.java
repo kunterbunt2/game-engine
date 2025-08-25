@@ -6,9 +6,13 @@ import java.util.List;
 public interface IEventManager {
     void add(EventLevel level, long when, Object who, String what);
 
+    void clear();
+
     List<IEvent> filter(Object objectFilter);
 
     String formatEventForObject(IEvent event);
+
+    List<IEvent> getEventList();
 
     String getWhoName(IEvent event);
 
