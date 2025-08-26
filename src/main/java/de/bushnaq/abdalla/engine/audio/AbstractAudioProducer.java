@@ -30,7 +30,7 @@ public abstract class AbstractAudioProducer implements AudioProducer {
     protected       boolean      enabled      = false;//a disabled synth does not possess an audio source and any of the source attached resource like filters and buffers
     protected       Filters      filters;
     @Getter
-    protected       float        gain         = 8.0f;
+    protected       float        gain         = 1.0f;
     @Getter
     protected       boolean      ignore;
     @Getter

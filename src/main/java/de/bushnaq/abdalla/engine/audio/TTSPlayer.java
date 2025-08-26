@@ -56,6 +56,7 @@ public class TTSPlayer extends AbstractAudioProducer {
         super(22050, name);
         setAmbient(true);//always follows camera
         setRadio(true);//radio effect
+        setGain(8f);
         this.audioEngine = audioEngine;
         File eventsFile = new File("radio.txt");
         if (eventsFile.exists()) {
