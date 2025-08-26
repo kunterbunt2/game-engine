@@ -122,21 +122,11 @@ public class OpenAlSource extends Thread {
         if (EXTEfx.alIsFilter(filter)) {
             if (radio) {
                 // Set Filter type to Low-Pass and set parameters
-//                EXTEfx.alFilteri(filter, EXTEfx.AL_FILTER_TYPE, EXTEfx.AL_FILTER_HIGHPASS);
-//                AudioEngine.checkAlError("Low pass filter not supported error #");
-
-//                EXTEfx.alFilterf(filter, EXTEfx.AL_HIGHPASS_GAIN, 1.0f);
-//                AudioEngine.checkAlError("Failed to set filter lowGain with error #");
-//
-//                EXTEfx.alFilterf(filter, EXTEfx.AL_HIGHPASS_GAINLF, 0.05f);
-//                AudioEngine.checkAlError("Failed to set filter highgain with error #");
-//                EXTEfx.alFilteri(filter, EXTEfx.AL_FILTER_TYPE, EXTEfx.AL_FILTER_HIGHPASS);
-//                AudioEngine.checkAlError("Low pass filter not supported error #");
                 EXTEfx.alFilteri(filter, EXTEfx.AL_FILTER_TYPE, EXTEfx.AL_FILTER_BANDPASS);
                 AudioEngine.checkAlError(audio.getName(), "Low pass filter not supported error #");
-
-//                EXTEfx.alFilteri(filter, EXTEfx.AL_FILTER_TYPE, EXTEfx.AL_FILTER_BANDPASS);
-//                AudioEngine.checkAlError("Low pass filter not supported error #");
+                EXTEfx.alFilterf(filter, EXTEfx.AL_BANDPASS_GAIN, 1.0f);
+                EXTEfx.alFilterf(filter, EXTEfx.AL_BANDPASS_GAINLF, 0.03f);
+                EXTEfx.alFilterf(filter, EXTEfx.AL_BANDPASS_GAINHF, 0.03f);
             } else {
                 // Set Filter type to Low-Pass and set parameters
                 EXTEfx.alFilteri(filter, EXTEfx.AL_FILTER_TYPE, EXTEfx.AL_FILTER_LOWPASS);

@@ -26,57 +26,45 @@ import com.crashinvaders.vfx.effects.ShaderVfxEffect;
 import com.crashinvaders.vfx.framebuffer.VfxFrameBuffer;
 import com.crashinvaders.vfx.framebuffer.VfxPingPongWrapper;
 import com.crashinvaders.vfx.gl.VfxGLUtils;
+import lombok.Getter;
+import lombok.Setter;
 
 public class FadeEffect extends ShaderVfxEffect implements ChainVfxEffect {
 
+    private static final String     BACKGROUND_COLOR   = "u_backgroundColor";
     private static final String     SATURATION         = "u_saturation";
-    private static final String     BACKGROUND_COLOR = "u_backgroundColor";
     private static final String     SATURATION_MUL     = "u_saturationMul";
     private static final String     TEXTURE0           = "u_texture0";
     private static final String     VIGNETTE_INTENSITY = "u_intensity";
-    private boolean enabled = false;
+    @Setter
+    @Getter
+    private              Color      backgroundColor;
+    //    float[] buffer = {0f,0f,0f};
+    Vector3 buffer = new Vector3();
+    private              boolean    enabled            = false;
+    @Getter
     private              float      intensity          = 1f;
+    @Getter
     private              float      saturation         = 1f;
     private final        boolean    saturationEnabled;
+    @Getter
     private              float      saturationMul      = 1f;
-    private final VfxManager vfxManager;
-    private       Color      backgroundColor;
-
-//    float[] buffer = {0f,0f,0f};
-    Vector3 buffer = new Vector3();
-    public Color getBackgroundColor() {
-        return backgroundColor;
-    }
-
-    public void setBackgroundColor(Color backgroundColor) {
-        this.backgroundColor = backgroundColor;
-    }
+    private final        VfxManager vfxManager;
 
     public FadeEffect(VfxManager vfxManager, Color backgroundColor, boolean controlSaturation) {
         super(VfxGLUtils.compileShader(
                 Gdx.files.classpath("gdxvfx/shaders/screenspace.vert"),
                 Gdx.files.classpath("shader/fade.frag"),
                 (controlSaturation ? "#define CONTROL_SATURATION" : "")));
-        this.backgroundColor=backgroundColor;
+        this.backgroundColor   = backgroundColor;
         this.vfxManager        = vfxManager;
         this.saturationEnabled = controlSaturation;
         rebind();
     }
+
     public FadeEffect(VfxManager vfxManager, boolean controlSaturation) {
-    this( vfxManager, Color.BLACK, controlSaturation) ;
+        this(vfxManager, Color.BLACK, controlSaturation);
 
-    }
-
-    public float getIntensity() {
-        return intensity;
-    }
-
-    public float getSaturation() {
-        return saturation;
-    }
-
-    public float getSaturationMul() {
-        return saturationMul;
     }
 
     public boolean isSaturationControlEnabled() {
@@ -95,9 +83,9 @@ public class FadeEffect extends ShaderVfxEffect implements ChainVfxEffect {
 //        buffer[0] = backgroundColor.r;
 //        buffer[1] = backgroundColor.g;
 //        buffer[2] = backgroundColor.b;
-        buffer.x =backgroundColor.r;
-        buffer.y =backgroundColor.g;
-        buffer.z =backgroundColor.b;
+        buffer.x = backgroundColor.r;
+        buffer.y = backgroundColor.g;
+        buffer.z = backgroundColor.b;
         program.setUniformf(BACKGROUND_COLOR, buffer);
         program.setUniformf(VIGNETTE_INTENSITY, intensity);
         program.end();
@@ -118,9 +106,9 @@ public class FadeEffect extends ShaderVfxEffect implements ChainVfxEffect {
             program.setUniformf(SATURATION_MUL, saturationMul);
         }
 
-        buffer.x =backgroundColor.r;
-        buffer.y =backgroundColor.g;
-        buffer.z =backgroundColor.b;
+        buffer.x = backgroundColor.r;
+        buffer.y = backgroundColor.g;
+        buffer.z = backgroundColor.b;
         program.setUniformf(BACKGROUND_COLOR, buffer);
         program.setUniformf(VIGNETTE_INTENSITY, intensity);
         program.end();
