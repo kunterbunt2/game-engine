@@ -21,6 +21,7 @@ import com.scottlogic.util.UnsortedList;
 import de.bushnaq.abdalla.engine.ai.coqui.CoquiTTS;
 import de.bushnaq.abdalla.engine.audio.synthesis.AbstractSynthesizerFactory;
 import de.bushnaq.abdalla.engine.camera.MovingCamera;
+import lombok.Getter;
 import org.lwjgl.openal.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,15 +54,20 @@ public class AudioEngine {
     private final        float                                                            disableRadius2          = STOP_RADIUS * STOP_RADIUS;//all audio streams that are located further away will be stopped and removed
     private              int                                                              distortionEffectSlot;
     private final        float                                                            enableRadius2           = START_RADIUS * START_RADIUS;//an audio streams that gets closer will get added and started
+    @Getter
     private              int                                                              enabledAudioSourceCount = 0;
     private final        Map<String, AbstractSynthesizerFactory<? extends AudioProducer>> factoryMap              = new HashMap<>();
     private final        Vector3                                                          listenerPosition        = new Vector3();//position of the listener, usually the camera
     private final        Vector3                                                          listenerVelocity        = new Vector3();//the velocity of the listener, usually the camera
     private              int                                                              mainEffectSlot;
+    @Getter
     private              int                                                              maxMonoSources          = 0;
+    @Getter
     private              int                                                              numberOfSources         = 0;
     public               Radio                                                            radio;
+    @Getter
     private final        int                                                              samplerate;
+    @Getter
     private final        int                                                              samples;
     //	private MovingCamera camera;
     //	private final SynthesizerFactory<T> synthFactory;
@@ -106,28 +112,28 @@ public class AudioEngine {
         }
     }
 
-    public static void checkAlError(final String message) throws OpenAlException {
+    public static void checkAlError(final String name, final String message) throws OpenAlException {
         final int error = AL10.alGetError();
         if (error != AL10.AL_NO_ERROR) {
-            final String msg = message + error + " " + getALErrorString(error);
+            final String msg = message + error + " " + getALErrorString(error) + " in " + name;
             logger.error(msg);
             throw new OpenAlException(msg);
         }
     }
 
-    public static void checkAlcError(final String message) throws OpenAlException {
+    public static void checkAlcError(final String name, final String message) throws OpenAlException {
         final int error = ALC10.alcGetError(device);
         if (error != ALC10.ALC_NO_ERROR) {
-            final String msg = message + error + " " + getALCErrorString(error);
+            final String msg = message + error + " " + getALCErrorString(error) + " in " + name;
             logger.error(msg);
             throw new OpenAlcException(msg);
         }
     }
 
-    public static void checkAlcError(final boolean result, final String message) throws OpenAlException {
+    public static void checkAlcError(final boolean result, final String name, final String message) throws OpenAlException {
         final int error = ALC10.alcGetError(device);
         if (error != ALC10.ALC_NO_ERROR) {
-            final String msg = "Alc operation failed " + message + error + " " + getALCErrorString(error);
+            final String msg = "Alc operation failed " + message + error + " " + getALCErrorString(error) + " in " + name;
             logger.error(msg);
             throw new OpenAlcException(msg);
         }
@@ -180,16 +186,16 @@ public class AudioEngine {
         }
         setListenerOrientation(new Vector3(0, 0, -1), new Vector3(0, 1, 0));
         createAuxiliaryEffectSlots();
-        radio    = new Radio(this);
+        radio    = new Radio(this, "main-radio");
         coquiTTS = new CoquiTTS();
         logger.info("----------------------------------------------------------------------------------");
     }
 
-    public <T extends AudioProducer> T createAudioProducer(final Class<T> clazz) throws OpenAlException {
+    public <T extends AudioProducer> T createAudioProducer(final Class<T> clazz, String name) throws OpenAlException {
 
         for (final AbstractSynthesizerFactory<? extends AudioProducer> factory : factoryMap.values()) {
             if (factory.handles().isAssignableFrom(clazz)) {
-                final T audioProducer = (T) factory.createSynth(this);
+                final T audioProducer = (T) factory.createSynth(this, name);
                 synths.add(audioProducer);
                 return audioProducer;
             }
@@ -209,10 +215,10 @@ public class AudioEngine {
 
     private void createAuxiliaryEffectSlots() throws OpenAlException {
         distortionEffectSlot = alGenAuxiliaryEffectSlots();
-        checkAlError("Failed to create auxiliary effect slot with error #");
+        checkAlError("audio-engine", "Failed to create auxiliary effect slot with error #");
 
         mainEffectSlot = alGenAuxiliaryEffectSlots();
-        checkAlError("Failed to create auxiliary effect slot with error #");
+        checkAlError("audio-engine", "Failed to create auxiliary effect slot with error #");
 
         createDistortionEffect(distortionEffectSlot);
 //        createReverbEffect(mainEffectSlot);
@@ -221,7 +227,7 @@ public class AudioEngine {
     private void createDistortionEffect(int auxiliaryEffectSlot) throws OpenAlException {
         if (EXTEfx.alIsAuxiliaryEffectSlot(auxiliaryEffectSlot)) {
             int distortionEffect = alGenEffects();
-            checkAlError("Failed to create auxiliary AL_EFFECT_DISTORTION slot with error #");
+            checkAlError("audio-engine", "Failed to create auxiliary AL_EFFECT_DISTORTION slot with error #");
             if (EXTEfx.alIsEffect(distortionEffect)) {
                 alEffecti(distortionEffect, AL_EFFECT_TYPE, AL_EFFECT_DISTORTION);
                 alEffectf(distortionEffect, AL_DISTORTION_EDGE, .2f);
@@ -253,21 +259,21 @@ public class AudioEngine {
     private void createReverbEffect(int auxiliaryEffectSlot) throws OpenAlException {
         if (EXTEfx.alIsAuxiliaryEffectSlot(auxiliaryEffectSlot)) {
             int reverbEffect = EXTEfx.alGenEffects();
-            checkAlError("Failed to create auxiliary reverbEffect slot with error #");
+            checkAlError("audio-engine", "Failed to create auxiliary reverbEffect slot with error #");
 
             if (EXTEfx.alIsEffect(reverbEffect)) {
                 //reverb reverbEffect
                 EXTEfx.alEffecti(reverbEffect, EXTEfx.AL_EFFECT_TYPE, EXTEfx.AL_EFFECT_REVERB);
-                checkAlError("Failed to create auxiliary reverbEffect slot with error #");
+                checkAlError("audio-engine", "Failed to create auxiliary reverbEffect slot with error #");
 
                 EXTEfx.alEffectf(reverbEffect, EXTEfx.AL_REVERB_DECAY_TIME, 8.0f);
-                checkAlError("Failed to create auxiliary reverbEffect slot with error #");
+                checkAlError("audio-engine", "Failed to create auxiliary reverbEffect slot with error #");
 
                 EXTEfx.alEffectf(reverbEffect, EXTEfx.AL_REVERB_GAIN, 0.02f);
-                checkAlError("Failed to create auxiliary reverbEffect slot with error #");
+                checkAlError("audio-engine", "Failed to create auxiliary reverbEffect slot with error #");
 
                 EXTEfx.alAuxiliaryEffectSloti(auxiliaryEffectSlot, EXTEfx.AL_EFFECTSLOT_EFFECT, reverbEffect);
-                checkAlError("Failed to create auxiliary reverbEffect slot with error #");
+                checkAlError("audio-engine", "Failed to create auxiliary reverbEffect slot with error #");
             }
         }
     }
@@ -308,15 +314,17 @@ public class AudioEngine {
         }
         attr[i] = 0;
         if (!SOFTHRTF.alcResetDeviceSOFT(device, attr))
-            checkAlcError(String.format("Failed to reset device: %s", device));
+            checkAlcError("audio-engine", String.format("Failed to reset device: %s", device));
         //				printf("Failed to reset device: %s\n", alcGetString(device, alcGetError(device)));
     }
 
     public void disableSynth(final AudioProducer synth) throws OpenAlException {
         if (synth.isEnabled()) {
             final OpenAlSource source = synth.disable();
-            source.pause();
-            unusedSources.add(source);
+            if (source != null) {
+                source.pause();
+                unusedSources.add(source);
+            }
         } else {
             //do nothing
         }
@@ -337,21 +345,21 @@ public class AudioEngine {
         //		AudioEngine.checkAlError("Openal error #");
         {
             ALC10.alcSuspendContext(context);
-            checkAlcError("Openal error #");
+            checkAlcError("audio-engine", "Openal error #");
         }
         //		AudioEngine.checkAlError("Openal error #");
         {
             final boolean result = ALC10.alcMakeContextCurrent(0);
-            checkAlcError(result, "Openal error #");
+            checkAlcError(result, "audio-engine", "Openal error #");
         }
         //all calls to AL10.alGetError from this point will fail with #40964 AL_INVALID_OPERATION, as it needs the context to work properly
         {
             ALC10.alcDestroyContext(context);
-            checkAlcError("Openal error #");
+            checkAlcError("audio-engine", "Openal error #");
         }
         {
             final boolean result = ALC10.alcCloseDevice(device);
-            checkAlcError(result, "Openal error #");
+            checkAlcError(result, "audio-engine", "Openal error #");
         }
         //		{
         //			ALC.destroy();
@@ -370,35 +378,35 @@ public class AudioEngine {
         }
         attr[i] = 0;
         if (!SOFTHRTF.alcResetDeviceSOFT(device, attr))
-            checkAlcError(String.format("Failed to reset device: %s", device));
+            checkAlcError("audio-engine", String.format("Failed to reset device: %s", device));
         //				printf("Failed to reset device: %s\n", alcGetString(device, alcGetError(device)));
         queryHrtfEnabled();
     }
 
-    public void enableSynth(final AudioProducer synth) throws OpenAlException {
-        if (synth.isEnabled()) {
+    public void enableSynth(final AudioProducer ap) throws OpenAlException {
+        if (ap.isEnabled() || ap.isIgnore()) {
             //do nothing
         } else {
             OpenAlSource source;
-            if (unusedSources.size() > 0) {
+            if (!unusedSources.isEmpty()) {
                 logger.info("******************** reusing al source");
                 //TODO we cannot reuse sources without reconfiguring them, e.g. mono/stereo, ambient,...
                 source = unusedSources.remove(unusedSources.size() - 1);
-                if (synth instanceof TTSPlayer) {
-                    source.reset(samples, synth.getSampleRate(), bits, synth.getChannels(), synth.getGain(), distortionEffectSlot, synth.isAmbient());
+                if (ap instanceof TTSPlayer) {
+                    source.reset(samples, bits, distortionEffectSlot, ap);
                 } else {
-                    source.reset(samples, synth.getSampleRate(), bits, synth.getChannels(), synth.getGain(), mainEffectSlot, synth.isAmbient());
+                    source.reset(samples, bits, mainEffectSlot, ap);
                 }
-                synth.enable(source);
+                ap.enable(source);
             } else {
                 if (numberOfSources < 255) {
-                    if (synth instanceof TTSPlayer) {
-                        source = new OpenAlSource(samples, synth.getSampleRate(), bits, synth.getChannels(), synth.getGain(), distortionEffectSlot, synth.isAmbient(), synth.isRadio());
+                    if (ap instanceof TTSPlayer) {
+                        source = new OpenAlSource(samples, bits, distortionEffectSlot, ap);
                     } else {
-                        source = new OpenAlSource(samples, synth.getSampleRate(), bits, synth.getChannels(), synth.getGain(), mainEffectSlot, synth.isAmbient(), synth.isRadio());
+                        source = new OpenAlSource(samples, bits, mainEffectSlot, ap);
                     }
                     numberOfSources++;
-                    synth.enable(source);
+                    ap.enable(source);
                 } else {
                     logger.error("Max openal source number (255) reached. Source not created!");
                 }
@@ -460,32 +468,12 @@ public class AudioEngine {
         return unusedSources.size();
     }
 
-    public int getEnabledAudioSourceCount() {
-        return enabledAudioSourceCount;
-    }
-
     public Vector3 getListenerPosition() {
         return listenerPosition;
     }
 
-    public int getMaxMonoSources() {
-        return maxMonoSources;
-    }
-
     public int getNumberOfAudioProducers() {
         return synths.size();
-    }
-
-    public int getNumberOfSources() {
-        return numberOfSources;
-    }
-
-    public int getSamplerate() {
-        return samplerate;
-    }
-
-    public int getSamples() {
-        return samples;
     }
 
     private void queryHrtfEnabled() {
@@ -516,10 +504,10 @@ public class AudioEngine {
 
     private void removeAuxiliaryEffectSlot() throws OpenAlException {
         EXTEfx.alDeleteAuxiliaryEffectSlots(mainEffectSlot);
-        AudioEngine.checkAlError("Failed to delete auxiliary effect slot with error #");
+        AudioEngine.checkAlError("audio-engine", "Failed to delete auxiliary effect slot with error #");
         mainEffectSlot = 0;
         EXTEfx.alDeleteAuxiliaryEffectSlots(distortionEffectSlot);
-        AudioEngine.checkAlError("Failed to delete auxiliary effect slot with error #");
+        AudioEngine.checkAlError("audio-engine", "Failed to delete auxiliary effect slot with error #");
         distortionEffectSlot = 0;
     }
 
@@ -532,13 +520,13 @@ public class AudioEngine {
 
     private void setListenerGain(final float gain) throws OpenAlException {
         AL10.alListenerf(AL10.AL_GAIN, gain);
-        checkAlError("Failed to set listener gain with error #");
+        checkAlError("audio-engine", "Failed to set listener gain with error #");
     }
 
     private void setListenerOrientation(final Vector3 direction, final Vector3 up) throws OpenAlException {
         final float[] array = new float[]{direction.x, direction.y, direction.z, up.x, up.y, up.z};
         AL10.alListenerfv(AL10.AL_ORIENTATION, array);
-        checkAlError("Failed to set listener orientation with error #");
+        checkAlError("audio-engine", "Failed to set listener orientation with error #");
     }
 
     //	public void setListenerPosition(final Vector3 position) throws OpenAlException {
@@ -548,9 +536,9 @@ public class AudioEngine {
 
     private void setListenerPositionAndVelocity(final Vector3 position, final Vector3 velocity) throws OpenAlException {
         AL10.alListener3f(AL10.AL_POSITION, position.x, position.y, position.z);
-        checkAlError("Failed to set listener position with error #");
+        checkAlError("audio-engine", "Failed to set listener position with error #");
         AL10.alListener3f(AL10.AL_VELOCITY, velocity.x, velocity.y, velocity.z);
-        checkAlError("Failed to set listener velocity with error #");
+        checkAlError("audio-engine", "Failed to set listener velocity with error #");
     }
 
     private void updateCamera() throws OpenAlException {

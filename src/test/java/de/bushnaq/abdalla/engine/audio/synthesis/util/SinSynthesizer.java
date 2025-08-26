@@ -23,8 +23,8 @@ import de.bushnaq.abdalla.engine.audio.synthesis.Synthesizer;
 public class SinSynthesizer extends Synthesizer {
     public SinOscillator sin1;
 
-    public SinSynthesizer() throws OpenAlException {
-        super(44100);
+    public SinSynthesizer(String name) throws OpenAlException {
+        super(44100, name);
         sin1 = new SinOscillator();
         add(sin1);
     }

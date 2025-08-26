@@ -37,8 +37,8 @@ public class ExampleSynthesizer extends Synthesizer {
     private final SinOscillator sin1;
     private final SinOscillator sin2;
 
-    public ExampleSynthesizer() throws OpenAlException {
-        super(44100);
+    public ExampleSynthesizer(String name) throws OpenAlException {
+        super(44100, name);
 
         saw1 = new SawOscillator();
         add(saw1);

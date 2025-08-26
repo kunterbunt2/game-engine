@@ -23,8 +23,8 @@ import de.bushnaq.abdalla.engine.audio.synthesis.Synthesizer;
 public class SawSynthesizer extends Synthesizer {
     public SawOscillator saw1;
 
-    public SawSynthesizer() throws OpenAlException {
-        super(44100);
+    public SawSynthesizer(String name) throws OpenAlException {
+        super(44100, name);
         saw1 = new SawOscillator();
         add(saw1);
     }

@@ -83,25 +83,25 @@ public class CubeRenderer extends ObjectRenderer<BasicGameEngine> implements Com
             renderEngine.addDynamic(go);
             switch (synthType) {
                 case SYNTH -> {
-                    synth = renderEngine.getGameEngine().getAudioEngine().createAudioProducer(ExampleSynthesizer.class);
+                    synth = renderEngine.getGameEngine().getAudioEngine().createAudioProducer(ExampleSynthesizer.class, "synth");
                     synth.setGain(100.0f);
                     synth.play();
                 }
                 case AMBIENT_OGG -> {
-                    oggPlayer = renderEngine.getGameEngine().getAudioEngine().createAudioProducer(OggPlayer.class);
+                    oggPlayer = renderEngine.getGameEngine().getAudioEngine().createAudioProducer(OggPlayer.class, "ambient");
                     oggPlayer.setFile(Gdx.files.internal(BasicAtlasManager.getAssetsFolderName() + "/audio/bass-dropmp3.ogg"));
                     oggPlayer.setGain(150.0f);
                     oggPlayer.setAmbient(true);
                 }
                 case OGG -> {
-                    oggPlayer = renderEngine.getGameEngine().getAudioEngine().createAudioProducer(OggPlayer.class);
+                    oggPlayer = renderEngine.getGameEngine().getAudioEngine().createAudioProducer(OggPlayer.class, "ogg");
                     oggPlayer.setFile(Gdx.files.internal(BasicAtlasManager.getAssetsFolderName() + "/audio/bass-dropmp3.ogg"));
                     oggPlayer.setGain(1050.0f);
                     oggPlayer.setLoop(true);
                     oggPlayer.setAmbient(false);
                 }
                 case TTS -> {
-                    ttsPlayer = renderEngine.getGameEngine().getAudioEngine().createAudioProducer(TTSPlayer.class);
+                    ttsPlayer = renderEngine.getGameEngine().getAudioEngine().createAudioProducer(TTSPlayer.class, "tts");
                     ttsPlayer.setGain(1.0f);
                     ttsPlayer.setAmbient(true);
                     ttsPlayer.setOptIn(true);
@@ -109,7 +109,7 @@ public class CubeRenderer extends ObjectRenderer<BasicGameEngine> implements Com
                     tags.addPreTag("ship", "T-38");
                     tags.addPreTag("station", "P-81");
                     String string = RadioMessage.createMessage(renderEngine.getGameEngine().getAudioEngine().radio.resolveString(REQUESTING_APPROVAL_TO_DOCK, tags, true), tags);
-                    ttsPlayer.speak(new RadioMessage(0, this, null, "REQUESTING_APPROVAL_TO_UNDOCK", string, false));
+                    ttsPlayer.speak(new RadioMessage(0, this, null, "REQUESTING_APPROVAL_TO_UNDOCK", string, false, tags));
                 }
             }
         } catch (final Exception e) {
@@ -178,7 +178,7 @@ public class CubeRenderer extends ObjectRenderer<BasicGameEngine> implements Com
     }
 
     @Override
-    public void processRadioMessage(RadioRequest rr) {
+    public void processRadioMessage(RadioMessage rm) {
 
     }
 

@@ -28,17 +28,17 @@ public class Synthesizer extends AbstractAudioProducer {
 
     //	private boolean play = false;//is the source playing?
     //	private final Vector3 position = new Vector3();//position of the audio source
-    volatile      double          lastFrequency = 0.0;
+    volatile double lastFrequency = 0.0;
     long lastIndex;
-    private final List<Lfo>       lfos          = new ArrayList<>();
-    private final List<Oscilator> oscillators   = new ArrayList<>();
+    private final List<Lfo>       lfos        = new ArrayList<>();
+    private final List<Oscilator> oscillators = new ArrayList<>();
     //	private boolean enabled = false;//a disabled synth does not possess an audio source and any of the source attached resource like filters and buffers
     //	private float gain = 1.0f;
     //	private OpenAlSource source = null;//if enabled, this will hold the attached openal source, otherwise null
     //	private final Vector3 velocity = new Vector3();//velocity of the audio source
 
-    public Synthesizer(final int samplerate) throws OpenAlException {
-        super(samplerate);
+    public Synthesizer(final int samplerate, String name) throws OpenAlException {
+        super(samplerate, name);
     }
 
     public void add(final Lfo lfo) {

@@ -6,7 +6,7 @@ import de.bushnaq.abdalla.engine.ai.PromptTags;
  * interface handling communication between the game NPCs.
  */
 public interface IRadio {
-    void queueRadioMessageGeneration(RadioRequest rr);
+    void queueRadioMessageGeneration(RadioMessage rm);
 
     void radio(RadioMessage rm);
 

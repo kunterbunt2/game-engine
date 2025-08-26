@@ -28,8 +28,8 @@ public class ExampleSynthesizerFactory extends AbstractSynthesizerFactory<Exampl
     }
 
     @Override
-    public ExampleSynthesizer uncacheSynth(AudioEngine audioEngine) throws OpenAlException {
-        return new ExampleSynthesizer();
+    public ExampleSynthesizer uncacheSynth(AudioEngine audioEngine, String name) throws OpenAlException {
+        return new ExampleSynthesizer(name);
     }
 
 }

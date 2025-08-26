@@ -35,8 +35,8 @@ import static org.hamcrest.Matchers.lessThan;
 
 
 public class AudioPerformanceTest {
-    private final Logger logger = LoggerFactory.getLogger(this.getClass());
     MovingCamera camera;
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private void createCamera() throws Exception {
         Gdx.files = new Lwjgl3Files();
@@ -60,7 +60,7 @@ public class AudioPerformanceTest {
 
         //create synths
         for (int i = 0; i < numberOfSources; i++) {
-            final ExampleSynthesizer synth = audioEngine.createAudioProducer(ExampleSynthesizer.class);
+            final ExampleSynthesizer synth = audioEngine.createAudioProducer(ExampleSynthesizer.class, "AudioPerformanceTest.renderPerformanceTest");
             synth.pause();
             synths.add(synth);
         }

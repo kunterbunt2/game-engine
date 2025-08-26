@@ -36,8 +36,8 @@ import static org.hamcrest.Matchers.lessThan;
 
 public class SinOscilliatorTest {
     private static final int          SECONDS_2 = 2000;
-    private final        Logger       logger    = LoggerFactory.getLogger(this.getClass());
     private              MovingCamera camera;
+    private final        Logger       logger    = LoggerFactory.getLogger(this.getClass());
 
     private float calcualteSpeed(final float frequency) {
         return TranslationUtil.MIN_ENGINE_SPEED + (((frequency - 220) / (500 - 220)) * (TranslationUtil.MAX_ENGINE_SPEED - TranslationUtil.MIN_ENGINE_SPEED));
@@ -64,7 +64,7 @@ public class SinOscilliatorTest {
         //create synths
         logger.info("Start creating synths");
         for (int i = 0; i < numberOfSources; i++) {
-            synths.add(audioEngine.createAudioProducer(SinSynthesizer.class));
+            synths.add(audioEngine.createAudioProducer(SinSynthesizer.class, "SinOscilliatorTest.renderPerformanceTest"));
         }
         logger.info("End creating synths");
 
@@ -89,7 +89,7 @@ public class SinOscilliatorTest {
         audioEngine.create(null);
         createCamera();
         {
-            final SinSynthesizer synth = audioEngine.createAudioProducer(SinSynthesizer.class);
+            final SinSynthesizer synth = audioEngine.createAudioProducer(SinSynthesizer.class, "SinOscilliatorTest.renderSpeedTest");
             synth.setGain(5);
 
             float frequency = 220.0f;
@@ -135,7 +135,7 @@ public class SinOscilliatorTest {
         audioEngine.create(null);
         createCamera();
         {
-            final Synthesizer synth = audioEngine.createAudioProducer(SinSynthesizer.class);
+            final Synthesizer synth = audioEngine.createAudioProducer(SinSynthesizer.class, "SinOscilliatorTest.renderTest");
             synth.setGain(5);
             synth.play();
             audioEngine.begin(camera, true);

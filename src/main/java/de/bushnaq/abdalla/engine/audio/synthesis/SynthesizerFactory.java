@@ -17,14 +17,15 @@
 package de.bushnaq.abdalla.engine.audio.synthesis;
 
 import de.bushnaq.abdalla.engine.audio.AudioEngine;
+import de.bushnaq.abdalla.engine.audio.AudioProducer;
 import de.bushnaq.abdalla.engine.audio.OpenAlException;
 
-public interface SynthesizerFactory<T> {
+public interface SynthesizerFactory<T extends AudioProducer> {
     void cacheSynth(T synth);
 
-    T createSynth(AudioEngine audioEngine) throws OpenAlException;
+    T createSynth(AudioEngine audioEngine, String name) throws OpenAlException;
 
     Class<T> handles();
 
-    T uncacheSynth(AudioEngine audioEngine) throws OpenAlException;
+    T uncacheSynth(AudioEngine audioEngine, String name) throws OpenAlException;
 }

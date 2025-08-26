@@ -28,8 +28,8 @@ public class SawSynthesizerFactory extends AbstractSynthesizerFactory<SawSynthes
     }
 
     @Override
-    public SawSynthesizer uncacheSynth(AudioEngine audioEngine) throws OpenAlException {
-        return new SawSynthesizer();
+    public SawSynthesizer uncacheSynth(AudioEngine audioEngine, String name) throws OpenAlException {
+        return new SawSynthesizer(name);
     }
 
 }

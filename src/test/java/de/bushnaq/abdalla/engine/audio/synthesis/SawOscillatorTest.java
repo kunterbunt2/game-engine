@@ -36,8 +36,8 @@ import static org.hamcrest.Matchers.lessThan;
 
 public class SawOscillatorTest {
     private static final int          WAIT_FOR_MS = 5000;
-    private final        Logger       logger      = LoggerFactory.getLogger(this.getClass());
     private              MovingCamera camera;
+    private final        Logger       logger      = LoggerFactory.getLogger(this.getClass());
 
     private float calcualteSpeed(final float frequency) {
         return TranslationUtil.MIN_ENGINE_SPEED + (((frequency - 220) / (500 - 220)) * (TranslationUtil.MAX_ENGINE_SPEED - TranslationUtil.MIN_ENGINE_SPEED));
@@ -63,7 +63,7 @@ public class SawOscillatorTest {
         final List<Synthesizer> synths          = new ArrayList<>();
         //create synths
         for (int i = 0; i < numberOfSources; i++) {
-            synths.add(audioEngine.createAudioProducer(SawSynthesizer.class));
+            synths.add(audioEngine.createAudioProducer(SawSynthesizer.class, ".SawOscillatorTestrenderPerformanceTest"));
         }
 
         audioEngine.begin(camera, true);
@@ -85,7 +85,7 @@ public class SawOscillatorTest {
         audioEngine.create(null);
         createCamera();
         {
-            final SawSynthesizer synth = audioEngine.createAudioProducer(SawSynthesizer.class);
+            final SawSynthesizer synth = audioEngine.createAudioProducer(SawSynthesizer.class, "SawOscillatorTest.renderSpeedTest");
             synth.setGain(5);
 
             float frequency = 220.0f;
@@ -131,7 +131,7 @@ public class SawOscillatorTest {
         audioEngine.create(null);
         createCamera();
         {
-            final Synthesizer synth = audioEngine.createAudioProducer(SawSynthesizer.class);
+            final Synthesizer synth = audioEngine.createAudioProducer(SawSynthesizer.class, "SawOscillatorTest.renderTest");
             synth.setGain(5);
             synth.play();
             audioEngine.begin(camera, true);

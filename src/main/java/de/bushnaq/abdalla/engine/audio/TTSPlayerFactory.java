@@ -26,8 +26,8 @@ public class TTSPlayerFactory extends AbstractSynthesizerFactory<TTSPlayer> {
     }
 
     @Override
-    public TTSPlayer uncacheSynth(AudioEngine audioEngine) throws OpenAlException {
-        return new TTSPlayer(audioEngine);
+    public TTSPlayer uncacheSynth(AudioEngine audioEngine, String name) throws OpenAlException {
+        return new TTSPlayer(audioEngine, name);
     }
 
 }

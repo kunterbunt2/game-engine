@@ -16,8 +16,8 @@
 
 package de.bushnaq.abdalla.engine.audio;
 
-import de.bushnaq.abdalla.engine.LLMPrompt;
 import de.bushnaq.abdalla.engine.ai.PromptTags;
+import de.bushnaq.abdalla.engine.ai.ollama.LLMPrompt;
 import de.bushnaq.abdalla.engine.ai.ollama.OllamaClient;
 import de.bushnaq.abdalla.engine.ai.ollama.OllamaException;
 import org.slf4j.Logger;
@@ -41,16 +41,16 @@ public class Radio implements IRadio {
     private final        AudioEngine               audioEngine;
     private final        Logger                    logger          = LoggerFactory.getLogger(this.getClass());
     private final        Object                    messagesLock    = new Object(); // Lock for thread-safe access to messages
-    private final        List<RadioRequest>        radioRequests   = new ArrayList<>();
+    private final        List<RadioMessage>        radioRequests   = new ArrayList<>();
     private final        Random                    random          = new Random();
     private              ScheduledExecutorService  spokenMessageChecker;
     private final        Map<String, List<String>> stringOptions   = new HashMap<>();//every id can have a list of string options
     private final        Map<String, LLMPrompt>    systemPromptMap = new HashMap<>();//have to be registered, can be used to generate radio messages via AI
     private final        TTSPlayer                 ttsPlayer;
 
-    public Radio(AudioEngine audioEngine) throws OpenAlException {
+    public Radio(AudioEngine audioEngine, String name) throws OpenAlException {
         this.audioEngine = audioEngine;
-        this.ttsPlayer   = audioEngine.createAudioProducer(TTSPlayer.class);
+        this.ttsPlayer   = audioEngine.createAudioProducer(TTSPlayer.class, name);
         this.ttsPlayer.setGain(1f);
         logger.info("initialized tts");
         startSpokenMessageChecker();
@@ -59,9 +59,7 @@ public class Radio implements IRadio {
     private String askAi(String id, PromptTags tags) {
         try {
             LLMPrompt systemPrompt = new LLMPrompt(systemPromptMap.get(id), tags);
-            if (systemPrompt != null)
-                return client.generate("llama3.2:3b", systemPrompt.getPrompt(), systemPrompt.getSystemPrompt()).getResponse();
-            return null;
+            return client.generate("llama3.2:3b", systemPrompt.getPrompt(), systemPrompt.getSystemPrompt()).getResponse();
         } catch (OllamaException e) {
             logger.error("Error generating ai ratio message: {}", e.getMessage(), e);
             return null;
@@ -69,7 +67,7 @@ public class Radio implements IRadio {
     }
 
     private String cleanupAiAnswer(String answer) {
-        return answer;
+        return unquote(answer);
     }
 
     public void dispose() {
@@ -81,8 +79,8 @@ public class Radio implements IRadio {
     private void generateSpokenMessages() {
         synchronized (messagesLock) {
             while (!radioRequests.isEmpty()) {
-                RadioRequest rr = radioRequests.removeFirst();
-                rr.getFrom().processRadioMessage(rr);//processed by the sender
+                RadioMessage rm = radioRequests.removeFirst();
+                rm.getFrom().processRadioMessage(rm);//processed by the sender
             }
         }
     }
@@ -113,17 +111,17 @@ public class Radio implements IRadio {
     }
 
     @Override
-    public void queueRadioMessageGeneration(RadioRequest rr) {
-        if (rr.isSilent()) {
-            rr.getFrom().processRadioMessage(rr);
+    public void queueRadioMessageGeneration(RadioMessage rm) {
+        if (rm.isSilent()) {
+            rm.getFrom().processRadioMessage(rm);
         } else {
-            radioRequests.add(rr);//queue spoken message generation
+            radioRequests.add(rm);//queue spoken message generation
         }
     }
 
     @Override
     public void radio(RadioMessage rm) {
-        rm.to.notifyStartedTalking(rm);// send to partner
+//        rm.to.notifyStartedTalking(rm);// send to partner
         say(rm);
     }
 
@@ -194,6 +192,15 @@ public class Radio implements IRadio {
 //            logger.info("Silent message checker thread stopped");
             spokenMessageChecker = null;
         }
+    }
+
+    String unquote(String input) {
+        if (input == null || input.isEmpty()) {
+            return input; // return as is
+        }
+        input = input.trim();
+        input = input.replaceAll("^(\"|')|(\"|')$", "");
+        return input;
     }
 
 }

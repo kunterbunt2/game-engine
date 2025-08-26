@@ -52,8 +52,8 @@ public class TTSPlayer extends AbstractAudioProducer {
     private final List<RadioMessage>       spokenMessages     = new ArrayList<>();
     private       RadioMessage             spokenRadioMessage = null;//currently playing
 
-    public TTSPlayer(AudioEngine audioEngine) throws OpenAlException {
-        super(22050);
+    public TTSPlayer(AudioEngine audioEngine, String name) throws OpenAlException {
+        super(22050, name);
         setAmbient(true);//always follows camera
         setRadio(true);//radio effect
         this.audioEngine = audioEngine;
@@ -77,9 +77,10 @@ public class TTSPlayer extends AbstractAudioProducer {
         try {
             writeRadioToFile(spokenRadioMessage);
             arrayIndex = 0;
-            byte[] wavFileBytes = CoquiTTS.generateSpeech(spokenRadioMessage.message, spokenRadioMessage.from.getId());
+            byte[] wavFileBytes = CoquiTTS.generateSpeech(spokenRadioMessage.getTags().removeAllPostTags(spokenRadioMessage.getMessage()), spokenRadioMessage.getFrom().getId());
+            spokenRadioMessage.getFrom().notifyStartedTalking(spokenRadioMessage);
             bytes = extractAudioDataFromWav(wavFileBytes);
-            logger.info("tts starts speaking: " + spokenRadioMessage.message);
+            logger.info("tts starts speaking: " + spokenRadioMessage.getMessage());
 //                    System.out.println("TTS: " + msg + " (extracted " + bytes.length + " audio bytes from " + wavFileBytes.length + " total bytes)");
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -97,8 +98,8 @@ public class TTSPlayer extends AbstractAudioProducer {
                 RadioMessage rm = silentMessages.poll();
 //                logger.debug("Removed expired silent message: {} (expired at {}ms, current time {}ms)", rm.message, rm.getEndTime(), System.currentTimeMillis());
                 // Notify the partner that the silent message is finished
-                if (rm.to != null) {
-                    rm.to.notifyFinishedTalking(rm);
+                if (rm.getTo() != null) {
+                    rm.getTo().notifyFinishedTalking(rm);
                 }
             }
         }
@@ -228,7 +229,7 @@ public class TTSPlayer extends AbstractAudioProducer {
     private void notifyPartner() {
         if (spokenRadioMessage != null) {
 //            System.out.println("TTSPLayer=" + currentRadioMessage.to.getName());
-            spokenRadioMessage.to.notifyFinishedTalking(spokenRadioMessage);
+            spokenRadioMessage.getTo().notifyFinishedTalking(spokenRadioMessage);
             spokenRadioMessage = null; // Clear after notifying
         }
     }
@@ -276,7 +277,7 @@ public class TTSPlayer extends AbstractAudioProducer {
 
     public void speak(RadioMessage rm) {
         synchronized (messagesLock) {
-            if (rm.silent) {
+            if (rm.isSilent()) {
                 silentMessages.add(rm);
             } else {
 //                logger.info("speak" + rm.message);
@@ -323,7 +324,7 @@ public class TTSPlayer extends AbstractAudioProducer {
 
     private void writeRadioToFile(RadioMessage rm) {
         try (PrintWriter writer = new PrintWriter(new FileWriter("debug/radio.txt", true))) {
-            String formattedEvent = String.format("%s %s->%s: %s", LocalDateTime.now().format(formatter), rm.from.getName(), rm.to.getName(), rm.message);
+            String formattedEvent = String.format("%s %s->%s: %s", LocalDateTime.now().format(formatter), rm.getFrom().getName(), rm.getTo().getName(), rm.getMessage());
             writer.println(formattedEvent);
         } catch (IOException e) {
             logger.error("Failed to write event to file", e);

@@ -20,6 +20,12 @@ public class PromptTags {
         preTags.put(name, value);
     }
 
+    /**
+     * Remove all post tags from the message.
+     *
+     * @param message the message with post tags
+     * @return the message without post tags
+     */
     public String removeAllPostTags(String message) {
         for (String key : postTags.keySet()) {
             message = message.replaceAll(key, "");
@@ -27,6 +33,12 @@ public class PromptTags {
         return message;
     }
 
+    /**
+     * Remove all pre tags from the message.
+     *
+     * @param message the message with pre tags
+     * @return the message without pre tags
+     */
     public String removeAllPreTags(String message) {
         for (String key : preTags.keySet()) {
             message = message.replaceAll(key, "");
@@ -34,6 +46,12 @@ public class PromptTags {
         return message;
     }
 
+    /**
+     * Replace tags after receiving from TTS engine.
+     *
+     * @param message the message with tags
+     * @return the message with replaced tags
+     */
     public String replaceAllPostTags(String message) {
         for (String key : postTags.keySet()) {
             message = message.replaceAll(key, postTags.get(key));
@@ -41,6 +59,12 @@ public class PromptTags {
         return message;
     }
 
+    /**
+     * Replace tags before sending to TTS engine.
+     *
+     * @param message the message with tags
+     * @return the message with replaced tags
+     */
     public String replaceAllPreTags(String message) {
         for (String key : preTags.keySet()) {
             message = message.replaceAll(key, preTags.get(key));

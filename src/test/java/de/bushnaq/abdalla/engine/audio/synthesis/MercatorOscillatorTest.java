@@ -36,8 +36,8 @@ import static org.hamcrest.Matchers.lessThan;
 
 public class MercatorOscillatorTest {
     private static final int          SECONDS_2 = 2000;
-    private final        Logger       logger    = LoggerFactory.getLogger(this.getClass());
     private              MovingCamera camera;
+    private final        Logger       logger    = LoggerFactory.getLogger(this.getClass());
 
     private void createCamera() throws Exception {
         Gdx.files = new Lwjgl3Files();
@@ -59,7 +59,7 @@ public class MercatorOscillatorTest {
         final List<Synthesizer> synths          = new ArrayList<>();
         //create synths
         for (int i = 0; i < numberOfSources; i++) {
-            synths.add(audioEngine.createAudioProducer(ExampleSynthesizer.class));
+            synths.add(audioEngine.createAudioProducer(ExampleSynthesizer.class, "MercatorOscillatorTest.renderPerformanceTest"));
         }
 
         audioEngine.begin(camera, true);
@@ -81,7 +81,7 @@ public class MercatorOscillatorTest {
         audioEngine.create(null);
         createCamera();
         {
-            final Synthesizer synth = audioEngine.createAudioProducer(ExampleSynthesizer.class);
+            final Synthesizer synth = audioEngine.createAudioProducer(ExampleSynthesizer.class, "MercatorOscillatorTest.renderTest");
             synth.setGain(5);
             synth.play();
             audioEngine.begin(camera, true);

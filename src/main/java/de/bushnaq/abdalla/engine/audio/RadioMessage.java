@@ -17,56 +17,45 @@
 package de.bushnaq.abdalla.engine.audio;
 
 import de.bushnaq.abdalla.engine.ai.PromptTags;
+import lombok.Getter;
+import lombok.Setter;
 
-import java.util.Map;
-
+@Getter
 public class RadioMessage {
-    private static final Map<Character, String> NATO_MAP = Map.ofEntries(
-            Map.entry('A', "Alfa"),
-            Map.entry('B', "Bravo"),
-            Map.entry('C', "Charlie"),
-            Map.entry('D', "Delta"),
-            Map.entry('E', "Echo"),
-            Map.entry('F', "Foxtrot"),
-            Map.entry('G', "Golf"),
-            Map.entry('H', "Hotel"),
-            Map.entry('I', "India"),
-            Map.entry('J', "Juliett"),
-            Map.entry('K', "Kilo"),
-            Map.entry('L', "Lima"),
-            Map.entry('M', "Mike"),
-            Map.entry('N', "November"),
-            Map.entry('O', "Oscar"),
-            Map.entry('P', "Papa"),
-            Map.entry('Q', "Quebec"),
-            Map.entry('R', "Romeo"),
-            Map.entry('S', "Sierra"),
-            Map.entry('T', "Tango"),
-            Map.entry('U', "Uniform"),
-            Map.entry('V', "Victor"),
-            Map.entry('W', "Whiskey"),
-            Map.entry('X', "X-ray"),
-            Map.entry('Y', "Yankee"),
-            Map.entry('Z', "Zulu")
-    );
-    private final        long                   endTime;
-    public               CommunicationPartner   from;
-    public               String                 message;
-    public               String                 radioMessageId;
-    public               boolean                silent;
-    public               long                   time;//universe time
-    public               long                   timeSent;
-    public               CommunicationPartner   to;
+    private final long                 endTime;
+    private final CommunicationPartner from;
+    @Setter
+    private       String               message;
+    private final String               messageId;
+    private final boolean              silent;
+    private final PromptTags           tags;
+    @Setter
+    private       long                 time;//universe time
+    private final long                 timeSent;
+    private final CommunicationPartner to;
 
-    public RadioMessage(long currentTime, CommunicationPartner from, CommunicationPartner to, String radioMessageId, String message, boolean silent) {
-        time                = currentTime;
-        timeSent            = System.currentTimeMillis();
-        this.from           = from;
-        this.to             = to;
-        this.radioMessageId = radioMessageId;
-        this.message        = message;
-        this.silent         = silent;
-        this.endTime        = timeSent + estimatedDuration();
+    public RadioMessage(long currentTime, CommunicationPartner from, CommunicationPartner to, String messageId, String message, boolean silent, PromptTags tags) {
+        time           = currentTime;
+        timeSent       = System.currentTimeMillis();
+        this.from      = from;
+        this.to        = to;
+        this.messageId = messageId;
+        this.message   = message;
+        this.silent    = silent;
+        this.tags      = tags;
+        this.endTime   = timeSent + estimatedDuration();
+    }
+
+    public RadioMessage(boolean silent, CommunicationPartner from, CommunicationPartner to, String messageId, PromptTags tags) {
+        this.silent    = silent;
+        this.from      = from;
+        this.to        = to;
+        this.messageId = messageId;
+        this.tags      = tags;
+        this.message   = null;
+        this.time      = 0;
+        this.timeSent  = 0;
+        this.endTime   = 0;
     }
 
     public static String addCommaAndSpace(String input) {
@@ -84,12 +73,6 @@ public class RadioMessage {
         return sb.toString();
     }
 
-    private static String convertCallerName(String from) {
-        char upper = Character.toUpperCase(from.charAt(0));
-//        return NATO_MAP.getOrDefault(upper, String.valueOf(upper)) + ",... " + addCommaAndSpace(from.substring(2));
-        return NATO_MAP.getOrDefault(upper, String.valueOf(upper)) + ",... " + from.substring(2);
-    }
-
     public static String createMessage(String message, PromptTags tags) {
 
 //        System.out.printf("Creating message from %s to %s: %s%n", from, to, message);
@@ -100,10 +83,6 @@ public class RadioMessage {
 
     public long estimatedDuration() {
         return message.length() * 120L;
-    }
-
-    public long getEndTime() {
-        return endTime;
     }
 
     public boolean isFinished() {

@@ -30,8 +30,8 @@ import org.slf4j.LoggerFactory;
 public class OscillatorGainTest {
     private static final float        HIGHEST_FREQUENCY = 2 * 261.6256f;//C5
     private static final float        LOWEST_FREQUENCY  = 32.70320f;//C1
-    private final        Logger       logger            = LoggerFactory.getLogger(this.getClass());
     private              MovingCamera camera;
+    private final        Logger       logger            = LoggerFactory.getLogger(this.getClass());
 
     private void createCamera() throws Exception {
         Gdx.files = new Lwjgl3Files();
@@ -50,7 +50,7 @@ public class OscillatorGainTest {
         createCamera();
         audioEngine.create(null);
         {
-            final Synthesizer synth = audioEngine.createAudioProducer(ExampleSynthesizer.class);
+            final Synthesizer synth = audioEngine.createAudioProducer(ExampleSynthesizer.class, "OscillatorGainTest.gainTest");
             audioEngine.begin(camera, true);
             for (int i = 2; i <= 25; i++) {
                 final float speed = i;

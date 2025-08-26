@@ -28,8 +28,8 @@ public class SinSynthesizerFactory extends AbstractSynthesizerFactory<SinSynthes
     }
 
     @Override
-    public SinSynthesizer uncacheSynth(AudioEngine audioEngine) throws OpenAlException {
-        return new SinSynthesizer();
+    public SinSynthesizer uncacheSynth(AudioEngine audioEngine, String name) throws OpenAlException {
+        return new SinSynthesizer(name);
     }
 
 }

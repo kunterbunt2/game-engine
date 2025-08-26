@@ -35,6 +35,8 @@ public interface AudioProducer {
 
     float getGain();
 
+    String getName();
+
     int getOpenAlFormat();
 
     Vector3 getPosition();
@@ -46,6 +48,13 @@ public interface AudioProducer {
     boolean isAmbient();
 
     boolean isEnabled();
+
+    /**
+     * should this audio producer be ignored by the audio engine, e.g. because the user has disabled this type of sound
+     *
+     * @return true if it should be ignored
+     */
+    boolean isIgnore();
 
     boolean isOptIn();// can opt out, in that case the system will keep them disabled
 
@@ -64,6 +73,8 @@ public interface AudioProducer {
     //	public short process(long l);
 
     void setGain(final float gain) throws OpenAlException;
+
+    void setName(String name);
 
     void setPositionAndVelocity(final float[] position, final float[] velocity) throws OpenAlException;
 

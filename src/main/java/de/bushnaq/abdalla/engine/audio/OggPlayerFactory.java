@@ -26,8 +26,8 @@ public class OggPlayerFactory extends AbstractSynthesizerFactory<OggPlayer> {
     }
 
     @Override
-    public OggPlayer uncacheSynth(AudioEngine audioEngine) throws OpenAlException {
-        return new OggPlayer();
+    public OggPlayer uncacheSynth(AudioEngine audioEngine, String name) throws OpenAlException {
+        return new OggPlayer(name);
     }
 
 }

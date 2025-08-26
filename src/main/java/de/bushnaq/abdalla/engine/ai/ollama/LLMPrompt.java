@@ -1,4 +1,4 @@
-package de.bushnaq.abdalla.engine;
+package de.bushnaq.abdalla.engine.ai.ollama;
 
 import de.bushnaq.abdalla.engine.ai.PromptTags;
 

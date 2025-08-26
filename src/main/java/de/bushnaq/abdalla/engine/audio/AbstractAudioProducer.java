@@ -17,27 +17,43 @@
 package de.bushnaq.abdalla.engine.audio;
 
 import com.badlogic.gdx.math.Vector3;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
 public abstract class AbstractAudioProducer implements AudioProducer {
+    @Getter
+    @Setter
     private         boolean      ambient      = false;//position always follows camera
     protected       boolean      enabled      = false;//a disabled synth does not possess an audio source and any of the source attached resource like filters and buffers
     protected       Filters      filters;
+    @Getter
     protected       float        gain         = 1.0f;
+    @Getter
     protected       boolean      ignore;
+    @Getter
+    @Setter
+    private         String       name;
     private final   byte[]       oneKiloBytes = new byte[1024];//used to fast zero the byte buffer in times of silence
-    protected       boolean      play         = false;//is the source playing?
+    @Getter
+    protected       boolean      playing      = false;//is the source playing?
+    @Getter
     protected final Vector3      position     = new Vector3();//position of the audio source
+    @Getter
+    @Setter
     private         boolean      radio        = false;
+    @Getter
     protected       int          sampleRate;
     protected       OpenAlSource source       = null;//if enabled, this will hold the attached openal source, otherwise null
+    @Getter
     private         float        sourceGain;
     protected final Vector3      velocity     = new Vector3();//velocity of the audio source
 
-    public AbstractAudioProducer(int sampleRate) {
+    public AbstractAudioProducer(int sampleRate, String name) {
         this.sampleRate = sampleRate;
+        this.name       = name;
         filters         = new Filters(sampleRate, this);
     }
 
@@ -90,26 +106,8 @@ public abstract class AbstractAudioProducer implements AudioProducer {
         }
     }
 
-    public float getGain() {
-        return gain;
-    }
-
-    @Override
-    public Vector3 getPosition() {
-        return position;
-    }
-
-    @Override
-    public int getSampleRate() {
-        return sampleRate;
-    }
-
     public void ignore(boolean value) {
         this.ignore = value;
-    }
-
-    public boolean isAmbient() {
-        return ambient;
     }
 
     @Override
@@ -136,20 +134,10 @@ public abstract class AbstractAudioProducer implements AudioProducer {
     }
 
     @Override
-    public boolean isPlaying() throws OpenAlException {
-        return play;
-    }
-
-    @Override
-    public boolean isRadio() {
-        return radio;
-    }
-
-    @Override
     public void pause() throws OpenAlException {
         if (!ignore) {
-            if (this.play) {
-                play = false;
+            if (this.playing) {
+                playing = false;
             }
             if (isEnabled()) source.pause();
         }
@@ -158,8 +146,8 @@ public abstract class AbstractAudioProducer implements AudioProducer {
     @Override
     public void play() throws OpenAlException {
         if (!ignore) {
-            if (!this.play) {
-                play = true;
+            if (!this.playing) {
+                playing = true;
             }
             if (isEnabled()) source.play();
         }
@@ -176,10 +164,6 @@ public abstract class AbstractAudioProducer implements AudioProducer {
         } else {
             throw new OpenAlcException("Synth is disabled");
         }
-    }
-
-    public void setAmbient(boolean ambient) {
-        this.ambient = ambient;
     }
 
     @Override
@@ -217,11 +201,6 @@ public abstract class AbstractAudioProducer implements AudioProducer {
             //			source.setVelocity(position, velocity);
 //        }
         }
-    }
-
-    @Override
-    public void setRadio(boolean radio) {
-        this.radio = radio;
     }
 
     @Override

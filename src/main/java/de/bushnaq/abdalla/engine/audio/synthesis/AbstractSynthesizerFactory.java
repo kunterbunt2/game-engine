@@ -18,11 +18,12 @@ package de.bushnaq.abdalla.engine.audio.synthesis;
 
 import com.scottlogic.util.UnsortedList;
 import de.bushnaq.abdalla.engine.audio.AudioEngine;
+import de.bushnaq.abdalla.engine.audio.AudioProducer;
 import de.bushnaq.abdalla.engine.audio.OpenAlException;
 
 import java.util.List;
 
-public abstract class AbstractSynthesizerFactory<T> implements SynthesizerFactory<T> {
+public abstract class AbstractSynthesizerFactory<T extends AudioProducer> implements SynthesizerFactory<T> {
     private final List<T> synthsCache = new UnsortedList<>();
 
     @Override
@@ -31,12 +32,13 @@ public abstract class AbstractSynthesizerFactory<T> implements SynthesizerFactor
     }
 
     @Override
-    public T createSynth(AudioEngine audioEngine) throws OpenAlException {
-        if (synthsCache.size() != 0) {
+    public T createSynth(AudioEngine audioEngine, String name) throws OpenAlException {
+        if (!synthsCache.isEmpty()) {
             final T synth = synthsCache.remove(0);
+            synth.setName(name);
             return synth;
         } else {
-            final T synth = uncacheSynth(audioEngine);
+            final T synth = uncacheSynth(audioEngine, name);
             return synth;
         }
     }

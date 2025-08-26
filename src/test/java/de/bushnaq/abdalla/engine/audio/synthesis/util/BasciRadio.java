@@ -4,12 +4,11 @@ import de.bushnaq.abdalla.engine.ai.PromptTags;
 import de.bushnaq.abdalla.engine.audio.IRadio;
 import de.bushnaq.abdalla.engine.audio.OpenAlException;
 import de.bushnaq.abdalla.engine.audio.RadioMessage;
-import de.bushnaq.abdalla.engine.audio.RadioRequest;
 
 public class BasciRadio implements IRadio {
 
     @Override
-    public void queueRadioMessageGeneration(RadioRequest rr) {
+    public void queueRadioMessageGeneration(RadioMessage rm) {
 
     }
 
