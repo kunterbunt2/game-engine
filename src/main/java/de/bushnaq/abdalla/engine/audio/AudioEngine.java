@@ -231,7 +231,7 @@ public class AudioEngine {
             if (EXTEfx.alIsEffect(distortionEffect)) {
                 alEffecti(distortionEffect, AL_EFFECT_TYPE, AL_EFFECT_DISTORTION);
                 alEffectf(distortionEffect, AL_DISTORTION_EDGE, .2f);
-                alEffectf(distortionEffect, AL_DISTORTION_GAIN, .9f);
+                alEffectf(distortionEffect, AL_DISTORTION_GAIN, .5f);
                 alEffectf(distortionEffect, AL_DISTORTION_LOWPASS_CUTOFF, 3000f);
                 alEffectf(distortionEffect, AL_DISTORTION_EQCENTER, 3000f);
                 alEffectf(distortionEffect, AL_DISTORTION_EQBANDWIDTH, 300f);

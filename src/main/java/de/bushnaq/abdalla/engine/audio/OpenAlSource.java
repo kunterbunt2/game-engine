@@ -125,8 +125,8 @@ public class OpenAlSource extends Thread {
                 EXTEfx.alFilteri(filter, EXTEfx.AL_FILTER_TYPE, EXTEfx.AL_FILTER_BANDPASS);
                 AudioEngine.checkAlError(audio.getName(), "Low pass filter not supported error #");
                 EXTEfx.alFilterf(filter, EXTEfx.AL_BANDPASS_GAIN, 1.0f);
-                EXTEfx.alFilterf(filter, EXTEfx.AL_BANDPASS_GAINLF, 0.03f);
-                EXTEfx.alFilterf(filter, EXTEfx.AL_BANDPASS_GAINHF, 0.03f);
+                EXTEfx.alFilterf(filter, EXTEfx.AL_BANDPASS_GAINLF, 1.0f);
+                EXTEfx.alFilterf(filter, EXTEfx.AL_BANDPASS_GAINHF, 1.0f);
             } else {
                 // Set Filter type to Low-Pass and set parameters
                 EXTEfx.alFilteri(filter, EXTEfx.AL_FILTER_TYPE, EXTEfx.AL_FILTER_LOWPASS);
