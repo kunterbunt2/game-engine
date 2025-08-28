@@ -9,7 +9,7 @@ public class PromptTags {
     protected           Map<String, String> preTags   = new HashMap<>();
 
     public PromptTags() {
-        addPostTag(PAUSE_TAG, "...");
+        addPostTag(PAUSE_TAG, ",");
     }
 
     public void addPostTag(String name, String value) {

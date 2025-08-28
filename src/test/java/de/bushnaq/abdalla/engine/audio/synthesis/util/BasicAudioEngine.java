@@ -18,7 +18,7 @@ package de.bushnaq.abdalla.engine.audio.synthesis.util;
 
 import de.bushnaq.abdalla.engine.audio.AudioEngine;
 import de.bushnaq.abdalla.engine.audio.OggPlayerFactory;
-import de.bushnaq.abdalla.engine.audio.TTSPlayerFactory;
+import de.bushnaq.abdalla.engine.audio.radio.TTSPlayerFactory;
 
 public class BasicAudioEngine extends AudioEngine {
 

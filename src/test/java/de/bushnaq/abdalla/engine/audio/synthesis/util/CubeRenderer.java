@@ -29,7 +29,12 @@ import de.bushnaq.abdalla.engine.GameObject;
 import de.bushnaq.abdalla.engine.ObjectRenderer;
 import de.bushnaq.abdalla.engine.RenderEngine3D;
 import de.bushnaq.abdalla.engine.ai.PromptTags;
-import de.bushnaq.abdalla.engine.audio.*;
+import de.bushnaq.abdalla.engine.audio.OggPlayer;
+import de.bushnaq.abdalla.engine.audio.OpenAlException;
+import de.bushnaq.abdalla.engine.audio.radio.RadioChannel;
+import de.bushnaq.abdalla.engine.audio.radio.RadioMessage;
+import de.bushnaq.abdalla.engine.audio.radio.RadioWave;
+import de.bushnaq.abdalla.engine.audio.radio.TTSPlayer;
 import de.bushnaq.abdalla.engine.audio.synthesis.Synthesizer;
 import de.bushnaq.abdalla.engine.event.IEventManager;
 import de.bushnaq.abdalla.engine.util.ModelCreator;
@@ -41,7 +46,7 @@ import org.slf4j.LoggerFactory;
 
 import static de.bushnaq.abdalla.engine.audio.synthesis.util.TranslationUtil.CUBE_NAME_COLOR;
 
-public class CubeRenderer extends ObjectRenderer<BasicGameEngine> implements CommunicationPartner {
+public class CubeRenderer extends ObjectRenderer<BasicGameEngine> implements RadioChannel {
 
     protected static final float                       CUBE_SIZE                   = 64;
     private static final   Color                       DIAMON_BLUE_COLOR           = new Color(0x006ab6ff);
@@ -173,7 +178,7 @@ public class CubeRenderer extends ObjectRenderer<BasicGameEngine> implements Com
     }
 
     @Override
-    public void notifyStartedTalking(RadioMessage message) {
+    public void notifyStartedTalking(RadioWave message) {
 
     }
 

@@ -14,9 +14,22 @@
  * limitations under the License.
  */
 
-package de.bushnaq.abdalla.engine.audio;
+package de.bushnaq.abdalla.engine.audio.radio;
 
-public class TTSToken {
-    String message;
+import de.bushnaq.abdalla.engine.audio.AudioEngine;
+import de.bushnaq.abdalla.engine.audio.OpenAlException;
+import de.bushnaq.abdalla.engine.audio.synthesis.AbstractSynthesizerFactory;
+
+public class TTSPlayerFactory extends AbstractSynthesizerFactory<TTSPlayer> {
+
+    @Override
+    public Class<TTSPlayer> handles() {
+        return TTSPlayer.class;
+    }
+
+    @Override
+    public TTSPlayer uncacheSynth(AudioEngine audioEngine, String name) throws OpenAlException {
+        return new TTSPlayer(audioEngine, name);
+    }
 
 }

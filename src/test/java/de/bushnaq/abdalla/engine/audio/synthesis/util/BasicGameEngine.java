@@ -33,7 +33,7 @@ import de.bushnaq.abdalla.engine.ISubtitles;
 import de.bushnaq.abdalla.engine.RenderEngine3D;
 import de.bushnaq.abdalla.engine.audio.AudioEngine;
 import de.bushnaq.abdalla.engine.audio.OpenAlException;
-import de.bushnaq.abdalla.engine.audio.Radio;
+import de.bushnaq.abdalla.engine.audio.radio.Radio;
 import de.bushnaq.abdalla.engine.camera.MovingCamera;
 import net.mgsx.gltf.scene3d.attributes.PBRCubemapAttribute;
 import net.mgsx.gltf.scene3d.attributes.PBRFloatAttribute;

@@ -14,10 +14,14 @@
  * limitations under the License.
  */
 
-package de.bushnaq.abdalla.engine.audio;
+package de.bushnaq.abdalla.engine.audio.radio;
 
 import com.badlogic.gdx.files.FileHandle;
 import de.bushnaq.abdalla.engine.ai.coqui.CoquiTTS;
+import de.bushnaq.abdalla.engine.audio.AbstractAudioProducer;
+import de.bushnaq.abdalla.engine.audio.AudioEngine;
+import de.bushnaq.abdalla.engine.audio.OpenAlException;
+import de.bushnaq.abdalla.engine.audio.OpenAlSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,20 +41,23 @@ import static org.lwjgl.openal.AL10.AL_FORMAT_MONO16;
 import static org.lwjgl.openal.AL10.AL_FORMAT_STEREO16;
 
 public class TTSPlayer extends AbstractAudioProducer {
-    private       int                      arrayIndex         = 0;
+    private       int                      arrayIndex          = 0;
     private final AudioEngine              audioEngine;
-    private       byte[]                   bytes              = null;
-    private final int                      channels           = 1;
+    private       byte[]                   bytes               = null;
+    private final int                      channels            = 1;
     protected     FileHandle               file;
-    private       int                      format             = AL_FORMAT_MONO16;
-    private final DateTimeFormatter        formatter          = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-    private final Logger                   logger             = LoggerFactory.getLogger(this.getClass());
-    private final Object                   messagesLock       = new Object(); // Lock for thread-safe access to messages
-    private       boolean                  optIn              = true;//by default ttsPlayer is opting out, which means that it is disabled by  the AudioEngine
+    private       int                      format              = AL_FORMAT_MONO16;
+    private final DateTimeFormatter        formatter           = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    private final Logger                   logger              = LoggerFactory.getLogger(this.getClass());
+    private final Object                   messagesLock        = new Object(); // Lock for thread-safe access to messages
+    private       boolean                  optIn               = true;//by default ttsPlayer is opting out, which means that it is disabled by  the AudioEngine
     private       ScheduledExecutorService silentMessageChecker;
-    private final Queue<RadioMessage>      silentMessages     = new PriorityQueue<>(Comparator.comparing(RadioMessage::getEndTime));//first message is always first to end
-    private final List<RadioMessage>       spokenMessages     = new ArrayList<>();
-    private       RadioMessage             spokenRadioMessage = null;//currently playing
+    private final Queue<RadioMessage>      silentMessages      = new PriorityQueue<>(Comparator.comparing(RadioMessage::getEndTime));//first message is always first to end
+    private final List<RadioWave>          spakenRadioWaveList = new ArrayList<>();
+    private       ScheduledExecutorService spokenMessageChecker;
+    private final List<RadioMessage>       spokenMessageList   = new ArrayList<>();
+    private       RadioMessage             spokenRadioMessage  = null;//currently playing
+    private       RadioWave                spokenRadioWave     = null;
 
     public TTSPlayer(AudioEngine audioEngine, String name) throws OpenAlException {
         super(22050, name);
@@ -66,22 +73,22 @@ public class TTSPlayer extends AbstractAudioProducer {
             }
         }
         startSilentMessageChecker();
+        startSpokenMessageChecker();
     }
 
     private boolean bufferNextMessage() {
         synchronized (messagesLock) {
-            if (spokenMessages.isEmpty())
+            if (spakenRadioWaveList.isEmpty())
                 return false;
-            spokenRadioMessage = spokenMessages.removeFirst();
+            spokenRadioWave = spakenRadioWaveList.removeFirst();
         }
 //        logger.info(String.format("TTS: %s to %s", currentRadioMessage.message, currentRadioMessage.to.getName()));
         try {
-            writeRadioToFile(spokenRadioMessage);
+            writeRadioToFile(spokenRadioWave.radioMessage(), spokenRadioWave.index());
             arrayIndex = 0;
-            byte[] wavFileBytes = CoquiTTS.generateSpeech(spokenRadioMessage.getTags().removeAllPostTags(spokenRadioMessage.getMessage()), spokenRadioMessage.getFrom().getId());
-            spokenRadioMessage.getFrom().notifyStartedTalking(spokenRadioMessage);
-            bytes = extractAudioDataFromWav(wavFileBytes);
-            logger.info("tts starts speaking: " + spokenRadioMessage.getMessage());
+            bytes      = spokenRadioWave.wavFileBytes();
+            spokenRadioWave.radioMessage().getFrom().notifyStartedTalking(spokenRadioWave);
+//            logger.info("tts starts speaking: " + spokenRadioMessage.getMessage());
 //                    System.out.println("TTS: " + msg + " (extracted " + bytes.length + " audio bytes from " + wavFileBytes.length + " total bytes)");
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -103,6 +110,25 @@ public class TTSPlayer extends AbstractAudioProducer {
                     rm.getTo().notifyFinishedTalking(rm);
                 }
             }
+        }
+    }
+
+    private void checkSpokenMessages() {
+        synchronized (messagesLock) {
+            if (spokenMessageList.isEmpty())
+                return;
+            spokenRadioMessage = spokenMessageList.removeFirst();
+        }
+        try {
+            for (int i = 0; i < spokenRadioMessage.getMessages().size(); i++) {
+                byte[] wavFileBytes = CoquiTTS.generateSpeech(spokenRadioMessage.getTags().removeAllPostTags(spokenRadioMessage.getMessages().get(i)), spokenRadioMessage.getFrom().getId());
+                byte[] bytes        = extractAudioDataFromWav(wavFileBytes);
+                synchronized (messagesLock) {
+                    spakenRadioWaveList.add(new RadioWave(bytes, spokenRadioMessage, i));
+                }
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -228,10 +254,10 @@ public class TTSPlayer extends AbstractAudioProducer {
 
 
     private void notifyPartner() {
-        if (spokenRadioMessage != null) {
+        if (spokenRadioWave != null) {
 //            System.out.println("TTSPLayer=" + currentRadioMessage.to.getName());
-            spokenRadioMessage.getTo().notifyFinishedTalking(spokenRadioMessage);
-            spokenRadioMessage = null; // Clear after notifying
+            spokenRadioWave.radioMessage().getTo().notifyFinishedTalking(spokenRadioMessage);
+            spokenRadioWave = null; // Clear after notifying
         }
     }
 
@@ -244,7 +270,10 @@ public class TTSPlayer extends AbstractAudioProducer {
                 if (bytes != null) {
                     //finished speaking
 //                    logger.info("arrayIndex=" + arrayIndex);
-                    notifyPartner();
+                    if (spokenRadioWave.isLastWave()) {
+                        //- last wave of the message
+                        notifyPartner();
+                    }
                 }
                 byte2 = -1;
                 if (!bufferNextMessage()) {
@@ -282,7 +311,7 @@ public class TTSPlayer extends AbstractAudioProducer {
                 silentMessages.add(rm);
             } else {
 //                logger.info("speak" + rm.message);
-                spokenMessages.add(rm);
+                spokenMessageList.add(rm);
             }
         }
     }
@@ -300,6 +329,20 @@ public class TTSPlayer extends AbstractAudioProducer {
 
             // Check every 100ms for expired silent messages
             silentMessageChecker.scheduleAtFixedRate(this::checkSilentMessages, 0, 100, TimeUnit.MILLISECONDS);
+//            logger.info("Silent message checker thread started");
+        }
+    }
+
+    private void startSpokenMessageChecker() {
+        if (spokenMessageChecker == null) {
+            spokenMessageChecker = Executors.newSingleThreadScheduledExecutor(r -> {
+                Thread t = new Thread(r, "TTSPlayer-SpokenMessageChecker");
+                t.setDaemon(true); // Don't prevent JVM shutdown
+                return t;
+            });
+
+            // Check every 100ms for expired silent messages
+            spokenMessageChecker.scheduleAtFixedRate(this::checkSpokenMessages, 0, 100, TimeUnit.MILLISECONDS);
 //            logger.info("Silent message checker thread started");
         }
     }
@@ -323,9 +366,25 @@ public class TTSPlayer extends AbstractAudioProducer {
         }
     }
 
-    private void writeRadioToFile(RadioMessage rm) {
+    public void stopSpokenMessageChecker() {
+        if (spokenMessageChecker != null && !spokenMessageChecker.isShutdown()) {
+            spokenMessageChecker.shutdown();
+            try {
+                if (!spokenMessageChecker.awaitTermination(1, TimeUnit.SECONDS)) {
+                    spokenMessageChecker.shutdownNow();
+                }
+            } catch (InterruptedException e) {
+                spokenMessageChecker.shutdownNow();
+                Thread.currentThread().interrupt();
+            }
+//            logger.info("Silent message checker thread stopped");
+            spokenMessageChecker = null;
+        }
+    }
+
+    private void writeRadioToFile(RadioMessage rm, int index) {
         try (PrintWriter writer = new PrintWriter(new FileWriter("debug/radio.txt", true))) {
-            String formattedEvent = String.format("%s %s->%s: %s", LocalDateTime.now().format(formatter), rm.getFrom().getName(), rm.getTo().getName(), rm.getMessage());
+            String formattedEvent = String.format("%s %s->%s: %s", LocalDateTime.now().format(formatter), rm.getFrom().getName(), rm.getTo().getName(), rm.getMessages().get(index));
             writer.println(formattedEvent);
         } catch (IOException e) {
             logger.error("Failed to write event to file", e);

@@ -14,63 +14,73 @@
  * limitations under the License.
  */
 
-package de.bushnaq.abdalla.engine.audio;
+package de.bushnaq.abdalla.engine.audio.radio;
 
 import de.bushnaq.abdalla.engine.ai.PromptTags;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Getter
 public class RadioMessage {
-    private final long                 endTime;
-    private final CommunicationPartner from;
+    private final long         endTime;
+    private final RadioChannel from;
+    private final String       messageId;
     @Setter
-    private       String               message;
-    private final String               messageId;
-    private final boolean              silent;
-    private final PromptTags           tags;
+    private       List<String> messages = new ArrayList<>();
+    private final boolean      silent;
+    private final PromptTags   tags;
     @Setter
-    private       long                 time;//universe time
-    private final long                 timeSent;
-    private final CommunicationPartner to;
+    private       long         time;//universe time
+    private final long         timeSent;
+    private final RadioChannel to;
 
-    public RadioMessage(long currentTime, CommunicationPartner from, CommunicationPartner to, String messageId, String message, boolean silent, PromptTags tags) {
+    public RadioMessage(long currentTime, RadioChannel from, RadioChannel to, String messageId, String message, boolean silent, PromptTags tags) {
         time           = currentTime;
         timeSent       = System.currentTimeMillis();
         this.from      = from;
         this.to        = to;
         this.messageId = messageId;
-        this.message   = message;
         this.silent    = silent;
         this.tags      = tags;
         this.endTime   = timeSent + estimatedDuration();
+        addMessage(message);
     }
 
-    public RadioMessage(boolean silent, CommunicationPartner from, CommunicationPartner to, String messageId, PromptTags tags) {
+    public RadioMessage(boolean silent, RadioChannel from, RadioChannel to, String messageId, PromptTags tags) {
         this.silent    = silent;
         this.from      = from;
         this.to        = to;
         this.messageId = messageId;
         this.tags      = tags;
-        this.message   = null;
         this.time      = 0;
         this.timeSent  = 0;
         this.endTime   = 0;
     }
 
-    public static String addCommaAndSpace(String input) {
-        if (input == null || input.isEmpty()) {
-            return input; // return as is
-        }
+//    public static String addCommaAndSpace(String input) {
+//        if (input == null || input.isEmpty()) {
+//            return input; // return as is
+//        }
+//
+//        StringBuilder sb = new StringBuilder();
+//        for (int i = 0; i < input.length(); i++) {
+//            sb.append(input.charAt(i));
+//            if (i < input.length() - 1) {
+//                sb.append(",... ");
+//            }
+//        }
+//        return sb.toString();
+//    }
 
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < input.length(); i++) {
-            sb.append(input.charAt(i));
-            if (i < input.length() - 1) {
-                sb.append(",... ");
-            }
+    public void addMessage(String message) {
+        String[] strings = message.split("\\.");
+        for (String string : strings) {
+            if (!string.isBlank())
+                messages.add(string.trim());
         }
-        return sb.toString();
     }
 
     public static String createMessage(String message, PromptTags tags) {
@@ -82,7 +92,10 @@ public class RadioMessage {
     }
 
     public long estimatedDuration() {
-        return message.length() * 120L;
+        int duration = 0;
+        for (String message : messages)
+            duration += message.length() * 120L;
+        return duration;
     }
 
     public boolean isFinished() {

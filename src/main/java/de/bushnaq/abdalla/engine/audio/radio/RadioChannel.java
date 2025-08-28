@@ -14,12 +14,19 @@
  * limitations under the License.
  */
 
-package de.bushnaq.abdalla.engine.audio;
+package de.bushnaq.abdalla.engine.audio.radio;
 
 
+import de.bushnaq.abdalla.engine.audio.OpenAlException;
 import de.bushnaq.abdalla.engine.event.IEventManager;
 
-public interface CommunicationPartner {
+/**
+ * A RadioChannel represents a communication channel that can send and receive radio messages.
+ * It provides methods to process incoming messages, notify about talking events, and manage selection state.
+ *
+ * @author Abdalla Bushnaq
+ */
+public interface RadioChannel {
     long RADIO_ANSWER_DELAY = 4000;//ms
 
     IEventManager getEventManager();
@@ -32,7 +39,7 @@ public interface CommunicationPartner {
 
     void notifyFinishedTalking(RadioMessage msg);
 
-    void notifyStartedTalking(RadioMessage message);
+    void notifyStartedTalking(RadioWave message);
 
     /**
      * Process the incoming radio message request.

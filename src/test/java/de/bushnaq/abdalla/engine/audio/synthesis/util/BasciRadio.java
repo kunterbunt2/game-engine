@@ -1,9 +1,9 @@
 package de.bushnaq.abdalla.engine.audio.synthesis.util;
 
 import de.bushnaq.abdalla.engine.ai.PromptTags;
-import de.bushnaq.abdalla.engine.audio.IRadio;
 import de.bushnaq.abdalla.engine.audio.OpenAlException;
-import de.bushnaq.abdalla.engine.audio.RadioMessage;
+import de.bushnaq.abdalla.engine.audio.radio.IRadio;
+import de.bushnaq.abdalla.engine.audio.radio.RadioMessage;
 
 public class BasciRadio implements IRadio {
 

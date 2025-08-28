@@ -14,17 +14,20 @@
  * limitations under the License.
  */
 
-package de.bushnaq.abdalla.engine.audio;
+package de.bushnaq.abdalla.engine.audio.radio;
 
 import de.bushnaq.abdalla.engine.ai.PromptTags;
 import de.bushnaq.abdalla.engine.ai.ollama.LLMPrompt;
 import de.bushnaq.abdalla.engine.ai.ollama.OllamaClient;
 import de.bushnaq.abdalla.engine.ai.ollama.OllamaException;
+import de.bushnaq.abdalla.engine.audio.AudioEngine;
+import de.bushnaq.abdalla.engine.audio.OpenAlException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -37,6 +40,10 @@ import java.util.regex.Pattern;
  */
 public class Radio implements IRadio {
     private static final Pattern                   KEY_PATTERN     = Pattern.compile("(.+)\\.(\\d+)$");
+    //    private static final String                    LLM_MODEL       = "llama3.2:3b";//too many mistakes, ubt fast 400ms for short sentence
+    //    private static final String                    LLM_MODEL       = "gemma3n:latest";//4b, much better, but slow: 2500ms for short sentence
+    private static final String                    LLM_MODEL       = "dolphin-mistral";//7b, fantastic, but slow 1500ms for short sentence
+    //    private static final String                    LLM_MODEL       = "mistral-openorca:7b";
     private static final OllamaClient              client          = new OllamaClient();
     private final        AudioEngine               audioEngine;
     private final        Logger                    logger          = LoggerFactory.getLogger(this.getClass());
@@ -52,6 +59,11 @@ public class Radio implements IRadio {
         this.audioEngine = audioEngine;
         this.ttsPlayer   = audioEngine.createAudioProducer(TTSPlayer.class, name);
         this.ttsPlayer.setGain(1f);
+        try {
+            client.pullModel(LLM_MODEL, Duration.ofMinutes(20));
+        } catch (OllamaException e) {
+            logger.error(e.getMessage(), e);
+        }
         logger.info("initialized tts");
         startSpokenMessageChecker();
     }
@@ -59,7 +71,7 @@ public class Radio implements IRadio {
     private String askAi(String id, PromptTags tags) {
         try {
             LLMPrompt systemPrompt = new LLMPrompt(systemPromptMap.get(id), tags);
-            return client.generate("llama3.2:3b", systemPrompt.getPrompt(), systemPrompt.getSystemPrompt()).getResponse();
+            return client.generate(LLM_MODEL, systemPrompt.getPrompt(), systemPrompt.getSystemPrompt()).getResponse();
         } catch (OllamaException e) {
             logger.error("Error generating ai ratio message: {}", e.getMessage(), e);
             return null;
@@ -138,8 +150,11 @@ public class Radio implements IRadio {
         //lets not use ai for silent messages
         if (!silent) {
 
+            long   time = System.currentTimeMillis();
             String text = cleanupAiAnswer(askAi(id, tags));
             if (text != null) {
+                long delta = System.currentTimeMillis() - time;
+                logger.info(String.format("LLM: '%s' - %dms", text, delta));
                 return text;
             }
         }

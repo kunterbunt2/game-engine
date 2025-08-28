@@ -1,6 +1,7 @@
-package de.bushnaq.abdalla.engine.audio;
+package de.bushnaq.abdalla.engine.audio.radio;
 
 import de.bushnaq.abdalla.engine.ai.PromptTags;
+import de.bushnaq.abdalla.engine.audio.OpenAlException;
 
 /**
  * interface handling communication between the game NPCs.
