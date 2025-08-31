@@ -1,41 +1,17 @@
-/*
- *
- * Copyright (C) 2025-2025 Abdalla Bushnaq
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- */
+package de.bushnaq.abdalla.engine.audio.radio.util;
 
-package de.bushnaq.abdalla.engine.audio.synthesis;
-
-import de.bushnaq.abdalla.engine.ai.coqui.CoquiTTS;
-import de.bushnaq.abdalla.engine.ai.coqui.TtsModelList;
-import de.bushnaq.abdalla.engine.audio.synthesis.util.TTSBase;
-import org.junit.jupiter.api.*;
-
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
-import static org.junit.jupiter.api.Assertions.*;
+public class TTSBase {
+    private static final   int     MAX_STARTUP_WAIT_SECONDS = 300; // Increased to 5 minutes for build time
+    protected static final String  TTS_SERVICE_URL          = "http://localhost:5000";
+    private                Process dockerProcess;
 
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
-public class SimpleTTSTest extends TTSBase {
-
-    private static final int     MAX_STARTUP_WAIT_SECONDS = 300; // Increased to 5 minutes for build time
-    private static final String  TTS_SERVICE_URL          = "http://localhost:5000";
-    private              Process dockerProcess;
-
-    private void buildAndStartDockerContainer() throws Exception {
+    protected void buildAndStartDockerContainer() throws Exception {
         // Check if container is already running
         if (isContainerRunning()) {
             System.out.println("TTS container is already running. Reusing existing container.");
@@ -62,7 +38,7 @@ public class SimpleTTSTest extends TTSBase {
         startContainer();
     }
 
-    private static void buildContainer() throws IOException, InterruptedException {
+    protected static void buildContainer() throws IOException, InterruptedException {
         // Build the Docker image first
         System.out.println("Building Docker image (this may take a few minutes on first run)...");
         ProcessBuilder buildBuilder = new ProcessBuilder(
@@ -97,7 +73,7 @@ public class SimpleTTSTest extends TTSBase {
         System.out.println("Docker image built successfully. Starting container...");
     }
 
-    private void cleanupExistingContainers() throws IOException, InterruptedException {
+    protected void cleanupExistingContainers() throws IOException, InterruptedException {
         // Only clean up if there's actually a port conflict
         // First check if our expected container is using the port
         if (isContainerRunning()) {
@@ -133,7 +109,7 @@ public class SimpleTTSTest extends TTSBase {
         }
     }
 
-    private void cleanupStoppedContainers() throws IOException, InterruptedException {
+    protected void cleanupStoppedContainers() throws IOException, InterruptedException {
         System.out.println("Cleaning up stopped TTS containers...");
         ProcessBuilder pruneBuilder = new ProcessBuilder(
                 "docker", "container", "prune", "-f", "--filter", "name=game-engine-tts-server"
@@ -144,7 +120,7 @@ public class SimpleTTSTest extends TTSBase {
     }
 
     // Optional: Add a method to force cleanup if needed
-    public void forceCleanup() throws Exception {
+    protected void forceCleanup() throws Exception {
         System.out.println("Force stopping and removing TTS Docker container...");
         ProcessBuilder downBuilder = new ProcessBuilder(
                 "docker-compose", "-f", "docker-compose-tts.yml", "down"
@@ -155,7 +131,7 @@ public class SimpleTTSTest extends TTSBase {
         System.out.println("Docker container removed");
     }
 
-    private boolean isContainerExists() throws IOException, InterruptedException {
+    protected boolean isContainerExists() throws IOException, InterruptedException {
         ProcessBuilder pb = new ProcessBuilder("docker", "ps", "-a", "--filter", "name=game-engine-tts-server", "--format", "{{.Names}}");
         pb.directory(new File("."));
         Process process = pb.start();
@@ -167,7 +143,7 @@ public class SimpleTTSTest extends TTSBase {
         }
     }
 
-    private boolean isContainerRunning() throws IOException, InterruptedException {
+    protected boolean isContainerRunning() throws IOException, InterruptedException {
         ProcessBuilder pb = new ProcessBuilder("docker", "ps", "--filter", "name=game-engine-tts-server", "--format", "{{.Names}}");
         pb.directory(new File("."));
         Process process = pb.start();
@@ -179,7 +155,7 @@ public class SimpleTTSTest extends TTSBase {
         }
     }
 
-    private boolean isImageExists() throws IOException, InterruptedException {
+    protected boolean isImageExists() throws IOException, InterruptedException {
         ProcessBuilder pb = new ProcessBuilder("docker", "images", "--filter", "reference=game-engine-tts-server", "--format", "{{.Repository}}");
         pb.directory(new File("."));
         Process process = pb.start();
@@ -191,32 +167,28 @@ public class SimpleTTSTest extends TTSBase {
         }
     }
 
-    private String readProcessOutput(InputStream inputStream) throws IOException {
+    protected static void playBlocking(String fileName) {
+        try {
+            Clip clip = AudioSystem.getClip();
+            clip.open(AudioSystem.getAudioInputStream(new File(fileName)));
+            clip.start();
+            while (!clip.isRunning())
+                Thread.sleep(10);
+            while (clip.isRunning())
+                Thread.sleep(10);
+            clip.close();
+        } catch (Exception exc) {
+            exc.printStackTrace(System.out);
+        }
+    }
+
+    protected String readProcessOutput(InputStream inputStream) throws IOException {
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
             return reader.lines().reduce("", (a, b) -> a + "\n" + b);
         }
     }
 
-    @BeforeEach
-    public void setUp() throws Exception {
-        // Ensure container is running before each test
-        if (!isContainerRunning()) {
-            System.out.println("Container not running, starting it...");
-            buildAndStartDockerContainer();
-            waitForServiceToBeReady();
-        }
-    }
-
-    @BeforeAll
-    static void setUpClass() throws Exception {
-        System.out.println("Starting TTS Docker container...");
-        System.out.println("Note: First build may take several minutes to download dependencies...");
-        SimpleTTSTest testInstance = new SimpleTTSTest();
-        testInstance.buildAndStartDockerContainer();
-        testInstance.waitForServiceToBeReady();
-    }
-
-    private void startContainer() throws IOException, InterruptedException {
+    protected void startContainer() throws IOException, InterruptedException {
         // Check if we should use docker-compose up or docker start
         if (isContainerExists() && !isContainerRunning()) {
             // Container exists but is stopped, restart it
@@ -250,7 +222,7 @@ public class SimpleTTSTest extends TTSBase {
         System.out.println("Docker container started successfully");
     }
 
-    private void startExistingContainer() throws IOException, InterruptedException {
+    protected void startExistingContainer() throws IOException, InterruptedException {
         System.out.println("Starting existing TTS container...");
         ProcessBuilder startBuilder = new ProcessBuilder(
                 "docker-compose", "-f", "docker-compose-tts.yml", "start"
@@ -267,7 +239,7 @@ public class SimpleTTSTest extends TTSBase {
         System.out.println("Existing Docker container started successfully");
     }
 
-    private void stopDockerContainer() throws Exception {
+    protected void stopDockerContainer() throws Exception {
         if (dockerProcess != null && dockerProcess.isAlive()) {
             dockerProcess.destroy();
         }
@@ -284,70 +256,7 @@ public class SimpleTTSTest extends TTSBase {
         System.out.println("Docker container stopped (but preserved for future use)");
     }
 
-    @AfterAll
-    public void tearDown() throws Exception {
-        // Don't stop the container automatically to preserve it for future test runs
-        // This allows our optimization to work on subsequent runs
-        System.out.println("Test completed. TTS Docker container left running for future use.");
-        System.out.println("To manually stop: docker-compose -f docker-compose-tts.yml stop");
-        System.out.println("To manually remove: docker-compose -f docker-compose-tts.yml down");
-    }
-
-    @Test
-    public void testHealthCheck() throws Exception {
-        URL               url  = new URL(TTS_SERVICE_URL + "/health");
-        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-        conn.setRequestMethod("GET");
-
-        int responseCode = conn.getResponseCode();
-        assertEquals(200, responseCode, "Health check should return 200");
-
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()))) {
-            String response = reader.lines().reduce("", (a, b) -> a + b);
-            assertTrue(response.contains("healthy"), "Response should indicate service is healthy");
-            System.out.println("Health check response: " + response);
-        }
-    }
-
-    @Test
-    public void testTextToSpeech() throws Exception {
-        String[] testText = {
-                "Hi,. this is testing the pause feature,. and if it can be extended.",//
-                "Tango 4 4 4 to Papa 4 6 1 requesting approval to dock.",//
-                "Let's see how it performs, with different inputs."//
-        };
-
-        TtsModelList ttsModelList = CoquiTTS.listModels();
-        for (String model : ttsModelList.getModels()) {
-            System.out.println(model);
-        }
-
-
-//        CoquiTTS.loadModel("tts_models/multilingual/multi-dataset/bark");
-//        CoquiTTS.loadModel("tts_models/multilingual/multi-dataset/your_tts");
-//        CoquiTTS.loadModel("tts_models/multilingual/multi-dataset/xtts_v2");
-        CoquiTTS.loadModel("tts_models/en/vctk/vits");
-        for (String text : testText) {
-            long time = System.currentTimeMillis();
-            System.out.println("Testing TTS with text: " + text);
-            // Call the TTS service
-            byte[] audioData = CoquiTTS.generateSpeech(text);
-
-            // Verify we got audio data
-            assertNotNull(audioData, "Audio data should not be null");
-            assertTrue(audioData.length > 0, "Audio data should not be empty");
-
-            // Save the audio file for verification (optional)
-            CoquiTTS.writeWav(audioData, "test-output.wav");
-
-            playBlocking("test-output.wav");
-            System.out.println("Speech generated successfully!");
-            System.out.println("Audio file size: " + audioData.length + " bytes");
-            System.out.println("Time taken for TTS: " + (System.currentTimeMillis() - time) + " ms");
-        }
-    }
-
-    private void waitForServiceToBeReady() throws Exception {
+    protected void waitForServiceToBeReady() throws Exception {
         System.out.println("Waiting for TTS service to be ready...");
         System.out.println("This includes downloading the TTS model on first startup...");
 

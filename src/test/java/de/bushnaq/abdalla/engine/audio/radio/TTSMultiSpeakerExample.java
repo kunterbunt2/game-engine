@@ -1,7 +1,7 @@
-package de.bushnaq.abdalla.engine.audio.synthesis;
+package de.bushnaq.abdalla.engine.audio.radio;
 
 import de.bushnaq.abdalla.engine.ai.coqui.*;
-import de.bushnaq.abdalla.engine.audio.synthesis.util.TTSBase;
+import de.bushnaq.abdalla.engine.audio.radio.util.TTSBase;
 
 public class TTSMultiSpeakerExample extends TTSBase {
     private static TtsHealthInfo getTtsHealthInfo() throws Exception {

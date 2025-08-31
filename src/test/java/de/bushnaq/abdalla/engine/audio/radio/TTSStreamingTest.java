@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package de.bushnaq.abdalla.engine.audio.synthesis;
+package de.bushnaq.abdalla.engine.audio.radio;
 
 import de.bushnaq.abdalla.engine.audio.synthesis.util.OggCubeActor;
 import de.bushnaq.abdalla.engine.audio.synthesis.util.SynthType;
@@ -25,8 +25,8 @@ import org.slf4j.LoggerFactory;
 
 public class TTSStreamingTest extends TranslationUtil {
     private static final int    NUMBER_OF_SOURCES = 1;
-    private final        Logger logger            = LoggerFactory.getLogger(this.getClass());
     OggCubeActor[] ccaa = new OggCubeActor[NUMBER_OF_SOURCES];
+    private final        Logger logger            = LoggerFactory.getLogger(this.getClass());
 
     @Test
     public void circularTranslatingSources() {
