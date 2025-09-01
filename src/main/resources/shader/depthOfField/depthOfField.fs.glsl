@@ -100,7 +100,7 @@ uniform float vignout = 1.3;// - vignetting outer border
 uniform float vignin = 0.0;// - vignetting inner border
 uniform float vignfade = 22.0;// - f-stops till vignette fades
 
-uniform float maxblur = 1.0;// - clamp value of max blur
+uniform float maxblur = 10.0;// - clamp value of max blur
 uniform float threshold = 0.9;// - highlight threshold
 uniform float gain = 100.0;// - highlight gain
 
@@ -368,20 +368,3 @@ void main()
         fragColor.rgb = col;
 fragColor.a = 1.0;
 }
-
-/*
-uniform sampler2D u_sourceTexture;
-uniform sampler2D u_depthTexture;
-
-out vec4 color;
-
-smooth in vec2 texcoord;
-
-void main()
-{
-	vec4 c	=	texture(u_sourceTexture, v_texCoords);
-	// grabbing values out of the depth buffer causes program to fail.
-	float z	=	texture(u_depthTexture, v_texCoords).x;
-	color	=	texture(u_sourceTexture, v_texCoords) + (z * 0.000001);
-}
-*/

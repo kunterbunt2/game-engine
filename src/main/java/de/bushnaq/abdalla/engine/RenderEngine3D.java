@@ -64,6 +64,8 @@ import de.bushnaq.abdalla.engine.shader.util.GL32CMacIssueHandler;
 import de.bushnaq.abdalla.engine.shader.util.ShaderCompatibilityHelper;
 import de.bushnaq.abdalla.engine.shader.water.Water;
 import de.bushnaq.abdalla.engine.util.ExtendedGLProfiler;
+import lombok.Getter;
+import lombok.Setter;
 import net.mgsx.gltf.scene3d.attributes.PBRColorAttribute;
 import net.mgsx.gltf.scene3d.attributes.PBRFloatAttribute;
 import net.mgsx.gltf.scene3d.lights.DirectionalShadowLight;
@@ -92,13 +94,16 @@ import java.util.zip.Deflater;
  * @author kunterbunt
  */
 public class RenderEngine3D<T extends IGameEngine> {
+    @Getter
     private       boolean                     alwaysDay                        = true;
+    @Getter
     private       ColorAttribute              ambientLight;
     public        float                       angle;
     final         AtlasRegion                 atlasRegion;
     private       ModelBatch                  batch;
     public        CustomizedSpriteBatch       batch2D;
     private final BitmapFont                  boldFont;
+    @Getter
     private final MovingCamera                camera;
     private final OrthographicCamera          camera2D;
     private       ChronosEngine<T>            chronosEngine;
@@ -106,29 +111,51 @@ public class RenderEngine3D<T extends IGameEngine> {
     private final IContext                    context;
     public        Graph                       cpuGraph;
     //    private              GameObject                  cameraCube;
+    @Getter
     private       float                       currentDayTime;
+    @Getter
     private       float                       dayAmbientIntensityB             = 1f;
+    @Getter
     private       float                       dayAmbientIntensityG             = 1f;
+    @Getter
     private       float                       dayAmbientIntensityR             = 1f;
+    @Getter
     private       float                       dayShadowIntensity               = 5f;
+    @Setter
     private       SceneSkybox                 daySkyBox;
+    @Setter
+    @Getter
     private       boolean                     debugMode                        = false;
     private       ModelBatch                  depthBatch;
+    @Getter
     private       DepthOfFieldEffect<T>       depthOfFieldEffect;
     private final ModelCache                  dynamicCache                     = new ModelCache();
+    @Setter
+    @Getter
     private       boolean                     dynamicDayTime                   = false;
     public        Array<GameObject<T>>        dynamicGameObjects               = new Array<>();
     private final Set<ObjectRenderer<T>>      dynamicText3DList                = new HashSet<>();
+    @Setter
+    @Getter
     private       boolean                     enableProfiling                  = true;
     public        Environment                 environment                      = new Environment();
+    @Getter
     private       FadeEffect                  fadeEffect;
+    @Setter
+    @Getter
     private       float                       fixedDayTime                     = 10;
+    @Setter
+    @Getter
     private       boolean                     fixedShadowDirection             = false;
+    @Getter
     private final Fog                         fog                              = new Fog(Color.BLACK, 15f, 30f, 0.5f);
     private final BitmapFont                  font;
     private       Graph                       fpsGraph;
+    @Getter
     private final T                           gameEngine;
     public        GameShaderProviderInterface gameShaderProvider;
+    @Setter
+    @Getter
     private       boolean                     gammaCorrected;
     private       ModelBatch                  geometryBatch;
     public        Graph                       gpuGraph;
@@ -140,13 +167,17 @@ public class RenderEngine3D<T extends IGameEngine> {
     private       float                       nightAmbientIntensityG           = .2f;
     private       float                       nightAmbientIntensityR           = .2f;
     private       float                       nightShadowIntensity             = .2f;
+    @Setter
     public        SceneSkybox                 nightSkyBox;
+    @Setter
+    @Getter
     private       boolean                     pbr;
     public        PhysicsEngine<T>            physicsEngine;
     final         PointLightsAttribute        pointLights                      = new PointLightsAttribute();
     private final Vector3                     position                         = new Vector3();
     private       FrameBuffer                 postFbo;
     private       FrameBuffer                 postMSFbo;
+    @Getter
     private       ExtendedGLProfiler          profiler;
     public        Model                       rayCube;
     // private final Ray ray = new Ray(new Vector3(), new Vector3());
@@ -154,23 +185,34 @@ public class RenderEngine3D<T extends IGameEngine> {
 //    private final Plane                       refractionClippingPlane          = new Plane(new Vector3(0f, -1f, 0f), (-0.1f));                            // render everything below d
     public        boolean                     render2D                         = true;
     public        boolean                     render3D                         = true;
+    @Setter
+    @Getter
     private       boolean                     renderBokeh                      = true;
     public        RenderEngine25D<T>          renderEngine25D;
     public        RenderEngine2D<T>           renderEngine2D;
+    @Getter
     private final Array<ModelInstance>        renderableProviders              = new Array<>();
     public        Render2Dxz<T>               renderutils2Dxz;
     private       Vector3                     sceneBoxMax                      = new Vector3(1000, 1000, 1000);
     private       Vector3                     sceneBoxMin                      = new Vector3(-1000, -1000, -1000);
+    @Getter
     private final BoundingBox                 sceneBox                         = new BoundingBox(sceneBoxMin, sceneBoxMax);
+    @Setter
+    @Getter
     private       boolean                     shadowEnabled                    = true;
+    @Getter
     private       DirectionalShadowLight      shadowLight                      = null;
     private final Vector3                     shadowLightDirection             = new Vector3();
+    @Setter
+    @Getter
     private       boolean                     skyBox                           = false;
     private final int                         speed                            = 5;                                                                    // speed of time
     private final SpotLightsAttribute         spotLights                       = new SpotLightsAttribute();
     private final Ssao                        ssao                             = new Ssao();
     private       ModelBatch                  ssaoBatch;
+    @Getter
     private       SsaoCombineEffect<T>        ssaoCombineEffect;
+    @Getter
     private       SsaoEffect<T>               ssaoEffect;
     private       Stage                       stage;
     private final ModelCache                  staticCache                      = new ModelCache();
@@ -180,6 +222,7 @@ public class RenderEngine3D<T extends IGameEngine> {
     private final Set<ObjectRenderer<T>>      staticText3DList                 = new HashSet<>();
     //        public        int                         testCase                         = 1;
     private final Set<Text2D>                 text2DList                       = new HashSet<>();
+    @Getter
     private       float                       timeOfDay                        = 8;                                                                    // 24h time
     private final Vector3                     tmpV1                            = new Vector3();
     private final boolean                     useDynamicCache                  = false;
@@ -194,6 +237,7 @@ public class RenderEngine3D<T extends IGameEngine> {
     public        int                         visibleStaticLightCount          = 0;
     private final Array<ModelInstance>        visibleStaticModelInstances      = new Array<>();
     private final Array<RenderableProvider>   visibleStaticRenderableProviders = new Array<>();
+    @Getter
     private final Water                       water                            = new Water();
     final         Vector3                     xVector                          = new Vector3(1, 0, 0);
 
@@ -376,6 +420,7 @@ public class RenderEngine3D<T extends IGameEngine> {
         shadowLight.direction.set(-.5f, -.7f, .5f).nor();
         shadowLight.color.set(Color.WHITE);
         shadowLight.intensity = 10.0f;
+
         environment.add(shadowLight);
 
         final float lum = 0.0f;
@@ -602,10 +647,6 @@ public class RenderEngine3D<T extends IGameEngine> {
     public void end() {
     }
 
-    public ColorAttribute getAmbientLight() {
-        return ambientLight;
-    }
-
     private ModelBatch getBatch() {
         return switch (ssao.getSsaoMode()) {
             case PBR -> batch;
@@ -613,51 +654,7 @@ public class RenderEngine3D<T extends IGameEngine> {
         };
     }
 
-    public MovingCamera getCamera() {
-        return camera;
-    }
-
-    public float getCurrentDayTime() {
-        return currentDayTime;
-    }
-
-    public float getDayAmbientIntensityB() {
-        return dayAmbientIntensityB;
-    }
-
-    public float getDayAmbientIntensityG() {
-        return dayAmbientIntensityG;
-    }
-
-    public float getDayAmbientIntensityR() {
-        return dayAmbientIntensityR;
-    }
-
-    public float getDayShadowIntensity() {
-        return dayShadowIntensity;
-    }
-
-    public DepthOfFieldEffect getDepthOfFieldEffect() {
-        return depthOfFieldEffect;
-    }
-
-    public FadeEffect getFadeEffect() {
-        return fadeEffect;
-    }
-
-    public float getFixedDayTime() {
-        return fixedDayTime;
-    }
-
-    public Fog getFog() {
-        return fog;
-    }
-
-    public T getGameEngine() {
-        return gameEngine;
-    }
-
-//	private void createDepthOfFieldMeter() {
+    //	private void createDepthOfFieldMeter() {
 //		if (isDebugMode()) {
 //
 //			if (depthOfFieldMeter == null) {
@@ -767,40 +764,8 @@ public class RenderEngine3D<T extends IGameEngine> {
 //		}
 //	}
 
-    public ExtendedGLProfiler getProfiler() {
-        return profiler;
-    }
-
-    public Array<ModelInstance> getRenderableProviders() {
-        return renderableProviders;
-    }
-
-    public BoundingBox getSceneBox() {
-        return sceneBox;
-    }
-
     public ChronosEngine<T> getScheduledEffectEngine() {
         return chronosEngine;
-    }
-
-    public DirectionalShadowLight getShadowLight() {
-        return shadowLight;
-    }
-
-    public SsaoCombineEffect<T> getSsaoCombineEffect() {
-        return ssaoCombineEffect;
-    }
-
-    public SsaoEffect getSsaoEffect() {
-        return ssaoEffect;
-    }
-
-    public float getTimeOfDay() {
-        return timeOfDay;
-    }
-
-    public Water getWater() {
-        return water;
     }
 
     private void handleFrameBufferScreenshot(boolean takeScreenShot, final FrameBuffer frameBuffer, final String name) {
@@ -831,35 +796,11 @@ public class RenderEngine3D<T extends IGameEngine> {
         }
     }
 
-    public boolean isAlwaysDay() {
-        return alwaysDay;
-    }
-
     public boolean isDay() {
         return (alwaysDay || (timeOfDay > 6 && timeOfDay <= 18));
     }
 
-    public boolean isDebugMode() {
-        return debugMode;
-    }
-
-    public boolean isDynamicDayTime() {
-        return dynamicDayTime;
-    }
-
-    public boolean isEnableProfiling() {
-        return enableProfiling;
-    }
-
-    public boolean isFixedShadowDirection() {
-        return fixedShadowDirection;
-    }
-
-    public boolean isGammaCorrected() {
-        return gammaCorrected;
-    }
-
-//    public boolean isDepthOfField() {
+    //    public boolean isDepthOfField() {
 //        return depthOfField;
 //    }
 
@@ -871,24 +812,8 @@ public class RenderEngine3D<T extends IGameEngine> {
         return (!alwaysDay && (timeOfDay > 19 || timeOfDay <= 5));
     }
 
-    public boolean isPbr() {
-        return pbr;
-    }
-
-    public boolean isRenderBokeh() {
-        return renderBokeh;
-    }
-
-    public boolean isShadowEnabled() {
-        return shadowEnabled;
-    }
-
     public boolean isShowGraphs() {
         return context.getShowGraphsProperty();
-    }
-
-    public boolean isSkyBox() {
-        return skyBox;
     }
 
     private boolean isVisible(final GameObject<T> gameObject) {
@@ -1420,37 +1345,9 @@ public class RenderEngine3D<T extends IGameEngine> {
         dayShadowIntensity   = shadowIntensity;
     }
 
-    public void setDaySkyBox(SceneSkybox daySkyBox) {
-        this.daySkyBox = daySkyBox;
-    }
-
-    public void setDebugMode(boolean debugMode) {
-        this.debugMode = debugMode;
-    }
-
-    public void setDynamicDayTime(boolean dynamicDayTime) {
-        this.dynamicDayTime = dynamicDayTime;
-    }
-
-    public void setEnableProfiling(boolean enableProfiling) {
-        this.enableProfiling = enableProfiling;
-    }
-
-//    public void setDepthOfField(final boolean depthOfField) {
+    //    public void setDepthOfField(final boolean depthOfField) {
 //        this.depthOfField = depthOfField;
 //    }
-
-    public void setFixedDayTime(float fixedDayTime) {
-        this.fixedDayTime = fixedDayTime;
-    }
-
-    public void setFixedShadowDirection(boolean fixedShadowDirection) {
-        this.fixedShadowDirection = fixedShadowDirection;
-    }
-
-    public void setGammaCorrected(boolean gammaCorrected) {
-        this.gammaCorrected = gammaCorrected;
-    }
 
     public void setNightAmbientLight(float r, float g, float b, float shadowIntensity) {
         nightAmbientIntensityR = r;
@@ -1459,25 +1356,13 @@ public class RenderEngine3D<T extends IGameEngine> {
         nightShadowIntensity   = shadowIntensity;
     }
 
-    public void setNightSkyBox(SceneSkybox nightSkyBox) {
-        this.nightSkyBox = nightSkyBox;
-    }
-
-//    public void setReflectionClippingPlane(float distance) {
+    //    public void setReflectionClippingPlane(float distance) {
 //        reflectionClippingPlane.d = distance;
 //    }
 //
 //    public void setRefractionClippingPlane(float distance) {
 //        refractionClippingPlane.d = distance;
 //    }
-
-    public void setPbr(boolean pbr) {
-        this.pbr = pbr;
-    }
-
-    public void setRenderBokeh(boolean renderBokeh) {
-        this.renderBokeh = renderBokeh;
-    }
 
     public void setSceneBoxMax(Vector3 sceneBoxMax) {
         this.sceneBoxMax = sceneBoxMax;
@@ -1489,20 +1374,12 @@ public class RenderEngine3D<T extends IGameEngine> {
         sceneBox.set(sceneBoxMin, sceneBoxMax);
     }
 
-    public void setShadowEnabled(boolean shadowEnabled) {
-        this.shadowEnabled = shadowEnabled;
-    }
-
     public void setShadowLight(final float lum) {
         shadowLight.intensity = lum;
     }
 
     public void setShowGraphs(boolean enable) {
         context.setShowGraphs(enable);
-    }
-
-    public void setSkyBox(boolean skyBox) {
-        this.skyBox = skyBox;
     }
 
     /**

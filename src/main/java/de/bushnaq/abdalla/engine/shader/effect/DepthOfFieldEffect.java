@@ -27,24 +27,40 @@ import com.crashinvaders.vfx.framebuffer.VfxFrameBuffer;
 import com.crashinvaders.vfx.framebuffer.VfxPingPongWrapper;
 import de.bushnaq.abdalla.engine.IGameEngine;
 import de.bushnaq.abdalla.engine.camera.MovingCamera;
+import lombok.Getter;
+import lombok.Setter;
 
 public class DepthOfFieldEffect<T extends IGameEngine> extends ShaderVfxEffect implements ChainVfxEffect {
 
-    public static final  float        DISTANT_FOCAL_DEPTH_MULTIPLIER = 1.5f * 2;
+    public static final  float        DISTANT_FOCAL_DEPTH_MULTIPLIER = 5;
     private static final String       Texture0                       = "u_sourceTexture";
     private static final String       Texture1                       = "u_depthTexture";
+    @Getter
     private final        MovingCamera camera;
+    @Getter
     private              boolean      enabled                        = false;
+    @Getter
     private              float        focalDepth                     = 100f;
+    @Getter
     private              float        farDofStart                    = focalDepth / 20f;
+    @Getter
     private              float        farDofDist                     = focalDepth * DISTANT_FOCAL_DEPTH_MULTIPLIER;
-    private              float        gain                           = 100;
+    @Setter
+    @Getter
+    private              float        gain                           = 1;
+    @Setter
+    @Getter
+    private              float        maxblur                        = 1f;
+    @Getter
     private              float        nearDofDist                    = focalDepth * DISTANT_FOCAL_DEPTH_MULTIPLIER;
-    private final        boolean      nearDofEnabled                 = true;
+    private final        boolean      nearDofEnabled                 = false;
+    @Getter
     private              float        nearDofStart                   = focalDepth / 20f;
     private final        FrameBuffer  postFbo;
     private final        Vector2      resolution                     = new Vector2();
-    private              float        threshold                      = .9f;
+    @Setter
+    @Getter
+    private              float        threshold                      = .999f;
     private final        VfxManager   vfxManager;
 
     public DepthOfFieldEffect(VfxManager vfxManager, final FrameBuffer postFbo, final MovingCamera camera) {
@@ -53,42 +69,6 @@ public class DepthOfFieldEffect<T extends IGameEngine> extends ShaderVfxEffect i
         this.postFbo    = postFbo;
         this.camera     = camera;
         rebind();
-    }
-
-    public MovingCamera getCamera() {
-        return camera;
-    }
-
-    public float getFarDofDist() {
-        return farDofDist;
-    }
-
-    public float getFarDofStart() {
-        return farDofStart;
-    }
-
-    public float getFocalDepth() {
-        return focalDepth;
-    }
-
-    public float getGain() {
-        return gain;
-    }
-
-    public float getNearDofDist() {
-        return nearDofDist;
-    }
-
-    public float getNearDofStart() {
-        return nearDofStart;
-    }
-
-    public float getThreshold() {
-        return threshold;
-    }
-
-    public boolean isEnabled() {
-        return enabled;
     }
 
     public boolean isInFocus(float depth) {
@@ -122,6 +102,7 @@ public class DepthOfFieldEffect<T extends IGameEngine> extends ShaderVfxEffect i
         program.setUniformf("zfar", camera.far);
         program.setUniformf("threshold", threshold);
         program.setUniformf("gain", gain);
+        program.setUniformf("maxblur", maxblur);
         program.end();
 
         // Apply shader effect and render result to dst buffer.
@@ -154,14 +135,6 @@ public class DepthOfFieldEffect<T extends IGameEngine> extends ShaderVfxEffect i
         }
         farDofStart = focalDepth / 20f;
         farDofDist  = focalDepth * DISTANT_FOCAL_DEPTH_MULTIPLIER;
-    }
-
-    public void setGain(float gain) {
-        this.gain = gain;
-    }
-
-    public void setThreshold(float threshold) {
-        this.threshold = threshold;
     }
 
     @Override
