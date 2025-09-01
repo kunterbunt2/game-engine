@@ -95,7 +95,7 @@ uniform float fdofdist = 300.0;// - far dof blur falloff distance
 
 uniform float CoC = 0.03;// - circle of confusion size in mm
 
-uniform bool vignetting = false;// - use optical lens vignetting?
+uniform bool vignetting = true;// - use optical lens vignetting?
 uniform float vignout = 1.3;// - vignetting outer border
 uniform float vignin = 0.0;// - vignetting inner border
 uniform float vignfade = 22.0;// - f-stops till vignette fades
@@ -158,43 +158,40 @@ float penta(vec2 coords)//pentagonal shape
     return clamp(inorout, 0.0, 1.0);
 }
 
-//float bdepth(vec2 coords)//blurring depth
-//{
-//    float d = 0.0;
-//    float kernel[9];
-//    vec2 offset[9];
-//
-//    vec2 wh = vec2(texel.x, texel.y) * dbsize;
-//
-//    offset[0] = vec2(-wh.x, -wh.y);
-//    offset[1] = vec2(0.0, -wh.y);
-//    offset[2] = vec2(wh.x -wh.y);
-//
-//    offset[3] = vec2(-wh.x, 0.0);
-//    offset[4] = vec2(0.0, 0.0);
-//    offset[5] = vec2(wh.x, 0.0);
-//
-//    offset[6] = vec2(-wh.x, wh.y);
-//    offset[7] = vec2(0.0, wh.y);
-//    offset[8] = vec2(wh.x, wh.y);
-//
-//    kernel[0] = 1.0/16.0;   kernel[1] = 2.0/16.0;   kernel[2] = 1.0/16.0;
-//    kernel[3] = 2.0/16.0;   kernel[4] = 4.0/16.0;   kernel[5] = 2.0/16.0;
-//    kernel[6] = 1.0/16.0;   kernel[7] = 2.0/16.0;   kernel[8] = 1.0/16.0;
-//
-//
-//    for (int i=0; i<9; i++)
-//    {
-//        float tmp = texture2D(u_depthTexture, coords + offset[i]).r;
-//        d += tmp * kernel[i];
-//    }
-//
-//    return d;
-//}
-
-
 vec3 color(vec2 coords, float blur)//processing the sample
 {
+    vec3 col = vec3(0.0);
+
+    col.r = texture2D(u_sourceTexture, coords + vec2(0.0, 1.0)*texel*fringe*blur).r;
+    col.g = texture2D(u_sourceTexture, coords + vec2(-0.866, -0.5)*texel*fringe*blur).g;
+    col.b = texture2D(u_sourceTexture, coords + vec2(0.866, -0.5)*texel*fringe*blur).b;
+
+    vec3 lumcoeff = vec3(0.299, 0.587, 0.114);
+    float lum = dot(col.rgb, lumcoeff);
+    float thresh = max((lum-threshold)*gain, 0.0);
+    return col+mix(vec3(0.0), col, thresh*blur);
+}
+
+// Depth-aware color sampling to prevent blur bleeding
+vec3 colorDepthAware(vec2 coords, float blur, float centerDepth, out float weight)
+{
+    // Sample the depth at this coordinate
+    float sampleDepth = unpackVec3ToFloat(texture2D(u_depthTexture, coords).rgb, znear, zfar);
+
+    // Calculate depth difference threshold based on distance from camera
+    float depthThreshold = max(0.01, centerDepth * 0.01);
+
+    // Reduce weight for samples that are significantly different in depth
+    float depthDiff = abs(sampleDepth - centerDepth);
+    weight = 1.0;
+
+    // If the sample is much further than the center pixel, reduce its contribution
+    if (depthDiff > depthThreshold) {
+        // Sharp falloff to prevent bleeding
+        weight = exp(-depthDiff / depthThreshold);
+        weight = max(weight, 0.01);// Minimum weight to avoid harsh artifacts
+    }
+
     vec3 col = vec3(0.0);
 
     col.r = texture2D(u_sourceTexture, coords + vec2(0.0, 1.0)*texel*fringe*blur).r;
@@ -282,19 +279,14 @@ void main()
     }
     else
     {
-        float f = focalLength;//focal length in mm
-        float d = fDepth*1000.0;//focal plane in mm
-        float o = depth*1000.0;//depth in mm
+        // More conservative automatic DoF for debugging
+        float distanceFromFocus = abs(depth - fDepth);
 
-        // Add safety check to prevent division by zero
-        if (abs(o-f) < 0.001) {
-            blur = 0.0;
-        } else {
-            float a = (o*f)/(o-f);
-            float b = (d*f)/(d-f);
-            float c = (d-f)/(d*fstop*CoC);
-            blur = abs(a-b)*c;
-        }
+        // Gentler falloff - objects need to be 20 units away for full blur
+        blur = distanceFromFocus / 20.0;
+
+        // More reasonable f-stop scaling
+        blur *= (4.0 / fstop);
     }
 
     blur = clamp(blur, 0.0, 1.0);
@@ -348,8 +340,10 @@ void main()
                     p = penta(vec2(pw, ph));
                 }
 
-                col += color(v_texCoords.xy + vec2(pw*w, ph*h), blur) * ringWeight * p;
-                s += ringWeight * p;
+                // Sample color with depth-aware function
+                float weight = 0.0;
+                col += colorDepthAware(v_texCoords.xy + vec2(pw*w, ph*h), blur, depth, weight) * ringWeight * p * weight;
+                s += ringWeight * p * weight;
             }
         }
         col /= s;//divide by sample count
@@ -357,7 +351,25 @@ void main()
 
     if (showFocus)
     {
-        col = debugFocus(col, blur, depth);
+        // Clear debug visualization - show blur as red intensity, depth as blue
+        col = texture2D(u_sourceTexture, v_texCoords.xy).rgb;
+
+        // Show blur as red overlay (brighter red = more blur)
+        col = mix(col, vec3(1.0, 0.0, 0.0), blur * 0.5);
+
+        // Show depth as blue overlay for comparison
+        float normalizedDepth = (depth - znear) / (zfar - znear);
+        col = mix(col, vec3(0.0, 0.0, 1.0), normalizedDepth * 0.3);
+
+        // Show focal plane as green line
+        if (abs(depth - focalDepth) < 0.5) {
+            col = mix(col, vec3(0.0, 1.0, 0.0), 0.8);
+        }
+
+        // Show raw blur values in bottom corner for debugging
+        if (v_texCoords.x < 0.1 && v_texCoords.y < 0.1) {
+            col = vec3(blur, depth / 50.0, abs(depth - focalDepth) / 50.0);
+        }
     }
 
     if (vignetting)

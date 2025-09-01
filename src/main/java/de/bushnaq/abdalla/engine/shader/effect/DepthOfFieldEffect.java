@@ -60,7 +60,7 @@ public class DepthOfFieldEffect<T extends IGameEngine> extends ShaderVfxEffect i
     private final        Vector2      resolution                     = new Vector2();
     @Setter
     @Getter
-    private              float        threshold                      = .999f;
+    private              float        threshold                      = .9f;
     private final        VfxManager   vfxManager;
 
     public DepthOfFieldEffect(VfxManager vfxManager, final FrameBuffer postFbo, final MovingCamera camera) {
@@ -125,6 +125,7 @@ public class DepthOfFieldEffect<T extends IGameEngine> extends ShaderVfxEffect i
     }
 
     public void setFocalDepth(float focalDepth) {
+        System.out.printf("focalDepth%f%n", focalDepth);
         this.focalDepth = focalDepth;
         if (nearDofEnabled) {
             nearDofStart = focalDepth / 20f;
