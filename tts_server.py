@@ -1,6 +1,10 @@
 import logging
 import numpy as np
+import numpy as np
 import os
+import parselmouth
+import pyworld as pw
+import soundfile as sf
 import soundfile as sf
 import sys
 import tempfile
@@ -133,8 +137,16 @@ def apply_minion_voice_effects(audio_file_path, pitch_shift=1.5, speed_factor=1.
         print(f"Applying minion voice effects to: {audio_file_path}")
         print(f"Pitch shift: {pitch_shift}, Speed: {speed_factor}, Formant: {formant_shift}")
 
+        print(f"test-2: {speed_factor}")
+        # Apply formant shifting (simple spectral envelope modification)
+        if formant_shift != 1.0:
+            # data = apply_formant_shift(data, sample_rate, x, fs, formant_shift)
+            shift_formants(audio_file_path, audio_file_path)
+            print(f"Applied formant shift: {formant_shift}")
+
         # Read the audio file
-        data, sample_rate = sf.read(audio_file_path)
+        data, sample_rate = (sf.read(audio_file_path))
+        x, fs = sf.read(audio_file_path)
         print(f"Original audio: {len(data)} samples at {sample_rate} Hz")
 
         # Convert to mono if stereo
@@ -153,13 +165,8 @@ def apply_minion_voice_effects(audio_file_path, pitch_shift=1.5, speed_factor=1.
             data = signal.resample(data, new_length)
             print(f"Applied speed change: {speed_factor}")
 
-        # Apply formant shifting (simple spectral envelope modification)
-        if formant_shift != 1.0:
-            data = apply_formant_shift(data, sample_rate, formant_shift)
-            print(f"Applied formant shift: {formant_shift}")
-
         # Add slight chipmunk-like harmonics
-        data = add_chipmunk_harmonics(data, sample_rate)
+        # data = add_chipmunk_harmonics(data, sample_rate)
 
         # Normalize to prevent clipping
         data = data / np.max(np.abs(data)) * 0.95
@@ -198,28 +205,68 @@ def pitch_shift_audio(data, pitch_shift_factor):
         return data
 
 
-def apply_formant_shift(data, sample_rate, formant_factor):
-    """Apply formant shifting using spectral envelope modification"""
-    try:
-        # Simple formant shifting using frequency domain manipulation
-        fft_data = np.fft.fft(data)
-        freqs = np.fft.fftfreq(len(data), 1 / sample_rate)
+def apply_formant_shift(data, sample_rate, x, fs, formant_factor):
+    """Apply formant shifting using spectral envelope warping"""
+    # Decompose into f0, spectral envelope, and aperiodicity
+    f0, sp, ap = pw.wav2world(x.astype(np.float64), fs)
 
-        # Shift the spectral envelope
-        shifted_fft = np.zeros_like(fft_data)
-        for i, freq in enumerate(freqs):
-            if freq > 0:
-                new_idx = int(i / formant_factor)
-                if new_idx < len(shifted_fft):
-                    shifted_fft[new_idx] += fft_data[i]
+    # Formant shift: warp spectral envelope
+    def warp_spectral_envelope(sp, ratio=1.2):
+        n_frames, n_bins = sp.shape
+        warped = np.zeros_like(sp)
+        for i in range(n_frames):
+            for j in range(n_bins):
+                src_bin = int(j / ratio)
+                if src_bin < n_bins:
+                    warped[i, j] = sp[i, src_bin]
+        return warped
 
-        # Convert back to time domain
-        modified_data = np.real(np.fft.ifft(shifted_fft))
-        return modified_data
+    sp_warped = warp_spectral_envelope(sp, ratio=1.2)
 
-    except Exception as e:
-        print(f"Error in formant shifting: {e}")
-        return data
+    # Synthesize back
+    modified_data = pw.synthesize(f0, sp_warped, ap, fs)
+    return modified_data
+
+
+# pitch_floor	    Lower limit for pitch analysis (e.g. 75 Hz)
+# pitch_ceiling	    Upper limit for pitch analysis (e.g. 600 Hz)
+# formant_factor	    >1.0 raises formants (child/toy voice), <1.0 lowers (deep voice)
+# new_pitch_median	0.0 keeps original median; otherwise override in Hz
+# pitch_range_factor	1.0 keeps natural variability; 0 flattens pitch contour
+# duration_factor	1.0 keeps timing; altering changes speed (use 1.0 for your toy voice)
+
+# formant_factor:
+# - 1.2–1.4 → toy/cartoon/child-like
+# - <1.0 → deep/robotic
+
+# new_pitch_median:
+# - ~160 Hz → child
+# - ~120 Hz → adult male
+# - ~200 Hz → female/cartoon
+
+def shift_formants(
+        input_path: str,
+        output_path: str,
+        formant_factor: float = 1.3,
+        new_pitch_median: float = 0.0,
+        pitch_range_factor: float = 1.0,
+        duration_factor: float = 1.0,
+        pitch_floor: float = 75.0,
+        pitch_ceiling: float = 600.0
+):
+    snd = parselmouth.Sound(input_path)
+    manipulated = parselmouth.praat.call(
+        snd,
+        "Change gender...",
+        pitch_floor,  # Minimum pitch in Hz
+        pitch_ceiling,  # Maximum pitch in Hz
+        formant_factor,  # Raise formants if >1.0 (toy effect), <1.0 for deeper
+        new_pitch_median,  # 0.0 = unchanged median pitch
+        pitch_range_factor,  # 1.0 = unchanged pitch range
+        duration_factor  # 1.0 = unchanged duration
+    )
+    manipulated.save(output_path, "WAV")
+    return manipulated
 
 
 def add_chipmunk_harmonics(data, sample_rate, harmonic_strength=0.1):
@@ -405,6 +452,7 @@ def speak_minion():
         print(f"TTS generation completed successfully")
 
         # Apply minion voice effects
+        print("test-3")
         minion_file = apply_minion_voice_effects(
             tmp.name,
             pitch_shift=pitch_shift,

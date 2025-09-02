@@ -121,7 +121,7 @@ public class TTSPlayer extends AbstractAudioProducer {
         }
         try {
             for (int i = 0; i < spokenRadioMessage.getMessages().size(); i++) {
-                byte[] wavFileBytes = CoquiTTS.generateSpeech(spokenRadioMessage.getTags().removeAllPostTags(spokenRadioMessage.getMessages().get(i)), spokenRadioMessage.getFrom().getId());
+                byte[] wavFileBytes = CoquiTTS.generateMinionSpeech(spokenRadioMessage.getTags().removeAllPostTags(spokenRadioMessage.getMessages().get(i)), spokenRadioMessage.getFrom().getId(), 1.2f, 1.1f, 1.1f);
                 byte[] bytes        = extractAudioDataFromWav(wavFileBytes);
                 synchronized (messagesLock) {
                     spakenRadioWaveList.add(new RadioWave(bytes, spokenRadioMessage, i));

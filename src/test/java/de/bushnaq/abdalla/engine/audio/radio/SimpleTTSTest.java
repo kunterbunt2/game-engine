@@ -102,7 +102,7 @@ public class SimpleTTSTest extends TTSBase {
             long time = System.currentTimeMillis();
             System.out.println("Testing TTS with text: " + text);
             // Call the TTS service
-            byte[] audioData = CoquiTTS.generateMinionSpeech(text, 1f, 1f, 1.1f);
+            byte[] audioData = CoquiTTS.generateMinionSpeech(text, 1.2f, 1.1f, 1.1f);
 
             // Verify we got audio data
             assertNotNull(audioData, "Audio data should not be null");

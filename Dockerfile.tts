@@ -2,6 +2,8 @@ FROM ghcr.io/coqui-ai/tts:latest
 
 # Install Flask for REST API (Coqui TTS is already installed)
 RUN pip3 install --no-cache-dir flask
+RUN pip3 install pyworld
+RUN pip3 install praat-parselmouth
 
 # Copy server script
 COPY tts_server.py /app/tts_server.py
