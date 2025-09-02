@@ -81,8 +81,8 @@ public class SimpleTTSTest extends TTSBase {
     public void testTextToSpeech() throws Exception {
         String[] testText = {
                 "Hi,[clears throat] this is testing the pause feature,. and if it can be extended.",//
-//                "Tango 4 4 4 to Papa 4 6 1 - requesting approval to dock.",//
-//                "[laughs], Let's see how it performs, with different inputs."//
+                "Tango 4 4 4 to Papa 4 6 1 - requesting approval to dock.",//
+                "[laughs], Let's see how it performs, with different inputs."//
         };
 
         TtsModelList ttsModelList = CoquiTTS.listModels();
@@ -102,7 +102,7 @@ public class SimpleTTSTest extends TTSBase {
             long time = System.currentTimeMillis();
             System.out.println("Testing TTS with text: " + text);
             // Call the TTS service
-            byte[] audioData = CoquiTTS.generateMinionSpeech(text, 1.2f, 1.1f, 1.1f);
+            byte[] audioData = CoquiTTS.generateMinionSpeech(text, 1.3f, 1.05f, 1.1f);
 
             // Verify we got audio data
             assertNotNull(audioData, "Audio data should not be null");

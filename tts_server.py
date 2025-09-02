@@ -1,16 +1,15 @@
 import logging
-import os
-import sys
-import tempfile
-from io import BytesIO
-
 import numpy as np
+import os
 import parselmouth
 import pyworld as pw
 import soundfile as sf
+import sys
+import tempfile
 from TTS.api import TTS
 from TTS.utils.manage import ModelManager
 from flask import Flask, request, send_file, jsonify
+from io import BytesIO
 from scipy import signal
 
 app = Flask(__name__)
@@ -517,6 +516,16 @@ def speak_minion_memory():
         print(f"Calling tts.tts with parameters: {kwargs}")
         wav_data = tts.tts(**kwargs)
         print(f"TTS in memory generation completed successfully - got {len(wav_data)} samples")
+
+        # Convert to numpy array if it's a list (which it appears to be)
+        if isinstance(wav_data, list):
+            wav_data = np.array(wav_data)
+            print(f"Converted list to numpy array: {wav_data.shape}")
+        elif not isinstance(wav_data, np.ndarray):
+            wav_data = np.array(wav_data)
+            print(f"Converted {type(wav_data)} to numpy array: {wav_data.shape}")
+
+        print(f"Final wav_data type: {type(wav_data)}, shape: {wav_data.shape}")
 
         # Get the sample rate from the synthesizer
         sample_rate = tts.synthesizer.output_sample_rate if hasattr(tts.synthesizer, 'output_sample_rate') else 22050
