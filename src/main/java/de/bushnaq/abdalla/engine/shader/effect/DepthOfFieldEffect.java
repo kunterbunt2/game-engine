@@ -125,7 +125,7 @@ public class DepthOfFieldEffect<T extends IGameEngine> extends ShaderVfxEffect i
     }
 
     public void setFocalDepth(float focalDepth) {
-        System.out.printf("focalDepth%f%n", focalDepth);
+//        System.out.printf("focalDepth%f%n", focalDepth);
         this.focalDepth = focalDepth;
         if (nearDofEnabled) {
             nearDofStart = focalDepth / 20f;

@@ -179,7 +179,7 @@ vec3 colorDepthAware(vec2 coords, float blur, float centerDepth, out float weigh
     float sampleDepth = unpackVec3ToFloat(texture2D(u_depthTexture, coords).rgb, znear, zfar);
 
     // Calculate depth difference threshold based on distance from camera
-    float depthThreshold = max(0.01, centerDepth * 0.01);
+    float depthThreshold = max(0.1, centerDepth * 0.1);
 
     // Reduce weight for samples that are significantly different in depth
     float depthDiff = abs(sampleDepth - centerDepth);
@@ -189,7 +189,7 @@ vec3 colorDepthAware(vec2 coords, float blur, float centerDepth, out float weigh
     if (depthDiff > depthThreshold) {
         // Sharp falloff to prevent bleeding
         weight = exp(-depthDiff / depthThreshold);
-        weight = max(weight, 0.01);// Minimum weight to avoid harsh artifacts
+        weight = max(weight, 0.1);// Minimum weight to avoid harsh artifacts
     }
 
     vec3 col = vec3(0.0);
@@ -279,27 +279,52 @@ void main()
     }
     else
     {
-        // More conservative automatic DoF for debugging
-        float distanceFromFocus = abs(depth - fDepth);
+        float f = focalLength;//focal length in mm
+        float d = fDepth*1000.0;//focal plane in mm
+        float o = depth*1000.0;//depth in mm
 
-        // Gentler falloff - objects need to be 20 units away for full blur
-        blur = distanceFromFocus / 20.0;
-
-        // More reasonable f-stop scaling
-        blur *= (4.0 / fstop);
+        // Add safety check to prevent division by zero
+        if (abs(o-f) < 0.001) {
+            blur = 0.0;
+        } else {
+            float a = (o*f)/(o-f);
+            float b = (d*f)/(d-f);
+            float c = (d-f)/(d*fstop*CoC);
+            blur = abs(a-b)*c;
+        }
     }
 
-    blur = clamp(blur, 0.0, 1.0);
+    blur = clamp(blur, 0.0, maxblur);// Allow blur up to maxblur for better effect
 
     // calculation of pattern for dithering
     vec2 noiseOffset = rand(v_texCoords.xy)*namount*blur;
 
     // getting blur x and y step factor
-    float w = (1.0/width)*blur*maxblur+noiseOffset.x;
-    float h = (1.0/height)*blur*maxblur+noiseOffset.y;
+    float w = (1.0/width)*blur+noiseOffset.x;// Remove maxblur from w/h for debug
+    float h = (1.0/height)*blur+noiseOffset.y;
 
     // calculation of final color
     vec3 col = vec3(0.0);
+
+    if (showFocus)
+    {
+        // Show blur as red overlay (brighter red = more blur)
+        col = mix(texture2D(u_sourceTexture, v_texCoords.xy).rgb, vec3(1.0, 0.0, 0.0), blur / maxblur);
+        // Show depth as blue overlay for comparison
+        float normalizedDepth = (depth - znear) / (zfar - znear);
+        col = mix(col, vec3(0.0, 0.0, 1.0), normalizedDepth * 0.3);
+        // Show focal plane as green line
+        if (abs(depth - focalDepth) < 0.5) {
+            col = mix(col, vec3(0.0, 1.0, 0.0), 0.8);
+        }
+        // Show raw blur values in bottom corner for debugging
+        if (v_texCoords.x < 0.1 && v_texCoords.y < 0.1) {
+            col = vec3(blur / maxblur, depth / 50.0, abs(depth - focalDepth) / 50.0);
+        }
+            fragColor.rgb = col;
+    fragColor.a = 1.0;
+        return;
+    }
 
     if (blur < 0.05)
     {
