@@ -1,17 +1,18 @@
 import logging
-import os
-import sys
-import tempfile
-from io import BytesIO
-
 import numpy as np
+import numpy as np
+import os
 import parselmouth
 import pyworld as pw
 import soundfile as sf
+import soundfile as sf
+import sys
+import tempfile
 from TTS.api import TTS
 from TTS.utils.manage import ModelManager
 from flask import Flask, request, send_file, jsonify
 from scipy import signal
+from scipy.io import wavfile
 
 app = Flask(__name__)
 
@@ -119,6 +120,130 @@ def initialize_tts(model_name="tts_models/en/vctk/vits", vocoder_name=None, gpu=
         raise
 
 
+def apply_minion_voice_effects(audio_file_path, pitch_shift=1.5, speed_factor=1.2, formant_shift=1.3):
+    """
+    Apply minion-like voice effects to an audio file.
+
+    Args:
+        audio_file_path: Path to the input WAV file
+        pitch_shift: Factor to shift pitch (1.5 = 50% higher pitch)
+        speed_factor: Factor to change speed (1.2 = 20% faster)
+        formant_shift: Factor to shift formants (1.3 = higher formants)
+
+    Returns:
+        Path to the processed audio file
+    """
+    try:
+        print(f"Applying minion voice effects to: {audio_file_path}")
+        print(f"Pitch shift: {pitch_shift}, Speed: {speed_factor}, Formant: {formant_shift}")
+
+        print(f"test-2: {speed_factor}")
+        # Apply formant shifting (simple spectral envelope modification)
+        if formant_shift != 1.0:
+            # data = apply_formant_shift(data, sample_rate, x, fs, formant_shift)
+            shift_formants(audio_file_path, audio_file_path)
+            print(f"Applied formant shift: {formant_shift}")
+
+        # Read the audio file
+        data, sample_rate = (sf.read(audio_file_path))
+        x, fs = sf.read(audio_file_path)
+        print(f"Original audio: {len(data)} samples at {sample_rate} Hz")
+
+        # Convert to mono if stereo
+        if len(data.shape) > 1:
+            data = np.mean(data, axis=1)
+
+        # Apply pitch shifting using phase vocoder technique
+        if pitch_shift != 1.0:
+            data = pitch_shift_audio(data, pitch_shift)
+            print(f"Applied pitch shift: {pitch_shift}")
+
+        # Apply speed change (time stretching)
+        if speed_factor != 1.0:
+            # Simple time stretching by resampling
+            new_length = int(len(data) / speed_factor)
+            data = signal.resample(data, new_length)
+            print(f"Applied speed change: {speed_factor}")
+
+        # Add slight chipmunk-like harmonics
+        # data = add_chipmunk_harmonics(data, sample_rate)
+
+        # Normalize to prevent clipping
+        data = data / np.max(np.abs(data)) * 0.95
+
+        # Create output file
+        output_path = audio_file_path.replace('.wav', '_minion.wav')
+        sf.write(output_path, data, sample_rate)
+        print(f"Minion voice effect applied, saved to: {output_path}")
+
+        return output_path
+
+    except Exception as e:
+        print(f"Error applying minion effects: {e}")
+        return audio_file_path  # Return original file if processing fails
+
+
+def pitch_shift_audio(data, pitch_shift_factor):
+    """Simple pitch shifting using time-domain techniques"""
+    try:
+        # Use scipy's resample for basic pitch shifting
+        new_length = int(len(data) / pitch_shift_factor)
+        shifted_data = signal.resample(data, new_length)
+
+        # Pad or trim to match original duration for speed consistency
+        if len(shifted_data) < len(data):
+            # Pad with zeros
+            padded_data = np.zeros(len(data))
+            padded_data[:len(shifted_data)] = shifted_data
+            return padded_data
+        else:
+            # Trim to original length
+            return shifted_data[:len(data)]
+
+    except Exception as e:
+        print(f"Error in pitch shifting: {e}")
+        return data
+
+
+def apply_formant_shift(data, sample_rate, x, fs, formant_factor):
+    """Apply formant shifting using spectral envelope warping"""
+    # Decompose into f0, spectral envelope, and aperiodicity
+    f0, sp, ap = pw.wav2world(x.astype(np.float64), fs)
+
+    # Formant shift: warp spectral envelope
+    def warp_spectral_envelope(sp, ratio=1.2):
+        n_frames, n_bins = sp.shape
+        warped = np.zeros_like(sp)
+        for i in range(n_frames):
+            for j in range(n_bins):
+                src_bin = int(j / ratio)
+                if src_bin < n_bins:
+                    warped[i, j] = sp[i, src_bin]
+        return warped
+
+    sp_warped = warp_spectral_envelope(sp, ratio=1.2)
+
+    # Synthesize back
+    modified_data = pw.synthesize(f0, sp_warped, ap, fs)
+    return modified_data
+
+
+# pitch_floor	    Lower limit for pitch analysis (e.g. 75 Hz)
+# pitch_ceiling	    Upper limit for pitch analysis (e.g. 600 Hz)
+# formant_factor	    >1.0 raises formants (child/toy voice), <1.0 lowers (deep voice)
+# new_pitch_median	0.0 keeps original median; otherwise override in Hz
+# pitch_range_factor	1.0 keeps natural variability; 0 flattens pitch contour
+# duration_factor	1.0 keeps timing; altering changes speed (use 1.0 for your toy voice)
+
+# formant_factor:
+# - 1.2–1.4 → toy/cartoon/child-like
+# - <1.0 → deep/robotic
+
+# new_pitch_median:
+# - ~160 Hz → child
+# - ~120 Hz → adult male
+# - ~200 Hz → female/cartoon
+
 def shift_formants(
         input_path: str,
         output_path: str,
@@ -144,201 +269,23 @@ def shift_formants(
     return manipulated
 
 
-def shift_formants_memory(
-        audio_data: np.ndarray,
-        sample_rate: float,
-        formant_factor: float = 1.3,
-        new_pitch_median: float = 0.0,
-        pitch_range_factor: float = 1.0,
-        duration_factor: float = 1.0,
-        pitch_floor: float = 75.0,
-        pitch_ceiling: float = 600.0
-):
-    """
-    Apply formant shifting to audio data in memory using parselmouth.
-
-    Args:
-        audio_data: numpy array of audio samples
-        sample_rate: sampling rate of the audio
-        formant_factor: >1.0 raises formants (child/toy voice), <1.0 lowers (deep voice)
-        new_pitch_median: 0.0 keeps original median; otherwise override in Hz
-        pitch_range_factor: 1.0 keeps natural variability; 0 flattens pitch contour
-        duration_factor: 1.0 keeps timing; altering changes speed
-        pitch_floor: Lower limit for pitch analysis (e.g. 75 Hz)
-        pitch_ceiling: Upper limit for pitch analysis (e.g. 600 Hz)
-
-    Returns:
-        numpy array of processed audio data
-    """
+def add_chipmunk_harmonics(data, sample_rate, harmonic_strength=0.1):
+    """Add subtle harmonic content to make voice more chipmunk-like"""
     try:
-        print(f"Applying formant shift in memory: factor={formant_factor}")
+        # Generate harmonic content
+        t = np.arange(len(data)) / sample_rate
 
-        # Create parselmouth Sound object from numpy array
-        # Ensure audio_data is float64 as required by parselmouth
-        if audio_data.dtype != np.float64:
-            audio_data = audio_data.astype(np.float64)
+        # Add second harmonic with reduced amplitude
+        harmonic = data * harmonic_strength * np.sin(2 * np.pi * 800 * t)
 
-        # Create Sound object from array
-        snd = parselmouth.Sound(audio_data, sampling_frequency=sample_rate)
+        # Mix with original
+        mixed_data = data + harmonic
 
-        # Apply formant manipulation
-        manipulated = parselmouth.praat.call(
-            snd,
-            "Change gender...",
-            pitch_floor,
-            pitch_ceiling,
-            formant_factor,
-            new_pitch_median,
-            pitch_range_factor,
-            duration_factor
-        )
-
-        # Extract the modified audio as numpy array
-        modified_audio = manipulated.values[0]  # parselmouth returns 2D array, we want 1D
-
-        print(f"Formant shift completed: input shape {audio_data.shape}, output shape {modified_audio.shape}")
-        return modified_audio
+        return mixed_data
 
     except Exception as e:
-        print(f"Error in formant shifting: {e}")
-        return audio_data  # Return original data if processing fails
-
-
-def pitch_shift_audio(data, pitch_shift_factor):
-    """Simple pitch shifting using time-domain techniques"""
-    try:
-        # Use scipy's resample for basic pitch shifting
-        new_length = int(len(data) / pitch_shift_factor)
-        shifted_data = signal.resample(data, new_length)
-
-        # Pad or trim to match original duration for speed consistency
-        if len(shifted_data) < len(data):
-            # Pad with zeros
-            padded_data = np.zeros(len(data))
-            padded_data[:len(shifted_data)] = shifted_data
-            return padded_data
-        else:
-            # Trim to original length
-            return shifted_data[:len(data)]
-
-    except Exception as e:
-        print(f"Error in pitch shifting: {e}")
+        print(f"Error adding harmonics: {e}")
         return data
-
-
-def apply_minion_voice_effects_memory(
-        audio_data: np.ndarray,
-        sample_rate: float,
-        pitch_shift=1.5,
-        speed_factor=1.2,
-        formant_shift=1.3
-):
-    """
-    Apply minion-like voice effects to audio data in memory.
-
-    Args:
-        audio_data: numpy array of audio samples
-        sample_rate: sampling rate of the audio
-        pitch_shift: Factor to shift pitch (1.5 = 50% higher pitch)
-        speed_factor: Factor to change speed (1.2 = 20% faster)
-        formant_shift: Factor to shift formants (1.3 = higher formants)
-
-    Returns:
-        tuple: (processed_audio_data, sample_rate)
-    """
-    try:
-        print(f"Applying minion voice effects in memory")
-        print(f"Pitch shift: {pitch_shift}, Speed: {speed_factor}, Formant: {formant_shift}")
-        print(f"Input audio: {len(audio_data)} samples at {sample_rate} Hz")
-
-        # Work with a copy to avoid modifying original
-        data = audio_data.copy()
-
-        # Convert to mono if stereo
-        if len(data.shape) > 1:
-            data = np.mean(data, axis=1)
-            print(f"Converted stereo to mono: {data.shape}")
-
-        # Apply formant shifting first (using parselmouth)
-        if formant_shift != 1.0:
-            data = shift_formants_memory(
-                data,
-                sample_rate,
-                formant_factor=formant_shift
-            )
-            print(f"Applied formant shift: {formant_shift}")
-
-        # Apply pitch shifting using phase vocoder technique
-        if pitch_shift != 1.0:
-            data = pitch_shift_audio(data, pitch_shift)
-            print(f"Applied pitch shift: {pitch_shift}")
-
-        # Apply speed change (time stretching)
-        if speed_factor != 1.0:
-            # Simple time stretching by resampling
-            new_length = int(len(data) / speed_factor)
-            data = signal.resample(data, new_length)
-            print(f"Applied speed change: {speed_factor}, new length: {len(data)}")
-
-        # Normalize to prevent clipping
-        if np.max(np.abs(data)) > 0:  # Avoid division by zero
-            data = data / np.max(np.abs(data)) * 0.95
-            print("Applied normalization")
-
-        print(f"Minion voice effects applied in memory. Output: {len(data)} samples")
-        return data, sample_rate
-
-    except Exception as e:
-        print(f"Error applying minion effects in memory: {e}")
-        return audio_data, sample_rate  # Return original data if processing fails
-
-
-def apply_minion_voice_effects(audio_file_path, pitch_shift=1.5, speed_factor=1.2, formant_shift=1.3):
-    """
-    Apply minion-like voice effects to an audio file (original file-based version).
-    """
-    try:
-        print(f"Applying minion voice effects to: {audio_file_path}")
-        print(f"Pitch shift: {pitch_shift}, Speed: {speed_factor}, Formant: {formant_shift}")
-
-        # Apply formant shifting (simple spectral envelope modification)
-        if formant_shift != 1.0:
-            shift_formants(audio_file_path, audio_file_path, formant_factor=formant_shift)
-            print(f"Applied formant shift: {formant_shift}")
-
-        # Read the audio file
-        data, sample_rate = sf.read(audio_file_path)
-        print(f"Original audio: {len(data)} samples at {sample_rate} Hz")
-
-        # Convert to mono if stereo
-        if len(data.shape) > 1:
-            data = np.mean(data, axis=1)
-
-        # Apply pitch shifting using phase vocoder technique
-        if pitch_shift != 1.0:
-            data = pitch_shift_audio(data, pitch_shift)
-            print(f"Applied pitch shift: {pitch_shift}")
-
-        # Apply speed change (time stretching)
-        if speed_factor != 1.0:
-            # Simple time stretching by resampling
-            new_length = int(len(data) / speed_factor)
-            data = signal.resample(data, new_length)
-            print(f"Applied speed change: {speed_factor}")
-
-        # Normalize to prevent clipping
-        data = data / np.max(np.abs(data)) * 0.95
-
-        # Create output file
-        output_path = audio_file_path.replace('.wav', '_minion.wav')
-        sf.write(output_path, data, sample_rate)
-        print(f"Minion voice effect applied, saved to: {output_path}")
-
-        return output_path
-
-    except Exception as e:
-        print(f"Error applying minion effects: {e}")
-        return audio_file_path  # Return original file if processing fails
 
 
 @app.route("/health", methods=["GET"])
@@ -351,6 +298,41 @@ def health_check():
         "current_model": current_model,
         "current_vocoder": current_vocoder
     })
+
+
+@app.route("/load_model", methods=["POST"])
+def load_model():
+    """Load a specific TTS model and optionally vocoder"""
+    print("------------------------------------------------------------")
+    print("Loading new TTS model")
+    try:
+        if not request.json:
+            return jsonify({"error": "JSON request body required"}), 400
+
+        model_name = request.json.get("model_name")
+        if not model_name:
+            return jsonify({"error": "Missing 'model_name' field in JSON request"}), 400
+
+        vocoder_name = request.json.get("vocoder_name")
+        gpu = request.json.get("gpu")  # Can be True, False, or None for auto
+
+        print(f"Loading model: {model_name}")
+        if vocoder_name:
+            print(f"Loading vocoder: {vocoder_name}")
+
+        # Initialize the new model
+        initialize_tts(model_name, vocoder_name, gpu)
+
+        return jsonify({
+            "status": "success",
+            "message": f"Model '{model_name}' loaded successfully",
+            "current_model": current_model,
+            "current_vocoder": current_vocoder
+        })
+
+    except Exception as e:
+        eprint(f"Error loading model: {e}")
+        return jsonify({"error": str(e)}), 500
 
 
 @app.route("/speak", methods=["POST"])
@@ -377,6 +359,8 @@ def speak():
         print(f"Received request with text: '{text[:50]}...' (length: {len(text)} chars)")
         print(f"Speaker: {speaker}")
         print(f"Language: {language}")
+        print(f"Using model: {current_model}")
+        print(f"Using vocoder: {current_vocoder}")
 
         # Create temporary file for audio output
         tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".wav")
@@ -397,12 +381,26 @@ def speak():
         file_size = os.path.getsize(tmp.name)
         print(f"Generated audio file size: {file_size} bytes")
 
+        # Let's also check the actual sample rate of the generated file
+        try:
+            import wave
+            with wave.open(tmp.name, 'rb') as wav_file:
+                actual_sample_rate = wav_file.getframerate()
+                channels = wav_file.getnchannels()
+                frames = wav_file.getnframes()
+                duration = frames / actual_sample_rate
+                print(f"Actual WAV file sample rate: {actual_sample_rate} Hz")
+                print(f"Channels: {channels}, Frames: {frames}, Duration: {duration:.2f}s")
+        except Exception as wav_error:
+            print(f"Could not read WAV file info: {wav_error}")
+
         print("------------------------------------------------------------")
         # Return audio file
         return send_file(tmp.name, mimetype="audio/wav", as_attachment=True, download_name="speech.wav")
 
     except Exception as e:
         eprint(f"Error generating speech: {e}")
+        eprint(f"Exception type: {type(e)}")
         import traceback
         eprint(f"Traceback: {traceback.format_exc()}")
         return jsonify({"error": str(e)}), 500
@@ -410,7 +408,7 @@ def speak():
 
 @app.route("/speak_minion", methods=["POST"])
 def speak_minion():
-    """Generate speech from text with minion-like voice effects (original file-based version)"""
+    """Generate speech from text with minion-like voice effects"""
     print("------------------------------------------------------------")
     print("Generate minion speech from text")
     try:
@@ -454,6 +452,7 @@ def speak_minion():
         print(f"TTS generation completed successfully")
 
         # Apply minion voice effects
+        print("test-3")
         minion_file = apply_minion_voice_effects(
             tmp.name,
             pitch_shift=pitch_shift,
@@ -471,88 +470,7 @@ def speak_minion():
 
     except Exception as e:
         eprint(f"Error generating minion speech: {e}")
-        import traceback
-        eprint(f"Traceback: {traceback.format_exc()}")
-        return jsonify({"error": str(e)}), 500
-
-
-@app.route("/speak_minion_memory", methods=["POST"])
-def speak_minion_memory():
-    """Generate speech from text with minion-like voice effects - PURE IN-MEMORY VERSION"""
-    print("------------------------------------------------------------")
-    print("Generate minion speech from text - IN MEMORY")
-    try:
-        if tts is None:
-            return jsonify({"error": "TTS model not initialized"}), 500
-
-        # Get text from request
-        if not request.json or "text" not in request.json:
-            return jsonify({"error": "Missing 'text' field in JSON request"}), 400
-
-        text = request.json["text"]
-        if not text.strip():
-            return jsonify({"error": "Text cannot be empty"}), 400
-
-        # Get optional parameters
-        speaker = request.json.get("speaker")
-        language = request.json.get("language")
-
-        # Get minion effect parameters with defaults
-        pitch_shift = request.json.get("pitch_shift", 1.5)  # Higher pitch
-        speed_factor = request.json.get("speed_factor", 1.2)  # Faster speech
-        formant_shift = request.json.get("formant_shift", 1.3)  # Higher formants
-
-        print(f"Received minion request with text: '{text[:50]}...' (length: {len(text)} chars)")
-        print(f"Speaker: {speaker}, Language: {language}")
-        print(f"Minion effects - Pitch: {pitch_shift}, Speed: {speed_factor}, Formant: {formant_shift}")
-
-        # STEP 1: Generate speech directly to memory using tts.tts() instead of tts.tts_to_file()
-        print("Step 1: Generating speech in memory...")
-        kwargs = {"text": text}
-        if speaker:
-            kwargs["speaker"] = speaker
-        if language:
-            kwargs["language"] = language
-
-        print(f"Calling tts.tts with parameters: {kwargs}")
-        wav_data = tts.tts(**kwargs)
-        print(f"TTS in memory generation completed successfully - got {len(wav_data)} samples")
-
-        # Get the sample rate from the synthesizer
-        sample_rate = tts.synthesizer.output_sample_rate if hasattr(tts.synthesizer, 'output_sample_rate') else 22050
-        print(f"Using sample rate: {sample_rate} Hz")
-
-        # STEP 2: Apply minion voice effects in memory
-        print("Step 2: Applying minion voice effects in memory...")
-        processed_wav, final_sample_rate = apply_minion_voice_effects_memory(
-            wav_data,
-            sample_rate,
-            pitch_shift=pitch_shift,
-            speed_factor=speed_factor,
-            formant_shift=formant_shift
-        )
-        print(f"Minion effects applied - final audio: {len(processed_wav)} samples at {final_sample_rate} Hz")
-
-        # STEP 3: Create BytesIO stream and write WAV data
-        print("Step 3: Creating BytesIO stream...")
-        audio_buffer = BytesIO()
-        sf.write(audio_buffer, processed_wav, final_sample_rate, format='WAV')
-        audio_buffer.seek(0)  # Reset pointer to beginning
-
-        buffer_size = audio_buffer.getbuffer().nbytes
-        print(f"Created audio buffer: {buffer_size} bytes")
-
-        print("------------------------------------------------------------")
-        # STEP 4: Return the BytesIO stream directly using send_file
-        return send_file(
-            audio_buffer,
-            mimetype="audio/wav",
-            as_attachment=True,
-            download_name="minion_speech_memory.wav"
-        )
-
-    except Exception as e:
-        eprint(f"Error generating minion speech in memory: {e}")
+        eprint(f"Exception type: {type(e)}")
         import traceback
         eprint(f"Traceback: {traceback.format_exc()}")
         return jsonify({"error": str(e)}), 500
@@ -751,41 +669,6 @@ def list_vocoders():
             status=500,
             mimetype='application/json'
         )
-
-
-@app.route("/load_model", methods=["POST"])
-def load_model():
-    """Load a specific TTS model and optionally vocoder"""
-    print("------------------------------------------------------------")
-    print("Loading new TTS model")
-    try:
-        if not request.json:
-            return jsonify({"error": "JSON request body required"}), 400
-
-        model_name = request.json.get("model_name")
-        if not model_name:
-            return jsonify({"error": "Missing 'model_name' field in JSON request"}), 400
-
-        vocoder_name = request.json.get("vocoder_name")
-        gpu = request.json.get("gpu")  # Can be True, False, or None for auto
-
-        print(f"Loading model: {model_name}")
-        if vocoder_name:
-            print(f"Loading vocoder: {vocoder_name}")
-
-        # Initialize the new model
-        initialize_tts(model_name, vocoder_name, gpu)
-
-        return jsonify({
-            "status": "success",
-            "message": f"Model '{model_name}' loaded successfully",
-            "current_model": current_model,
-            "current_vocoder": current_vocoder
-        })
-
-    except Exception as e:
-        eprint(f"Error loading model: {e}")
-        return jsonify({"error": str(e)}), 500
 
 
 if __name__ == "__main__":

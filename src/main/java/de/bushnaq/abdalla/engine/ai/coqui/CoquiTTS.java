@@ -57,7 +57,7 @@ public class CoquiTTS {
 //        Float             pitchShift   = 1f;
 //        Float             speedFactor  = 1f;
 //        Float             formantShift = 1f;
-        URL               url  = new URL(TTS_SERVICE_URL + "/speak_minion");
+        URL               url  = new URL(TTS_SERVICE_URL + "/speak_minion_memory");
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 
         // Set up the request

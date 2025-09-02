@@ -1,16 +1,15 @@
 import logging
-import os
-import sys
-import tempfile
-from io import BytesIO
-
 import numpy as np
+import os
 import parselmouth
 import pyworld as pw
 import soundfile as sf
+import sys
+import tempfile
 from TTS.api import TTS
 from TTS.utils.manage import ModelManager
 from flask import Flask, request, send_file, jsonify
+from io import BytesIO
 from scipy import signal
 
 app = Flask(__name__)
@@ -516,7 +515,7 @@ def speak_minion_memory():
 
         print(f"Calling tts.tts with parameters: {kwargs}")
         wav_data = tts.tts(**kwargs)
-        print(f"TTS in memory generation completed successfully - got {len(wav_data)} samples")
+        print(f"TTS generation completed successfully - got {len(wav_data)} samples")
 
         # Get the sample rate from the synthesizer
         sample_rate = tts.synthesizer.output_sample_rate if hasattr(tts.synthesizer, 'output_sample_rate') else 22050
@@ -555,236 +554,6 @@ def speak_minion_memory():
         eprint(f"Error generating minion speech in memory: {e}")
         import traceback
         eprint(f"Traceback: {traceback.format_exc()}")
-        return jsonify({"error": str(e)}), 500
-
-
-@app.route("/models", methods=["GET"])
-def list_models():
-    """List available TTS models"""
-    try:
-        # Use the ModelManager to list models, not the TTS class
-        manager = ModelManager()
-        models = manager.list_models()
-
-        # Create a pretty-formatted response
-        response = app.response_class(
-            response=jsonify({"models": models}).get_data(as_text=True),
-            status=200,
-            mimetype='application/json'
-        )
-
-        # Use Flask's jsonify with pretty printing
-        import json
-        formatted_response = json.dumps({"models": models}, indent=2, sort_keys=True)
-
-        return app.response_class(
-            response=formatted_response,
-            status=200,
-            mimetype='application/json'
-        )
-
-    except Exception as e:
-        logger.error(f"Error listing models: {e}")
-        error_response = json.dumps({"error": str(e)}, indent=2)
-        return app.response_class(
-            response=error_response,
-            status=500,
-            mimetype='application/json'
-        )
-
-
-@app.route("/speakers", methods=["GET"])
-def list_speakers():
-    """List available speakers for the current TTS model"""
-    try:
-        if tts is None:
-            return jsonify({"error": "TTS model not initialized"}), 500
-
-        # Check if the current model supports multiple speakers
-        speakers = []
-        is_multi_speaker = False
-
-        try:
-            # Try to access speaker information from the TTS model
-            if hasattr(tts, 'synthesizer') and hasattr(tts.synthesizer, 'tts_model'):
-                model = tts.synthesizer.tts_model
-
-                # Check for speaker manager or speaker embeddings
-                if hasattr(model, 'speaker_manager') and model.speaker_manager is not None:
-                    is_multi_speaker = True
-                    if hasattr(model.speaker_manager, 'speaker_names'):
-                        speakers = list(model.speaker_manager.speaker_names)
-                    elif hasattr(model.speaker_manager, 'speakers'):
-                        speakers = list(model.speaker_manager.speakers.keys())
-                elif hasattr(model, 'speaker_embeddings') and model.speaker_embeddings is not None:
-                    is_multi_speaker = True
-                    speakers = list(range(len(model.speaker_embeddings)))
-                    speakers = [f"speaker_{i}" for i in speakers]  # Convert to string format
-
-        except Exception as e:
-            print(f"Error checking speaker info: {e}")
-
-        # Use Flask's JSON formatting with pretty printing
-        import json
-        response_data = {
-            "current_model": current_model,
-            "is_multi_speaker": is_multi_speaker,
-            "speakers": speakers,
-            "speaker_count": len(speakers)
-        }
-
-        formatted_response = json.dumps(response_data, indent=2, sort_keys=True)
-
-        return app.response_class(
-            response=formatted_response,
-            status=200,
-            mimetype='application/json'
-        )
-
-    except Exception as e:
-        logger.error(f"Error listing speakers: {e}")
-        import json
-        error_response = json.dumps({"error": str(e)}, indent=2)
-        return app.response_class(
-            response=error_response,
-            status=500,
-            mimetype='application/json'
-        )
-
-
-@app.route("/languages", methods=["GET"])
-def list_languages():
-    """List available languages for the current TTS model"""
-    try:
-        if tts is None:
-            return jsonify({"error": "TTS model not initialized"}), 500
-
-        # Check if the current model supports multiple languages
-        languages = []
-        is_multi_lingual = False
-
-        try:
-            # Try to access language information from the TTS model
-            if hasattr(tts, 'synthesizer') and hasattr(tts.synthesizer, 'tts_model'):
-                model = tts.synthesizer.tts_model
-
-                # Check for language manager or language embeddings
-                if hasattr(model, 'language_manager') and model.language_manager is not None:
-                    is_multi_lingual = True
-                    if hasattr(model.language_manager, 'language_names'):
-                        languages = list(model.language_manager.language_names)
-                    elif hasattr(model.language_manager, 'languages'):
-                        languages = list(model.language_manager.languages.keys())
-                elif hasattr(model, 'language_embeddings') and model.language_embeddings is not None:
-                    is_multi_lingual = True
-                    languages = list(range(len(model.language_embeddings)))
-                    languages = [f"lang_{i}" for i in languages]  # Convert to string format
-                elif hasattr(model, 'args') and hasattr(model.args, 'language'):
-                    # Some models have a single language specified in args
-                    if model.args.language:
-                        languages = [model.args.language]
-                        is_multi_lingual = False
-
-        except Exception as e:
-            print(f"Error checking language info: {e}")
-
-        # Use Flask's JSON formatting with pretty printing
-        import json
-        response_data = {
-            "current_model": current_model,
-            "is_multi_lingual": is_multi_lingual,
-            "languages": languages,
-            "language_count": len(languages)
-        }
-
-        formatted_response = json.dumps(response_data, indent=2, sort_keys=True)
-
-        return app.response_class(
-            response=formatted_response,
-            status=200,
-            mimetype='application/json'
-        )
-
-    except Exception as e:
-        logger.error(f"Error listing languages: {e}")
-        import json
-        error_response = json.dumps({"error": str(e)}, indent=2)
-        return app.response_class(
-            response=error_response,
-            status=500,
-            mimetype='application/json'
-        )
-
-
-@app.route("/vocoders", methods=["GET"])
-def list_vocoders():
-    """List available vocoder models"""
-    try:
-        # Use the ModelManager to list vocoder models
-        manager = ModelManager()
-        models = manager.list_models()
-
-        # Filter models to get only vocoders
-        vocoders = [model for model in models if "vocoder" in model.lower()]
-
-        # Use Flask's JSON formatting with pretty printing
-        import json
-        response_data = {
-            "vocoders": vocoders,
-            "vocoder_count": len(vocoders)
-        }
-
-        formatted_response = json.dumps(response_data, indent=2, sort_keys=True)
-
-        return app.response_class(
-            response=formatted_response,
-            status=200,
-            mimetype='application/json'
-        )
-
-    except Exception as e:
-        logger.error(f"Error listing vocoders: {e}")
-        import json
-        error_response = json.dumps({"error": str(e)}, indent=2)
-        return app.response_class(
-            response=error_response,
-            status=500,
-            mimetype='application/json'
-        )
-
-
-@app.route("/load_model", methods=["POST"])
-def load_model():
-    """Load a specific TTS model and optionally vocoder"""
-    print("------------------------------------------------------------")
-    print("Loading new TTS model")
-    try:
-        if not request.json:
-            return jsonify({"error": "JSON request body required"}), 400
-
-        model_name = request.json.get("model_name")
-        if not model_name:
-            return jsonify({"error": "Missing 'model_name' field in JSON request"}), 400
-
-        vocoder_name = request.json.get("vocoder_name")
-        gpu = request.json.get("gpu")  # Can be True, False, or None for auto
-
-        print(f"Loading model: {model_name}")
-        if vocoder_name:
-            print(f"Loading vocoder: {vocoder_name}")
-
-        # Initialize the new model
-        initialize_tts(model_name, vocoder_name, gpu)
-
-        return jsonify({
-            "status": "success",
-            "message": f"Model '{model_name}' loaded successfully",
-            "current_model": current_model,
-            "current_vocoder": current_vocoder
-        })
-
-    except Exception as e:
-        eprint(f"Error loading model: {e}")
         return jsonify({"error": str(e)}), 500
 
 
