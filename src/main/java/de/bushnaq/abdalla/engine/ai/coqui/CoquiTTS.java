@@ -26,6 +26,100 @@ public class CoquiTTS {
         }
     }
 
+    public static byte[] generateMinionSpeech(String text, int speakerId, Float pitchShift, Float speedFactor, Float formantShift) throws Exception {
+        String speaker = null;
+        if (speakerInfo.isMultiSpeaker() && speakerInfo.getSpeakerCount() > 1) {
+            speaker = speakerInfo.getSpeakers().get(speakerId % speakerInfo.getSpeakerCount());
+        }
+        String language = null;
+        if (languageInfo.getLanguageCount() > 0) {
+            language = languageInfo.getLanguages().getFirst();
+        }
+
+        return generateMinionSpeech(text, speaker, language, pitchShift, speedFactor, formantShift);
+    }
+
+    // Basic speech generation methods
+    public static byte[] generateMinionSpeech(String text, Float pitchShift, Float speedFactor, Float formantShift) throws Exception {
+        String speaker = null;
+        if (speakerInfo.isMultiSpeaker() && speakerInfo.getSpeakerCount() > 1) {
+            speaker = speakerInfo.getSpeakers().getFirst();
+        }
+        String language = null;
+        if (languageInfo.getLanguageCount() > 0) {
+            language = languageInfo.getLanguages().getFirst();
+        }
+
+        return generateMinionSpeech(text, speaker, language, pitchShift, speedFactor, formantShift);
+    }
+
+    public static byte[] generateMinionSpeech(String text, String speaker, String language, Float pitchShift, Float speedFactor, Float formantShift) throws Exception {
+//        Float             pitchShift   = 1f;
+//        Float             speedFactor  = 1f;
+//        Float             formantShift = 1f;
+        URL               url  = new URL(TTS_SERVICE_URL + "/speak_minion");
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+
+        // Set up the request
+//        System.out.println("Connecting to TTS service at " + TTS_SERVICE_URL);
+        conn.setRequestMethod("POST");
+        conn.setRequestProperty("Content-Type", "application/json");
+        conn.setDoOutput(true);
+
+        // Build JSON payload using Jackson for proper escaping
+        java.util.Map<String, Object> jsonMap = new java.util.HashMap<>();
+        jsonMap.put("text", text);
+
+        if (speaker != null && !speaker.trim().isEmpty()) {
+            jsonMap.put("speaker", speaker);
+        }
+
+        if (language != null && !language.trim().isEmpty()) {
+            jsonMap.put("language", language);
+        }
+
+        if (pitchShift != null) {
+            jsonMap.put("pitch_shift", pitchShift);
+        }
+        if (speedFactor != null) {
+            jsonMap.put("speed_factor", speedFactor);
+        }
+        if (formantShift != null) {
+            jsonMap.put("formant_shift", formantShift);
+        }
+
+        String jsonPayload = objectMapper.writeValueAsString(jsonMap);
+//        System.out.println("JSON payload: " + jsonPayload);
+
+        try (OutputStream os = conn.getOutputStream()) {
+            byte[] input = jsonPayload.getBytes(StandardCharsets.UTF_8);
+            os.write(input, 0, input.length);
+        }
+
+        // Check response code
+        int responseCode = conn.getResponseCode();
+//        System.out.println("TTS service response code: " + responseCode);
+        if (responseCode != 200) {
+            String error = readProcessOutput(conn.getErrorStream());
+            throw new RuntimeException("TTS service returned error " + responseCode + ": " + error);
+        }
+
+        // Read the audio data
+        try (InputStream is = conn.getInputStream();
+             ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+
+            byte[] buffer = new byte[4096];
+            int    bytesRead;
+            while ((bytesRead = is.read(buffer)) != -1) {
+                baos.write(buffer, 0, bytesRead);
+            }
+
+            byte[] byteArray = baos.toByteArray();
+//            System.out.println("TTS audio data received successfully " + byteArray.length + " bytes.");
+            return byteArray;
+        }
+    }
+
     public static byte[] generateSpeech(String text, int speakerId) throws Exception {
         String speaker = null;
         if (speakerInfo.isMultiSpeaker() && speakerInfo.getSpeakerCount() > 1) {
@@ -74,6 +168,7 @@ public class CoquiTTS {
         if (language != null && !language.trim().isEmpty()) {
             jsonMap.put("language", language);
         }
+
 
         String jsonPayload = objectMapper.writeValueAsString(jsonMap);
 //        System.out.println("JSON payload: " + jsonPayload);
