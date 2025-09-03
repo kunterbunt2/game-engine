@@ -31,25 +31,24 @@ import lombok.Setter;
 
 public class FadeEffect extends ShaderVfxEffect implements ChainVfxEffect {
 
-    private static final String     BACKGROUND_COLOR   = "u_backgroundColor";
-    private static final String     SATURATION         = "u_saturation";
-    private static final String     SATURATION_MUL     = "u_saturationMul";
-    private static final String     TEXTURE0           = "u_texture0";
-    private static final String     VIGNETTE_INTENSITY = "u_intensity";
+    private static final String BACKGROUND_COLOR   = "u_backgroundColor";
+    private static final String SATURATION         = "u_saturation";
+    private static final String SATURATION_MUL     = "u_saturationMul";
+    private static final String TEXTURE0           = "u_texture0";
+    private static final String VIGNETTE_INTENSITY = "u_intensity";
     @Setter
     @Getter
-    private              Color      backgroundColor;
-    //    float[] buffer = {0f,0f,0f};
+    private              Color  backgroundColor;
     Vector3 buffer = new Vector3();
-    private              boolean    enabled            = false;
+    private       boolean    enabled       = false;
     @Getter
-    private              float      intensity          = 1f;
+    private       float      intensity     = 1f;
     @Getter
-    private              float      saturation         = 1f;
-    private final        boolean    saturationEnabled;
+    private       float      saturation    = 1f;
+    private final boolean    saturationEnabled;
     @Getter
-    private              float      saturationMul      = 1f;
-    private final        VfxManager vfxManager;
+    private       float      saturationMul = 1f;
+    private final VfxManager vfxManager;
 
     public FadeEffect(VfxManager vfxManager, Color backgroundColor, boolean controlSaturation) {
         super(VfxGLUtils.compileShader(

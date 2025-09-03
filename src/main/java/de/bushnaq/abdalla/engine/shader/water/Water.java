@@ -25,11 +25,15 @@ import com.badlogic.gdx.graphics.glutils.GLFrameBuffer;
 import com.badlogic.gdx.graphics.glutils.GLFrameBuffer.FrameBufferBuilder;
 import com.badlogic.gdx.math.Plane;
 import com.badlogic.gdx.math.Vector3;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * @author kunterbunt
  */
+@Getter
 public class Water {
+    @Setter
     private       boolean     present                 = false;
     private final Plane       reflectionClippingPlane = new Plane(new Vector3(0f, 1f, 0f), 0.1f);                                // render everything above d
     private       FrameBuffer reflectionFbo;
@@ -37,10 +41,14 @@ public class Water {
     private final Plane       refractionClippingPlane = new Plane(new Vector3(0f, -1f, 0f), (-0.1f));                            // render everything below d
     private       FrameBuffer refractionFbo;
     private       FrameBuffer refractionPostFbo;
+    @Setter
     private       float       refractiveMultiplicator = 1.0f;
+    @Setter
     private       float       tiling                  = 1f;
     private       float       waterLevel              = 0;
+    @Setter
     private       float       waveSpeed               = 0.0f;
+    @Setter
     private       float       waveStrength            = 0.00f;
 
     public Water() {
@@ -53,22 +61,6 @@ public class Water {
     }
 
     public void createFrameBuffer(int msaaSamples) {
-//        {
-//            final FrameBufferBuilder frameBufferBuilder = new FrameBufferBuilder(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-//            frameBufferBuilder.addColorTextureAttachment(GL30.GL_RGBA8, GL20.GL_RGBA, GL20.GL_UNSIGNED_BYTE);
-//            if (Gdx.app.getType() == ApplicationType.iOS) {
-//                frameBufferBuilder.addDepthRenderBuffer(GL30.GL_DEPTH_COMPONENT24);// ios
-//            } else {
-//                frameBufferBuilder.addDepthTextureAttachment(GL30.GL_DEPTH_COMPONENT24, GL20.GL_UNSIGNED_BYTE);
-//            }
-//            refractionFbo = frameBufferBuilder.build();
-//        }
-//        {
-//            final FrameBufferBuilder frameBufferBuilder = new FrameBufferBuilder(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-//            frameBufferBuilder.addColorTextureAttachment(GL30.GL_RGBA8, GL20.GL_RGBA, GL20.GL_UNSIGNED_BYTE);
-//            frameBufferBuilder.addDepthRenderBuffer(GL30.GL_DEPTH_COMPONENT24);
-//            reflectionFbo = frameBufferBuilder.build();
-//        }
         {
             final FrameBufferBuilder frameBufferBuilder = new FrameBufferBuilder(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), msaaSamples);
             frameBufferBuilder.addColorRenderBuffer(GL30.GL_RGBA8).addDepthRenderBuffer(GL30.GL_DEPTH_COMPONENT24).build();
@@ -102,78 +94,10 @@ public class Water {
         refractionPostFbo.dispose();
     }
 
-    public Plane getReflectionClippingPlane() {
-        return reflectionClippingPlane;
-    }
-
-    public FrameBuffer getReflectionFbo() {
-        return reflectionFbo;
-    }
-
-    public FrameBuffer getReflectionPostFbo() {
-        return reflectionPostFbo;
-    }
-
-    public Plane getRefractionClippingPlane() {
-        return refractionClippingPlane;
-    }
-
-    public FrameBuffer getRefractionFbo() {
-        return refractionFbo;
-    }
-
-    public FrameBuffer getRefractionPostFbo() {
-        return refractionPostFbo;
-    }
-
-    public float getRefractiveMultiplicator() {
-        return refractiveMultiplicator;
-    }
-
-    public float getTiling() {
-        return tiling;
-    }
-
-    public float getWaterLevel() {
-        return waterLevel;
-    }
-
-    public float getWaveSpeed() {
-        return waveSpeed;
-    }
-
-    public float getWaveStrength() {
-        return waveStrength;
-    }
-
-    public boolean isPresent() {
-        return present;
-    }
-
-    public void setPresent(boolean present) {
-        this.present = present;
-    }
-
-    public void setRefractiveMultiplicator(float refractiveMultiplicator) {
-        this.refractiveMultiplicator = refractiveMultiplicator;
-    }
-
-    public void setTiling(float tiling) {
-        this.tiling = tiling;
-    }
-
     public void setWaterLevel(float level) {
         waterLevel                = level;
         reflectionClippingPlane.d = -waterLevel + .1f;
         refractionClippingPlane.d = -waterLevel - .1f;
-    }
-
-    public void setWaveSpeed(float waveSpeed) {
-        this.waveSpeed = waveSpeed;
-    }
-
-    public void setWaveStrength(float waveStrength) {
-        this.waveStrength = waveStrength;
     }
 
 }

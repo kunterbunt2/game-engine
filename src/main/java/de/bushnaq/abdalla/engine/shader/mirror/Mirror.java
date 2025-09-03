@@ -25,16 +25,21 @@ import com.badlogic.gdx.graphics.glutils.GLFrameBuffer;
 import com.badlogic.gdx.graphics.glutils.GLFrameBuffer.FrameBufferBuilder;
 import com.badlogic.gdx.math.Plane;
 import com.badlogic.gdx.math.Vector3;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * @author kunterbunt
  */
+@Getter
 public class Mirror {
     private       float       mirrorLevel             = 0;
+    @Setter
     private       boolean     present                 = false;
     private final Plane       reflectionClippingPlane = new Plane(new Vector3(0f, 1f, 0f), 0.1f);// render everything above d
     private       FrameBuffer reflectionFbo;
     FrameBuffer reflectionPostFbo;
+    @Setter
     private float reflectivity = 0.5f;
 
     public Mirror() {
@@ -66,41 +71,9 @@ public class Mirror {
         reflectionPostFbo.dispose();
     }
 
-    public float getMirrorLevel() {
-        return mirrorLevel;
-    }
-
-    public Plane getReflectionClippingPlane() {
-        return reflectionClippingPlane;
-    }
-
-    public FrameBuffer getReflectionFbo() {
-        return reflectionFbo;
-    }
-
-    public FrameBuffer getReflectionPostFbo() {
-        return reflectionPostFbo;
-    }
-
-    public float getReflectivity() {
-        return reflectivity;
-    }
-
-    public boolean isPresent() {
-        return present;
-    }
-
     public void setMirrorLevel(float level) {
         mirrorLevel               = level;
         reflectionClippingPlane.d = -mirrorLevel + .1f;
-    }
-
-    public void setPresent(boolean present) {
-        this.present = present;
-    }
-
-    public void setReflectivity(float reflectivity) {
-        this.reflectivity = reflectivity;
     }
 
 }

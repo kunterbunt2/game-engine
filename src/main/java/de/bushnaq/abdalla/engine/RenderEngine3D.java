@@ -181,8 +181,6 @@ public class RenderEngine3D<T extends IGameEngine> {
     private       ExtendedGLProfiler          profiler;
     public        Model                       rayCube;
     // private final Ray ray = new Ray(new Vector3(), new Vector3());
-//    private final Plane                       reflectionClippingPlane          = new Plane(new Vector3(0f, 1f, 0f), 0.1f);                                // render everything above d
-//    private final Plane                       refractionClippingPlane          = new Plane(new Vector3(0f, -1f, 0f), (-0.1f));                            // render everything below d
     public        boolean                     render2D                         = true;
     public        boolean                     render3D                         = true;
     @Setter
@@ -481,9 +479,9 @@ public class RenderEngine3D<T extends IGameEngine> {
         final Vector3 xVector = new Vector3(1, 0, 0);
         direction.nor();
         if (center) {
-            position.x += direction.x /** length / 2*/;
-            position.y += direction.y /** length / 2*/;
-            position.z += direction.z /** length / 2*/;
+            position.x += direction.x /* length / 2*/;
+            position.y += direction.y /* length / 2*/;
+            position.z += direction.z /* length / 2*/;
         } else {
             position.x += direction.x * length / 2;
             position.y += direction.y * length / 2;
