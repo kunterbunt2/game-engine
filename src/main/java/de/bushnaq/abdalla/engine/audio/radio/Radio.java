@@ -50,12 +50,12 @@ public class Radio implements IRadio {
 //        // Then remove the blocks
 //        return input.replaceAll(regex, "").trim();
 //    }
-    private static final String ANSI_BLUE   = "\u001B[36m";
-    private static final String ANSI_GRAY   = "\u001B[37m";
-    private static final String ANSI_GREEN  = "\u001B[32m";
-    private static final String ANSI_RED    = "\u001B[31m";
-    private static final String ANSI_RESET  = "\u001B[0m";    // Declaring ANSI_RESET so that we can reset the color
-    private static final String ANSI_YELLOW = "\u001B[33m";
+    private static final String                    ANSI_BLUE       = "\u001B[36m";
+    private static final String                    ANSI_GRAY       = "\u001B[37m";
+    private static final String                    ANSI_GREEN      = "\u001B[32m";
+    private static final String                    ANSI_RED        = "\u001B[31m";
+    private static final String                    ANSI_RESET      = "\u001B[0m";    // Declaring ANSI_RESET so that we can reset the color
+    private static final String                    ANSI_YELLOW     = "\u001B[33m";
     private static final Pattern                   KEY_PATTERN     = Pattern.compile("(.+)\\.(\\d+)$");
     //    private static final String                    LLM_MODEL       = "llama3.2:3b";//too many mistakes, ubt fast 400ms for short sentence
     //    private static final String                    LLM_MODEL       = "gemma3n:latest";//4b, much better, but slow: 2500ms for short sentence
@@ -107,7 +107,6 @@ public class Radio implements IRadio {
     public String generateLlmAnswer(String id, String prompt, PromptTags tags, boolean silent) {
         //lets not use ai for silent messages
         if (!silent) {
-
             long   time = System.currentTimeMillis();
             String text = cleanupAiAnswer(askAi(id, prompt, tags));
             if (text != null) {
@@ -214,15 +213,10 @@ public class Radio implements IRadio {
 
         // Remove content between thinking tags
         response = removeHtmlTags(response, "(?s)<think>.*?</think>");
-//        response = response.replaceAll("(?s)<think>.*?</think>", "").trim();
         response = removeHtmlTags(response, "(?s)<thinking>.*?</thinking>");
-//        response = response.replaceAll("(?s)<thinking>.*?</thinking>", "").trim();
         response = removeHtmlTags(response, "(?s)<!--\\s*thinking.*?-->");
-//        response = response.replaceAll("(?s)<!--\\s*thinking.*?-->", "").trim();
-
-        response = removeHtmlTags(response, "(?m)^(Thinking:|Let me think:).*$");
         // Remove lines that start with reasoning markers
-//        response = response.replaceAll("(?m)^(Thinking:|Let me think:).*$", "").trim();
+        response = removeHtmlTags(response, "(?m)^(Thinking:|Let me think:).*$");
 
         // Extract content after answer markers
         if (response.matches("(?s).*\\b(Answer|Result|Output):\\s*(.*)")) {
@@ -231,6 +225,9 @@ public class Radio implements IRadio {
                 response = parts[1].trim();
             }
         }
+
+        // Remove only <think>, </think>, <thinking>, </thinking> tags
+        response = response.replaceAll("</?think(?:ing)?>", "");
 
         return response.isEmpty() ? rawResponse : response;
     }

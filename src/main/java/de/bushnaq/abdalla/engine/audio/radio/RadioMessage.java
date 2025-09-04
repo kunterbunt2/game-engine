@@ -25,18 +25,19 @@ import java.util.List;
 
 @Getter
 public class RadioMessage {
-    private final long         endTime;
-    private final RadioChannel from;
-    private final String       messageId;
+    private static final int          MILLISECONDS_PER_CHARACTER = 150;
+    private final        long         endTime;
+    private final        RadioChannel from;
+    private final        String       messageId;
     @Setter
-    private       List<String> messages = new ArrayList<>();
-    private       RadioMessage originalRequest;
-    private final boolean      silent;
-    private final PromptTags   tags;
+    private              List<String> messages                   = new ArrayList<>();
+    private              RadioMessage originalRequest;
+    private final        boolean      silent;
+    private final        PromptTags   tags;
     @Setter
-    private       long         time;//universe time
-    private final long         timeSent;
-    private final RadioChannel to;
+    private              long         time;//universe time
+    private final        long         timeSent;
+    private final        RadioChannel to;
 
     public RadioMessage(long currentTime, RadioChannel from, RadioChannel to, String messageId, String message, boolean silent, PromptTags tags) {
         time           = currentTime;
@@ -58,8 +59,8 @@ public class RadioMessage {
         this.messageId       = messageId;
         this.tags            = tags;
         this.time            = 0;
-        this.timeSent        = 0;
-        this.endTime         = 0;
+        this.timeSent        = System.currentTimeMillis();
+        this.endTime         = timeSent + estimatedDuration();
     }
 
 //    public static String addCommaAndSpace(String input) {
@@ -78,10 +79,12 @@ public class RadioMessage {
 //    }
 
     public void addMessage(String message) {
-        String[] strings = message.split("\\.");
+        String[] strings = message.split("[.!?\\r\\n]");// Split by ., !, ? or cr
         for (String string : strings) {
-            if (!string.isBlank())
+            string = string.trim();
+            if (!string.isBlank()) {
                 messages.add(string.trim());
+            }
         }
     }
 
@@ -96,7 +99,7 @@ public class RadioMessage {
     public long estimatedDuration() {
         int duration = 0;
         for (String message : messages)
-            duration += message.length() * 120L;
+            duration += message.length() * MILLISECONDS_PER_CHARACTER;
         return duration;
     }
 
