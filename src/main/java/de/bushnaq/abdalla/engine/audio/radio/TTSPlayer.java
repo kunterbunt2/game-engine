@@ -58,7 +58,6 @@ public class TTSPlayer extends AbstractAudioProducer {
     private final List<RadioWave>          spakenRadioWaveList = new ArrayList<>();
     private       ScheduledExecutorService spokenMessageChecker;
     private final List<RadioMessage>       spokenMessageList   = new ArrayList<>();
-    private       RadioMessage             spokenRadioMessage  = null;//currently playing
     private       RadioWave                spokenRadioWave     = null;
 
     public TTSPlayer(AudioEngine audioEngine, String name) throws OpenAlException {
@@ -121,6 +120,8 @@ public class TTSPlayer extends AbstractAudioProducer {
 
     private void checkSpokenMessages() {
         try {
+            //currently playing
+            RadioMessage spokenRadioMessage = null;
             synchronized (messagesLock) {
                 if (spokenMessageList.isEmpty())
                     return;
@@ -262,7 +263,7 @@ public class TTSPlayer extends AbstractAudioProducer {
     private void notifyPartner() {
         if (spokenRadioWave != null) {
 //            System.out.println("TTSPLayer=" + currentRadioMessage.to.getName());
-            spokenRadioWave.radioMessage().getTo().notifyFinishedTalking(spokenRadioMessage);
+            spokenRadioWave.radioMessage().getTo().notifyFinishedTalking(spokenRadioWave.radioMessage());
             spokenRadioWave = null; // Clear after notifying
         }
     }
