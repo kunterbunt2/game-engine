@@ -39,6 +39,23 @@ import java.util.regex.Pattern;
  * used to communicate between CommunicationPartners.
  */
 public class Radio implements IRadio {
+    //    private String removeHtmlTags(String input, String regex) {
+//        // Find and print all <think> blocks before removing them
+//        Pattern thinkPattern = Pattern.compile(regex);
+//        Matcher matcher      = thinkPattern.matcher(input);
+//        while (matcher.find()) {
+//            String thinkContent = matcher.group(1).trim();
+//            logger.info("Think block: {}", thinkContent);
+//        }
+//        // Then remove the blocks
+//        return input.replaceAll(regex, "").trim();
+//    }
+    private static final String ANSI_BLUE   = "\u001B[36m";
+    private static final String ANSI_GRAY   = "\u001B[37m";
+    private static final String ANSI_GREEN  = "\u001B[32m";
+    private static final String ANSI_RED    = "\u001B[31m";
+    private static final String ANSI_RESET  = "\u001B[0m";    // Declaring ANSI_RESET so that we can reset the color
+    private static final String ANSI_YELLOW = "\u001B[33m";
     private static final Pattern                   KEY_PATTERN     = Pattern.compile("(.+)\\.(\\d+)$");
     //    private static final String                    LLM_MODEL       = "llama3.2:3b";//too many mistakes, ubt fast 400ms for short sentence
     //    private static final String                    LLM_MODEL       = "gemma3n:latest";//4b, much better, but slow: 2500ms for short sentence
@@ -68,9 +85,11 @@ public class Radio implements IRadio {
         startSpokenMessageChecker();
     }
 
-    private String askAi(String id, PromptTags tags) {
+    private String askAi(String id, String prompt, PromptTags tags) {
         try {
             LLMPrompt systemPrompt = new LLMPrompt(systemPromptMap.get(id), tags);
+            if (prompt != null && !prompt.isEmpty())
+                systemPrompt.setPrompt(prompt);//- overwrite default prompt
             return client.generate(LLM_MODEL, systemPrompt.getPrompt(), systemPrompt.getSystemPrompt()).getResponse();
         } catch (OllamaException e) {
             logger.error("Error generating ai ratio message: {}", e.getMessage(), e);
@@ -79,21 +98,45 @@ public class Radio implements IRadio {
     }
 
     private String cleanupAiAnswer(String answer) {
-        return unquote(answer);
+        return removeThinkingFromResponse(unquote(answer));
     }
 
     public void dispose() {
+    }
+
+    public String generateLlmAnswer(String id, String prompt, PromptTags tags, boolean silent) {
+        //lets not use ai for silent messages
+        if (!silent) {
+
+            long   time = System.currentTimeMillis();
+            String text = cleanupAiAnswer(askAi(id, prompt, tags));
+            if (text != null) {
+                long delta = System.currentTimeMillis() - time;
+                logger.info(String.format("LLM: '%s' - %dms", text, delta));
+                return text;
+            }
+        }
+        //not an AI message id
+        List<String> options = stringOptions.get(id);
+        if (options == null || options.isEmpty()) {
+            return null;
+        }
+        return options.get(random.nextInt(options.size()));
     }
 
     /**
      * Process messages one by one asynchronously.
      */
     private void generateSpokenMessages() {
-        synchronized (messagesLock) {
-            while (!radioRequests.isEmpty()) {
-                RadioMessage rm = radioRequests.removeFirst();
-                rm.getFrom().processRadioMessage(rm);//processed by the sender
+        try {
+            synchronized (messagesLock) {
+                while (!radioRequests.isEmpty()) {
+                    RadioMessage rm = radioRequests.removeFirst();
+                    rm.getFrom().processRadioMessage(rm);//processed by the sender
+                }
             }
+        } catch (Throwable t) {
+            logger.error(t.getMessage(), t);
         }
     }
 
@@ -141,29 +184,60 @@ public class Radio implements IRadio {
         systemPromptMap.put(id, systemPrompt);
     }
 
+    private String removeHtmlTags(String input, String regex) {
+        Pattern pattern = Pattern.compile(regex);
+        Matcher matcher = pattern.matcher(input);
+        while (matcher.find()) {
+            // Check if there's a capturing group before accessing it
+            if (matcher.groupCount() > 0) {
+                String content = matcher.group(1).trim();
+                logger.info(ANSI_BLUE + content + ANSI_RESET);
+            } else {
+                // For patterns without capturing groups, log the entire match
+                String content = matcher.group(0).trim();
+                logger.info(ANSI_BLUE + content + ANSI_RESET);
+            }
+        }
+        // Then remove the blocks
+        return input.replaceAll(regex, "").trim();
+    }
+
+    /**
+     * Extract the actual answer from AI response by removing thinking process.
+     */
+    private String removeThinkingFromResponse(String rawResponse) {
+        if (rawResponse == null || rawResponse.trim().isEmpty()) {
+            return rawResponse;
+        }
+
+        String response = rawResponse.trim();
+
+        // Remove content between thinking tags
+        response = removeHtmlTags(response, "(?s)<think>.*?</think>");
+//        response = response.replaceAll("(?s)<think>.*?</think>", "").trim();
+        response = removeHtmlTags(response, "(?s)<thinking>.*?</thinking>");
+//        response = response.replaceAll("(?s)<thinking>.*?</thinking>", "").trim();
+        response = removeHtmlTags(response, "(?s)<!--\\s*thinking.*?-->");
+//        response = response.replaceAll("(?s)<!--\\s*thinking.*?-->", "").trim();
+
+        response = removeHtmlTags(response, "(?m)^(Thinking:|Let me think:).*$");
+        // Remove lines that start with reasoning markers
+//        response = response.replaceAll("(?m)^(Thinking:|Let me think:).*$", "").trim();
+
+        // Extract content after answer markers
+        if (response.matches("(?s).*\\b(Answer|Result|Output):\\s*(.*)")) {
+            String[] parts = response.split("\\b(?:Answer|Result|Output):\\s*", 2);
+            if (parts.length > 1) {
+                response = parts[1].trim();
+            }
+        }
+
+        return response.isEmpty() ? rawResponse : response;
+    }
+
     @Override
     public void renderRadio() throws OpenAlException {
         ttsPlayer.play();
-    }
-
-    public String resolveString(String id, PromptTags tags, boolean silent) {
-        //lets not use ai for silent messages
-        if (!silent) {
-
-            long   time = System.currentTimeMillis();
-            String text = cleanupAiAnswer(askAi(id, tags));
-            if (text != null) {
-                long delta = System.currentTimeMillis() - time;
-                logger.info(String.format("LLM: '%s' - %dms", text, delta));
-                return text;
-            }
-        }
-        //not an AI message id
-        List<String> options = stringOptions.get(id);
-        if (options == null || options.isEmpty()) {
-            return null;
-        }
-        return options.get(random.nextInt(options.size()));
     }
 
     public void say(RadioMessage msg) {

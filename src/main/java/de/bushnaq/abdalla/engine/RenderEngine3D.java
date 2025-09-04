@@ -1442,6 +1442,7 @@ public class RenderEngine3D<T extends IGameEngine> {
             camera.up.set(0, 1, 0);
             camera.update();
             camera.setDirty(true);
+//            logger.info("updateCameraXZ centerXD={} centerYD={} centerZD={}", centerXD, centerYD, centerZD);
         }
         // ...existing code...
         if (camera.isDirty()) {
@@ -1457,6 +1458,7 @@ public class RenderEngine3D<T extends IGameEngine> {
             m.translate(0, 0.2f, 0);
             m.rotate(xVector, -90);
             renderutils2Dxz.batch.setTransformMatrix(m);
+//            logger.info("camera was dirty");
         }
 //        if (testCase == 2) {
 ////            if (camera2D.isDirty())
@@ -1594,6 +1596,7 @@ public class RenderEngine3D<T extends IGameEngine> {
 
         if (useStaticCache) {
             if (camera.isDirty()) {
+//                logger.info("camera is dirty - updating static model instance cache");
                 visibleStaticGameObjectCount = 0;
                 visibleStaticModelInstances.clear();
                 visibleStaticGameObjects.clear();
@@ -1616,6 +1619,7 @@ public class RenderEngine3D<T extends IGameEngine> {
                 staticCacheDirty = false;
             }
             if (staticCacheDirty) {
+//                logger.info("static cache is dirty - updating static model instance cache");
                 // there were visible instances added or removed
                 visibleStaticGameObjectCount = 0;
                 if (render3D) staticCache.begin(camera);

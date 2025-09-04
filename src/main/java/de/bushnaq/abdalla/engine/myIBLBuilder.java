@@ -59,22 +59,22 @@ import java.util.zip.Deflater;
  * @author mgsx
  */
 public class myIBLBuilder implements Disposable {
-    private static final Matrix4       matrix          = new Matrix4();
-    public final         Color         farGroundColor  = new Color();
-    public final         Color         farSkyColor     = new Color();
-    public final         Array<Light>  lights          = new Array<Light>();
-    public final         Color         nearGroundColor = new Color();
-    public final         Color         nearSkyColor    = new Color();
-    private final        Logger        logger          = LoggerFactory.getLogger(this.getClass());
-    private final        String        outputDirectory;
-    private final        ShaderProgram sunShader;
-    public               boolean       renderGradient  = true;
-    public               boolean       renderSun       = true;
-    String              folder;
-    File                folderFile;
-    Map<String, String> sideNameMap = new HashMap<>();
-    private ShapeRenderer shapes;
-    private ShapeRenderer sunShapes;
+    private static final Matrix4             matrix          = new Matrix4();
+    public final         Color               farGroundColor  = new Color();
+    public final         Color               farSkyColor     = new Color();
+    private              String              folder;
+    private              File                folderFile;
+    public final         Array<Light>        lights          = new Array<Light>();
+    private final        Logger              logger          = LoggerFactory.getLogger(this.getClass());
+    public final         Color               nearGroundColor = new Color();
+    public final         Color               nearSkyColor    = new Color();
+    private final        String              outputDirectory;
+    public               boolean             renderGradient  = true;
+    public               boolean             renderSun       = true;
+    private final        ShapeRenderer       shapes;
+    private final        Map<String, String> sideNameMap     = new HashMap<>();
+    private final        ShaderProgram       sunShader;
+    private final        ShapeRenderer       sunShapes;
 
     public myIBLBuilder(String outputDirectory) {
         this.outputDirectory = outputDirectory;
@@ -94,17 +94,6 @@ public class myIBLBuilder implements Disposable {
         sideNameMap.put("NegativeY", "negy");
         sideNameMap.put("PositiveZ", "posz");
         sideNameMap.put("NegativeZ", "negz");
-    }
-
-    private static void renderName(int size, CustomizedSpriteBatch batch, BitmapFont font, CubemapSide side) {
-        batch.setProjectionMatrix(new OrthographicCamera(size, size).combined);
-        batch.begin();
-        final GlyphLayout layout = new GlyphLayout();
-        String            text   = side.name();
-        layout.setText(font, text);
-        font.setColor(Color.WHITE);
-        font.draw(batch, text, -layout.width / 2, -layout.height / 2);
-        batch.end();
     }
 
     /**
@@ -150,6 +139,17 @@ public class myIBLBuilder implements Disposable {
 
     /**
      * Creates an irradiance map, to be used with {@link net.mgsx.gltf.scene3d.attributes.PBRCubemapAttribute#DiffuseEnv}
+     * <p>
+     * What it is:
+     * - A blurred version of the environment map that contains only low-frequency lighting information.
+     * <p>
+     * Usage:
+     * - Simulates diffuse lighting: how rough/matte surfaces scatter light from the environment.
+     * - Achieved by convolving the environment map with a diffuse BRDF (essentially averaging).
+     * <p>
+     * Effect on scene:
+     * - Gives soft ambient light on objects.
+     * - Ensures diffuse materials (like wood, cloth, concrete) are realistically affected by the environment.
      *
      * @param size  base size (width and height) for generated cubemap
      * @param batch
@@ -249,8 +249,8 @@ public class myIBLBuilder implements Disposable {
             Color aveGnd     = this.farGroundColor.cpy().lerp(this.nearGroundColor, 0.5F);
             Color ave        = aveSky.cpy().lerp(aveGnd, 0.5F);
             Color aveHorizon = this.farGroundColor.cpy().lerp(this.farSkyColor, 0.5F);
-            float t2         = 1.0F - (float) Math.pow((double) (1.0F - blur), 4.0);
-            float t          = 1.0F - (float) Math.pow((double) (1.0F - blur), 1.0);
+            float t2         = 1.0F - (float) Math.pow(1.0F - blur, 4.0);
+            float t          = 1.0F - (float) Math.pow(1.0F - blur, 1.0);
             Color ngc        = this.nearGroundColor.cpy().lerp(ave, t);
             Color nsc        = this.nearSkyColor.cpy().lerp(ave, t);
             Color fgc        = this.farGroundColor.cpy().lerp(aveHorizon, t2).lerp(ave, t);
@@ -284,6 +284,17 @@ public class myIBLBuilder implements Disposable {
 
         Gdx.gl.glDisable(GL20.GL_BLEND);
         Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+    }
+
+    private static void renderName(int size, CustomizedSpriteBatch batch, BitmapFont font, CubemapSide side) {
+        batch.setProjectionMatrix(new OrthographicCamera(size, size).combined);
+        batch.begin();
+        final GlyphLayout layout = new GlyphLayout();
+        String            text   = side.name();
+        layout.setText(font, text);
+        font.setColor(Color.WHITE);
+        font.draw(batch, text, -layout.width / 2, -layout.height / 2);
+        batch.end();
     }
 
     public static class Light {

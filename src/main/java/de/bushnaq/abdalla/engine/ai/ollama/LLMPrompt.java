@@ -1,9 +1,13 @@
 package de.bushnaq.abdalla.engine.ai.ollama;
 
 import de.bushnaq.abdalla.engine.ai.PromptTags;
+import lombok.Getter;
+import lombok.Setter;
 
+@Getter
 public class LLMPrompt {
-    private final String prompt;
+    @Setter
+    private       String prompt;
     private final String systemPrompt;
 
     public LLMPrompt(String prompt, String systemPrompt) {
@@ -16,11 +20,4 @@ public class LLMPrompt {
         this.systemPrompt = tags.replaceAllPreTags(other.systemPrompt);
     }
 
-    public String getPrompt() {
-        return prompt;
-    }
-
-    public String getSystemPrompt() {
-        return systemPrompt;
-    }
 }

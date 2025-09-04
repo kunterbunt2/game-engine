@@ -30,6 +30,7 @@ public class RadioMessage {
     private final String       messageId;
     @Setter
     private       List<String> messages = new ArrayList<>();
+    private       RadioMessage originalRequest;
     private final boolean      silent;
     private final PromptTags   tags;
     @Setter
@@ -49,15 +50,16 @@ public class RadioMessage {
         addMessage(message);
     }
 
-    public RadioMessage(boolean silent, RadioChannel from, RadioChannel to, String messageId, PromptTags tags) {
-        this.silent    = silent;
-        this.from      = from;
-        this.to        = to;
-        this.messageId = messageId;
-        this.tags      = tags;
-        this.time      = 0;
-        this.timeSent  = 0;
-        this.endTime   = 0;
+    public RadioMessage(boolean silent, RadioChannel from, RadioMessage originalRequest, RadioChannel to, String messageId, PromptTags tags) {
+        this.silent          = silent;
+        this.from            = from;
+        this.originalRequest = originalRequest;
+        this.to              = to;
+        this.messageId       = messageId;
+        this.tags            = tags;
+        this.time            = 0;
+        this.timeSent        = 0;
+        this.endTime         = 0;
     }
 
 //    public static String addCommaAndSpace(String input) {
@@ -96,6 +98,16 @@ public class RadioMessage {
         for (String message : messages)
             duration += message.length() * 120L;
         return duration;
+    }
+
+    public String getAggregatedMessages() {
+        StringBuilder sb = new StringBuilder();
+        for (String message : messages) {
+            if (!sb.isEmpty())
+                sb.append(". ");
+            sb.append(message);
+        }
+        return sb.toString();
     }
 
     public boolean isFinished() {

@@ -19,11 +19,15 @@ package de.bushnaq.abdalla.engine.camera;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector3;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * @author kunterbunt
  */
 public class MovingCamera extends PerspectiveCamera {
+    @Setter
+    @Getter
     boolean dirty = false;
     public Vector3 lookat   = new Vector3(0f, 0f, 0f);
     public Vector3 velocity = new Vector3(0f, 0f, 0f);
@@ -51,18 +55,10 @@ public class MovingCamera extends PerspectiveCamera {
         // return camAngle;
     }
 
-    public boolean isDirty() {
-        return dirty;
-    }
-
     @Override
     public void lookAt(final float x, final float y, final float z) {
         lookat.set(x, y, z);
         super.lookAt(x, y, z);
-    }
-
-    public void setDirty(final boolean dirty) {
-        this.dirty = dirty;
     }
 
 }

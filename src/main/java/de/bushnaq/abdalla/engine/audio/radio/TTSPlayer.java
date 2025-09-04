@@ -22,6 +22,7 @@ import de.bushnaq.abdalla.engine.audio.AbstractAudioProducer;
 import de.bushnaq.abdalla.engine.audio.AudioEngine;
 import de.bushnaq.abdalla.engine.audio.OpenAlException;
 import de.bushnaq.abdalla.engine.audio.OpenAlSource;
+import lombok.Setter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,6 +51,7 @@ public class TTSPlayer extends AbstractAudioProducer {
     private final DateTimeFormatter        formatter           = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     private final Logger                   logger              = LoggerFactory.getLogger(this.getClass());
     private final Object                   messagesLock        = new Object(); // Lock for thread-safe access to messages
+    @Setter
     private       boolean                  optIn               = true;//by default ttsPlayer is opting out, which means that it is disabled by  the AudioEngine
     private       ScheduledExecutorService silentMessageChecker;
     private final Queue<RadioMessage>      silentMessages      = new PriorityQueue<>(Comparator.comparing(RadioMessage::getEndTime));//first message is always first to end
@@ -100,35 +102,39 @@ public class TTSPlayer extends AbstractAudioProducer {
      * Check if the first message in the queue is a silent message that has expired
      */
     private void checkSilentMessages() {
-        synchronized (messagesLock) {
-            //if the earliest message to end has finished, check all others
-            while (!silentMessages.isEmpty() && silentMessages.peek().isFinished()) {
-                RadioMessage rm = silentMessages.poll();
+        try {
+            synchronized (messagesLock) {
+                //if the earliest message to end has finished, check all others
+                while (!silentMessages.isEmpty() && silentMessages.peek().isFinished()) {
+                    RadioMessage rm = silentMessages.poll();
 //                logger.debug("Removed expired silent message: {} (expired at {}ms, current time {}ms)", rm.message, rm.getEndTime(), System.currentTimeMillis());
-                // Notify the partner that the silent message is finished
-                if (rm.getTo() != null) {
-                    rm.getTo().notifyFinishedTalking(rm);
+                    // Notify the partner that the silent message is finished
+                    if (rm.getTo() != null) {
+                        rm.getTo().notifyFinishedTalking(rm);
+                    }
                 }
             }
+        } catch (Throwable t) {
+            logger.error(t.getMessage(), t);
         }
     }
 
     private void checkSpokenMessages() {
-        synchronized (messagesLock) {
-            if (spokenMessageList.isEmpty())
-                return;
-            spokenRadioMessage = spokenMessageList.removeFirst();
-        }
         try {
+            synchronized (messagesLock) {
+                if (spokenMessageList.isEmpty())
+                    return;
+                spokenRadioMessage = spokenMessageList.removeFirst();
+            }
             for (int i = 0; i < spokenRadioMessage.getMessages().size(); i++) {
-                byte[] wavFileBytes = CoquiTTS.generateMinionSpeech(spokenRadioMessage.getTags().removeAllPostTags(spokenRadioMessage.getMessages().get(i)), spokenRadioMessage.getFrom().getId(), 1.2f, 1.1f, 1.1f);
+                byte[] wavFileBytes = CoquiTTS.generateMinionSpeech(spokenRadioMessage.getTags().removeAllPostTags(spokenRadioMessage.getMessages().get(i)), spokenRadioMessage.getFrom().getId(), 1.2f, 1.05f, 1.1f);
                 byte[] bytes        = extractAudioDataFromWav(wavFileBytes);
                 synchronized (messagesLock) {
                     spakenRadioWaveList.add(new RadioWave(bytes, spokenRadioMessage, i));
                 }
             }
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+        } catch (Throwable t) {
+            logger.error(t.getMessage(), t);
         }
     }
 
@@ -294,10 +300,6 @@ public class TTSPlayer extends AbstractAudioProducer {
                 byteBuffer.put(i * 2 + 1, (byte) byte2);
             }
         }
-    }
-
-    public void setOptIn(boolean optIn) {
-        this.optIn = optIn;
     }
 
     protected void setup(final int channels, final int samplerate) {
