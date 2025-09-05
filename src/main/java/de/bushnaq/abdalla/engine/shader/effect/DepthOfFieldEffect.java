@@ -32,35 +32,36 @@ import lombok.Setter;
 
 public class DepthOfFieldEffect<T extends IGameEngine> extends ShaderVfxEffect implements ChainVfxEffect {
 
-    public static final  float        DISTANT_FOCAL_DEPTH_MULTIPLIER = 5;
-    private static final String       Texture0                       = "u_sourceTexture";
-    private static final String       Texture1                       = "u_depthTexture";
+    public static final  float        DISTANT_FOCAL_DEPTH_DIST_MULTIPLIER  = 10;
+    public static final  float        DISTANT_FOCAL_DEPTH_START_MULTIPLIER = 2;
+    private static final String       Texture0                             = "u_sourceTexture";
+    private static final String       Texture1                             = "u_depthTexture";
     @Getter
     private final        MovingCamera camera;
     @Getter
-    private              boolean      enabled                        = false;
+    private              boolean      enabled                              = false;
     @Getter
-    private              float        focalDepth                     = 100f;
+    private              float        focalDepth                           = 100f;
     @Getter
-    private              float        farDofStart                    = focalDepth / 20f;
+    private              float        farDofStart                          = focalDepth / 20f;
     @Getter
-    private              float        farDofDist                     = focalDepth * DISTANT_FOCAL_DEPTH_MULTIPLIER;
+    private              float        farDofDist                           = focalDepth * DISTANT_FOCAL_DEPTH_DIST_MULTIPLIER;
     @Setter
     @Getter
-    private              float        gain                           = 1;
+    private              float        gain                                 = 1;
     @Setter
     @Getter
-    private              float        maxblur                        = 1f;
+    private              float        maxblur                              = 1f;
     @Getter
-    private              float        nearDofDist                    = focalDepth * DISTANT_FOCAL_DEPTH_MULTIPLIER;
-    private final        boolean      nearDofEnabled                 = false;
+    private              float        nearDofDist                          = focalDepth * DISTANT_FOCAL_DEPTH_DIST_MULTIPLIER;
+    private final        boolean      nearDofEnabled                       = false;
     @Getter
-    private              float        nearDofStart                   = focalDepth / 20f;
+    private              float        nearDofStart                         = focalDepth / 20f;
     private final        FrameBuffer  postFbo;
-    private final        Vector2      resolution                     = new Vector2();
+    private final        Vector2      resolution                           = new Vector2();
     @Setter
     @Getter
-    private              float        threshold                      = .9f;
+    private              float        threshold                            = .9f;
     private final        VfxManager   vfxManager;
 
     public DepthOfFieldEffect(VfxManager vfxManager, final FrameBuffer postFbo, final MovingCamera camera) {
@@ -129,13 +130,13 @@ public class DepthOfFieldEffect<T extends IGameEngine> extends ShaderVfxEffect i
         this.focalDepth = focalDepth;
         if (nearDofEnabled) {
             nearDofStart = focalDepth / 20f;
-            nearDofDist  = focalDepth * DISTANT_FOCAL_DEPTH_MULTIPLIER;
+            nearDofDist  = focalDepth * DISTANT_FOCAL_DEPTH_DIST_MULTIPLIER;
         } else {
-            nearDofStart = focalDepth * DISTANT_FOCAL_DEPTH_MULTIPLIER;
-            nearDofDist  = focalDepth * DISTANT_FOCAL_DEPTH_MULTIPLIER;
+            nearDofStart = focalDepth * DISTANT_FOCAL_DEPTH_DIST_MULTIPLIER;
+            nearDofDist  = focalDepth * DISTANT_FOCAL_DEPTH_DIST_MULTIPLIER;
         }
-        farDofStart = focalDepth / 20f;
-        farDofDist  = focalDepth * DISTANT_FOCAL_DEPTH_MULTIPLIER;
+        farDofStart = focalDepth * DISTANT_FOCAL_DEPTH_START_MULTIPLIER;
+        farDofDist  = focalDepth * DISTANT_FOCAL_DEPTH_DIST_MULTIPLIER;
     }
 
     @Override

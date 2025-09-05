@@ -1150,7 +1150,7 @@ public class RenderEngine3D<T extends IGameEngine> {
                             //the further the light, the bigger the bokeh
                             float size;
                             if (depth > focalDepth) {
-                                size = 8 * ((depth - focalDepth - depthOfFieldEffect.getFarDofStart()) / (depthOfFieldEffect.getFarDofDist() - depthOfFieldEffect.getFarDofStart()));
+                                size = 8 * ((depth - depthOfFieldEffect.getFarDofStart()) / (depthOfFieldEffect.getFarDofDist() - depthOfFieldEffect.getFarDofStart()));
                             } else {
 //                                size = 8 * ((focalDepth - depth - depthOfFieldEffect.getNearDofStart()) / (depthOfFieldEffect.getNearDofDist() - depthOfFieldEffect.getNearDofStart()));
                                 break;
