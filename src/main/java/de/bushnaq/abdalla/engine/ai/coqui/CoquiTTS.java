@@ -101,7 +101,7 @@ public class CoquiTTS {
 //        System.out.println("TTS service response code: " + responseCode);
         if (responseCode != 200) {
             String error = readProcessOutput(conn.getErrorStream());
-            throw new RuntimeException("TTS service returned error " + responseCode + ": " + error);
+            throw new RuntimeException("TTS service returned error " + responseCode + ": " + error + " for text: '" + text + "'.");
         }
 
         // Read the audio data

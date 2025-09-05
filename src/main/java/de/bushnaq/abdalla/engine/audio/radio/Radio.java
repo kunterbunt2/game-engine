@@ -98,7 +98,7 @@ public class Radio implements IRadio {
     }
 
     private String cleanupAiAnswer(String answer) {
-        return removeThinkingFromResponse(unquote(answer));
+        return removeUnwantedCharactersFromReponse(removeThinkingFromResponse(unquote(answer)));
     }
 
     public void dispose() {
@@ -230,6 +230,10 @@ public class Radio implements IRadio {
         response = response.replaceAll("</?think(?:ing)?>", "");
 
         return response.isEmpty() ? rawResponse : response;
+    }
+
+    private String removeUnwantedCharactersFromReponse(String rawResponse) {
+        return rawResponse.replaceAll("<[^>]+>", "").trim();
     }
 
     @Override

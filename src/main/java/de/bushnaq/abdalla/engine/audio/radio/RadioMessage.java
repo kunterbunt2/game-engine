@@ -83,7 +83,7 @@ public class RadioMessage {
         for (String string : strings) {
             string = string.trim();
             if (!string.isBlank()) {
-                messages.add(string.trim());
+                messages.add(string);
             }
         }
     }
