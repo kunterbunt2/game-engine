@@ -14,9 +14,9 @@ import com.badlogic.gdx.scenes.scene2d.ui.Label;
 public class RichLabel extends Label {
     private final Color         backgroundColor = new Color(0, 0, 0, 0.8f);
     private final TextureRegion backgroundTexture;
-    private final GlyphLayout   layout   = new GlyphLayout();
-    private       float         paddingH = 6f;
-    private float         paddingV        = 3f;
+    private final GlyphLayout   layout          = new GlyphLayout();
+    private       float         paddingH        = 6f;
+    private       float         paddingV        = 3f;
 
     public RichLabel(CharSequence text, LabelStyle style, TextureRegion backgroundTexture) {
         super(text, style);
@@ -29,8 +29,7 @@ public class RichLabel extends Label {
         // Draw background first
         if (backgroundTexture != null) {
             Color originalColor = batch.getColor();
-            batch.setColor(backgroundColor.r, backgroundColor.g, backgroundColor.b,
-                    backgroundColor.a * parentAlpha);
+            batch.setColor(backgroundColor.r, backgroundColor.g, backgroundColor.b, backgroundColor.a * parentAlpha);
             batch.draw(backgroundTexture, getX(), getY(), getWidth(), getHeight());
             batch.setColor(originalColor);
         }
