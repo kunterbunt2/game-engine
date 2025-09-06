@@ -1057,6 +1057,7 @@ public class RenderEngine3D<T extends IGameEngine> {
         renderEffects();
         render2DText();
         if (render3D) renderFbos(takeScreenShot);
+//        if (gammaCorrected) Gdx.gl30.glDisable(org.lwjgl.opengl.GL30.GL_FRAMEBUFFER_SRGB);
     }
 
     private void render2DText() {

@@ -34,6 +34,8 @@ public interface IGameEngine {
 
     ISubtitles getSubtitles();
 
+    boolean isPaused();
+
     void render2Dxz();
 
     boolean updateEnvironment(final float timeOfDay);

@@ -26,4 +26,22 @@ public class ColorUtil {
 //        return new Color(c1.r * f1 + c2.r * f2, c1.g * f1 + c2.g * f2, c1.b * f1 + c2.b * f2, c1.a * f1 + c2.a * f2);
         return new Color(c1.r * f1 + c2.r * f2, c1.g * f1 + c2.g * f2, c1.b * f1 + c2.b * f2, 1f);
     }
+
+    public static Color srgbToLinear(Color srgb) {
+        return new Color(
+                toLinear(srgb.r),
+                toLinear(srgb.g),
+                toLinear(srgb.b),
+                srgb.a
+        );
+    }
+
+    private static float toLinear(float c) {
+        // sRGB -> linear conversion
+        if (c <= 0.04045f) {
+            return c / 12.92f;
+        } else {
+            return (float) Math.pow((c + 0.055f) / 1.055f, 2.4);
+        }
+    }
 }

@@ -35,6 +35,7 @@ import de.bushnaq.abdalla.engine.audio.AudioEngine;
 import de.bushnaq.abdalla.engine.audio.OpenAlException;
 import de.bushnaq.abdalla.engine.audio.radio.Radio;
 import de.bushnaq.abdalla.engine.camera.MovingCamera;
+import lombok.Getter;
 import net.mgsx.gltf.scene3d.attributes.PBRCubemapAttribute;
 import net.mgsx.gltf.scene3d.attributes.PBRFloatAttribute;
 import net.mgsx.gltf.scene3d.attributes.PBRTextureAttribute;
@@ -47,35 +48,39 @@ import java.util.ArrayList;
 import java.util.List;
 
 public abstract class BasicGameEngine implements ApplicationListener, InputProcessor, IGameEngine {
-    private static final float                 CAMERA_OFFSET_X = 300f;
-    private static final float                 CAMERA_OFFSET_Y = 500f;
-    private static final float                 CAMERA_OFFSET_Z = 400f;
-    private              BasicAtlasManager     atlasManager;
-    private final        AudioEngine           audioEngine     = new BasicAudioEngine();
-    private              Texture               brdfLUT;
-    private              CameraInputController camController;
-    public               MovingCamera          camera;
-    private              OrthographicCamera    camera2D;
-    public               Context               context;
-    private              long                  currentTime     = 0L;
-    protected            Cubemap               diffuseCubemap;
-    Cubemap environmentCubemap;
+    private static final float                           CAMERA_OFFSET_X  = 300f;
+    private static final float                           CAMERA_OFFSET_Y  = 500f;
+    private static final float                           CAMERA_OFFSET_Z  = 400f;
+    private              BasicAtlasManager               atlasManager;
+    @Getter
+    private final        AudioEngine                     audioEngine      = new BasicAudioEngine();
+    private              Texture                         brdfLUT;
+    private              CameraInputController           camController;
+    public               MovingCamera                    camera;
+    private              OrthographicCamera              camera2D;
+    public               Context                         context;
+    private              long                            currentTime      = 0L;
+    protected            Cubemap                         diffuseCubemap;
+    private              Cubemap                         environmentCubemap;
     //    private              BitmapFont                      font;
-    private       boolean hrtfEnabled    = true;
-    private final Matrix4 identityMatrix = new Matrix4();
-    InputMultiplexer inputMultiplexer = new InputMultiplexer();
-    private final List<Label>                     labels          = new ArrayList<>();
-    private       long                            lastTime        = 0;
-    private final Logger                          logger          = LoggerFactory.getLogger(this.getClass());
-    private final BasicRandomGenerator            randomGenerator = new BasicRandomGenerator(1);
-    public        RenderEngine3D<BasicGameEngine> renderEngine;
+    private              boolean                         hrtfEnabled      = true;
+    private final        Matrix4                         identityMatrix   = new Matrix4();
+    private final        InputMultiplexer                inputMultiplexer = new InputMultiplexer();
+    private final        List<Label>                     labels           = new ArrayList<>();
+    private              long                            lastTime         = 0;
+    private final        Logger                          logger           = LoggerFactory.getLogger(this.getClass());
+    @Getter
+    private final        BasicRandomGenerator            randomGenerator  = new BasicRandomGenerator(1);
+    @Getter
+    public               RenderEngine3D<BasicGameEngine> renderEngine;
     //    private       boolean                         simulateBassBoost = true;
-    protected     Cubemap                         specularCubemap;
-    private       Stage                           stage;
-    private       StringBuilder                   stringBuilder;
-    private final ISubtitles                      subtitles       = new BasicSubtitles();
-    private       boolean                         takeScreenShot  = false;
-    private       long                            timeDelta       = 0L;
+    protected            Cubemap                         specularCubemap;
+    private              Stage                           stage;
+    private              StringBuilder                   stringBuilder;
+    @Getter
+    private final        ISubtitles                      subtitles        = new BasicSubtitles();
+    private              boolean                         takeScreenShot   = false;
+    private              long                            timeDelta        = 0L;
 
     public void advanceInTime() {
         long fixedDelta = 20L;
@@ -222,10 +227,6 @@ public abstract class BasicGameEngine implements ApplicationListener, InputProce
         return atlasManager;
     }
 
-    public AudioEngine getAudioEngine() {
-        return audioEngine;
-    }
-
     @Override
     public CameraInputController getCamController() {
         return camController;
@@ -240,19 +241,11 @@ public abstract class BasicGameEngine implements ApplicationListener, InputProce
         return audioEngine.radio;
     }
 
-    public BasicRandomGenerator getRandomGenerator() {
-        return randomGenerator;
+    public boolean isPaused() {
+        return false;
     }
 
-    public RenderEngine3D<BasicGameEngine> getRenderEngine() {
-        return renderEngine;
-    }
-
-    public ISubtitles getSubtitles() {
-        return subtitles;
-    }
-
-//    public boolean isSimulateBassBoost() {
+    //    public boolean isSimulateBassBoost() {
 //        return simulateBassBoost;
 //    }
 
