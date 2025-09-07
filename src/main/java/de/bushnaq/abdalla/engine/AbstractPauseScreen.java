@@ -156,7 +156,7 @@ public abstract class AbstractPauseScreen {
 
         // Create resume instruction label
         Label.LabelStyle resumeStyle = new Label.LabelStyle(menuFont, DESCRIPTION_COLOR);
-        resumeLabel = new RichLabel("Press ESC to Resume", resumeStyle, atlasRegion);
+        resumeLabel = new RichLabel("Press Space to Resume", resumeStyle, atlasRegion);
         resumeLabel.setBackgroundColor(new Color(0.2f, 0.2f, 0.2f, 0.8f));
 
         stage.addActor(titleLabel);
@@ -574,7 +574,7 @@ public abstract class AbstractPauseScreen {
         return gameEngine.isPaused();
     }
 
-    public void render(float deltaTime) {
+    public void render(float deltaTime, boolean showKeyAssignments) {
         Batch batch = gameEngine.getRenderEngine().renderEngine2D.batch;
         if (!isPaused()) return;
 
@@ -591,11 +591,11 @@ public abstract class AbstractPauseScreen {
 
         // End batch to draw shapes
         batch.end();
-
-        // Draw keyboard layout and connecting lines
-        drawKeyboardLayout();
-        drawLegend();
-
+        if (showKeyAssignments) {
+            // Draw keyboard layout and connecting lines
+            drawKeyboardLayout();
+            drawLegend();
+        }
         // Restart batch for any additional rendering
         batch.begin();
     }
