@@ -336,7 +336,6 @@ public class AudioEngine {
     //	Mp3PlayerFactory mp3PlayerFactory = new Mp3PlayerFactory();
 
     public void dispose() throws OpenAlException {
-        radio.dispose();
         for (final AudioProducer synth : synths) {
             synth.dispose();
         }

@@ -18,7 +18,9 @@ package de.bushnaq.abdalla.engine.audio;
 
 import com.badlogic.gdx.math.Vector3;
 import lombok.Getter;
+import lombok.Setter;
 import org.lwjgl.openal.AL10;
+import org.lwjgl.openal.ALC10;
 import org.lwjgl.openal.EXTEfx;
 import org.lwjgl.system.libc.LibCStdlib;
 import org.slf4j.Logger;
@@ -55,6 +57,7 @@ public class OpenAlSource extends Thread {
     private volatile     boolean                   end                  = false;
     private              int                       filter;
     private              float                     gain;
+    @Setter
     @Getter
     private              boolean                   keepCopy             = false;
     //	private long lastIndex = 0;
@@ -62,6 +65,7 @@ public class OpenAlSource extends Thread {
     private              boolean                   play;//source should be in play state
     private final        Vector3                   position             = new Vector3();//last position submitted to openal
     private final        boolean                   radio;
+    @Getter
     private              int                       restartedSourceCount = 0;
     private              int                       samplerate;
     @Getter
@@ -178,6 +182,7 @@ public class OpenAlSource extends Thread {
 
     void dispose() throws OpenAlException {
         end = true;
+        boolean isSource1 = AL10.alIsSource(source);
         unparkThread();
         //wait for the thread to terminate before manipulating any objects
         while (this.isAlive()) {
@@ -187,13 +192,12 @@ public class OpenAlSource extends Thread {
                 logger.error(e.getMessage(), e);
             }
         }
+        boolean isSource2 = AL10.alIsSource(source);
         removeFilter();
+        boolean isSource3      = AL10.alIsSource(source);
+        long    currentContext = ALC10.alcGetCurrentContext();
         removeSource();
         removeBuffers();
-    }
-
-    public int getRestartedSourceCount() {
-        return restartedSourceCount;
     }
 
     boolean isPlay() throws OpenAlException {
@@ -416,10 +420,6 @@ public class OpenAlSource extends Thread {
     public void setGain(final float gain) throws OpenAlException {
         AL10.alSourcef(source, AL10.AL_GAIN, gain);
         AudioEngine.checkAlError(audio.getName(), "Failed alSourcef AL_GAIN with error #");
-    }
-
-    public void setKeepCopy(final boolean keepCopy) {
-        this.keepCopy = keepCopy;
     }
 
     public void setPosition(final float[] position) throws OpenAlException {

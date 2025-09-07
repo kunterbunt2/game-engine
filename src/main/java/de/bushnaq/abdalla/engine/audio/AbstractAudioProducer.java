@@ -80,7 +80,7 @@ public abstract class AbstractAudioProducer implements AudioProducer {
 
     @Override
     public void dispose() throws OpenAlException {
-        if (ignore)
+        if (!ignore)
             if (isEnabled()) source.dispose();
     }
 

@@ -101,9 +101,6 @@ public class Radio implements IRadio {
         return removeUnwantedCharactersFromReponse(removeThinkingFromResponse(unquote(answer)));
     }
 
-    public void dispose() {
-    }
-
     public String generateLlmAnswer(String id, String prompt, PromptTags tags, boolean silent) {
         //lets not use ai for silent messages
         if (!silent) {
