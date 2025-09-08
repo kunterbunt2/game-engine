@@ -48,7 +48,7 @@ public class OscillatorGainTest {
     public void gainTest() throws Exception {
         final BasicAudioEngine audioEngine = new BasicAudioEngine(44100 * 5);
         createCamera();
-        audioEngine.create(null);
+        audioEngine.create();
         {
             final Synthesizer synth = audioEngine.createAudioProducer(ExampleSynthesizer.class, "OscillatorGainTest.gainTest");
             audioEngine.begin(camera, true);

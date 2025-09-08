@@ -39,17 +39,6 @@ import java.util.regex.Pattern;
  * used to communicate between CommunicationPartners.
  */
 public class Radio implements IRadio {
-    //    private String removeHtmlTags(String input, String regex) {
-//        // Find and print all <think> blocks before removing them
-//        Pattern thinkPattern = Pattern.compile(regex);
-//        Matcher matcher      = thinkPattern.matcher(input);
-//        while (matcher.find()) {
-//            String thinkContent = matcher.group(1).trim();
-//            logger.info("Think block: {}", thinkContent);
-//        }
-//        // Then remove the blocks
-//        return input.replaceAll(regex, "").trim();
-//    }
     private static final String                    ANSI_BLUE       = "\u001B[36m";
     private static final String                    ANSI_GRAY       = "\u001B[37m";
     private static final String                    ANSI_GREEN      = "\u001B[32m";
@@ -57,10 +46,7 @@ public class Radio implements IRadio {
     private static final String                    ANSI_RESET      = "\u001B[0m";    // Declaring ANSI_RESET so that we can reset the color
     private static final String                    ANSI_YELLOW     = "\u001B[33m";
     private static final Pattern                   KEY_PATTERN     = Pattern.compile("(.+)\\.(\\d+)$");
-    //    private static final String                    LLM_MODEL       = "llama3.2:3b";//too many mistakes, ubt fast 400ms for short sentence
-    //    private static final String                    LLM_MODEL       = "gemma3n:latest";//4b, much better, but slow: 2500ms for short sentence
     private static final String                    LLM_MODEL       = "dolphin-mistral";//7b, fantastic, but slow 1500ms for short sentence
-    //    private static final String                    LLM_MODEL       = "mistral-openorca:7b";
     private static final OllamaClient              client          = new OllamaClient();
     private final        AudioEngine               audioEngine;
     private final        Logger                    logger          = LoggerFactory.getLogger(this.getClass());
@@ -90,7 +76,9 @@ public class Radio implements IRadio {
             LLMPrompt systemPrompt = new LLMPrompt(systemPromptMap.get(id), tags);
             if (prompt != null && !prompt.isEmpty())
                 systemPrompt.setPrompt(prompt);//- overwrite default prompt
-            return client.generate(LLM_MODEL, systemPrompt.getPrompt(), systemPrompt.getSystemPrompt()).getResponse();
+            String response = client.generate(LLM_MODEL, systemPrompt.getPrompt(), systemPrompt.getSystemPrompt()).getResponse();
+            logger.info(response);
+            return response;
         } catch (OllamaException e) {
             logger.error("Error generating ai ratio message: {}", e.getMessage(), e);
             return null;

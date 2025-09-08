@@ -120,7 +120,7 @@ public abstract class BasicGameEngine implements ApplicationListener, InputProce
 
             renderEngine.setShowGraphs(true);
             createEnvironment();
-            getAudioEngine().create("E:/github/game-engine/app/assets");
+            getAudioEngine().create();
             audioEngine.radio.loadResource(this.getClass());
 //            audioEngine.radio.loadAudio();
         } catch (final Exception e) {

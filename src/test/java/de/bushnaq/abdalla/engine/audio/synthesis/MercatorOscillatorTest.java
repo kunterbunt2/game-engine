@@ -53,7 +53,7 @@ public class MercatorOscillatorTest {
     @Test
     public void renderPerformanceTest() throws Exception {
         final BasicAudioEngine audioEngine = new BasicAudioEngine();
-        audioEngine.create(null);
+        audioEngine.create();
         createCamera();
         final int               numberOfSources = audioEngine.getMaxMonoSources();
         final List<Synthesizer> synths          = new ArrayList<>();
@@ -78,7 +78,7 @@ public class MercatorOscillatorTest {
     @Test
     public void renderTest() throws Exception {
         final BasicAudioEngine audioEngine = new BasicAudioEngine(44100 * 5);
-        audioEngine.create(null);
+        audioEngine.create();
         createCamera();
         {
             final Synthesizer synth = audioEngine.createAudioProducer(ExampleSynthesizer.class, "MercatorOscillatorTest.renderTest");

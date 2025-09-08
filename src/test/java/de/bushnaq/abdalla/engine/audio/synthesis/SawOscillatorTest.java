@@ -57,7 +57,7 @@ public class SawOscillatorTest {
     @Test
     public void renderPerformanceTest() throws Exception {
         final SawAudioEngine audioEngine = new SawAudioEngine();
-        audioEngine.create(null);
+        audioEngine.create();
         createCamera();
         final int               numberOfSources = audioEngine.getMaxMonoSources();
         final List<Synthesizer> synths          = new ArrayList<>();
@@ -82,7 +82,7 @@ public class SawOscillatorTest {
     @Test
     public void renderSpeedTest() throws Exception {
         final SawAudioEngine audioEngine = new SawAudioEngine();
-        audioEngine.create(null);
+        audioEngine.create();
         createCamera();
         {
             final SawSynthesizer synth = audioEngine.createAudioProducer(SawSynthesizer.class, "SawOscillatorTest.renderSpeedTest");
@@ -128,7 +128,7 @@ public class SawOscillatorTest {
     @Test
     public void renderTest() throws Exception {
         final SawAudioEngine audioEngine = new SawAudioEngine();
-        audioEngine.create(null);
+        audioEngine.create();
         createCamera();
         {
             final Synthesizer synth = audioEngine.createAudioProducer(SawSynthesizer.class, "SawOscillatorTest.renderTest");
