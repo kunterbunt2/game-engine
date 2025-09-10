@@ -19,6 +19,15 @@ package de.bushnaq.abdalla.engine.util;
 import com.badlogic.gdx.graphics.Color;
 
 public class ColorUtil {
+
+    /**
+     * Mix two colors.
+     *
+     * @param c1 First color.
+     * @param c2 Second color.
+     * @param f1 Weight of the first color. Between 0 and 1.
+     * @return Mixed color.
+     */
     public static Color mix(Color c1, Color c2, float f1) {
         f1 = Math.max(f1, 0f);
         f1 = Math.min(f1, 1f);

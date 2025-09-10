@@ -29,11 +29,11 @@ import de.bushnaq.abdalla.engine.shader.util.ShaderCompatibilityHelper;
 public class Render2Dxz<T> {
     public CustomizedSpriteBatch batch;
     public Camera                camera;
-    public int                   height;
-    public int                   width;
-    T           gameEngine;
+    T gameEngine;
+    public int height;
     GlyphLayout layout = new GlyphLayout();
-    float       zoom   = 1.0f;
+    public int width;
+    float zoom = 1.0f;
 
     public Render2Dxz(T gameEngine, Camera camera) {
         this.gameEngine = gameEngine;
@@ -139,35 +139,37 @@ public class Render2Dxz<T> {
     }
 
     /**
-     * draw a label in the upper right corner of the center
+     * Draw a label with a line from the center of an object to the side.
      *
-     * @param textureRegion
-     * @param x
-     * @param y
-     * @param width
-     * @param height
-     * @param start
-     * @param end
-     * @param font
-     * @param lableColor
-     * @param name
-     * @param nameColor
-     * @param value
-     * @param valueColor
+     * @param textureRegion the texture to use for the line
+     * @param x             the x position of the center
+     * @param y             the y position of the center
+     * @param z             the z position of the center
+     * @param width         the width of the center
+     * @param height        the height of the center
+     * @param start         the start position of the label line
+     * @param end           the end position of the label line
+     * @param font          the font to use for the label
+     * @param labelColor    the color of the line
+     * @param name          the name to display
+     * @param nameColor     the color of the name
+     * @param value         the value to display
+     * @param valueColor    the color of the value
+     *
      */
     public void label(final TextureRegion textureRegion, float x, float y, float z, float width, float height, float start, float end,
-                      BitmapFont font, Color lableColor, String name, Color nameColor, String value, Color valueColor) {
+                      BitmapFont font, Color labelColor, String name, Color nameColor, String value, Color valueColor) {
 //        if (camera.frustum.sphereInFrustum(x, y, z, Math.max(width, height)))
         {
-            final float angle    = (float) (Math.PI / 6.0);
-            final float x1       = (float) (x + width / 2 + start * Math.sin(angle));
-            final float z1       = (float) (z - height / 2 + start * Math.cos(angle));
-            final float x2       = (float) (x + width / 2 + end * Math.sin(angle));
-            final float z2       = (float) (z - height / 2 + end * Math.cos(angle));
-            final float x3       = x2 + width * 3 * zoom;
-            final float thicknes = 2.0f * zoom;
-            line(textureRegion, x1, 0, z1, x2, 0, z2, lableColor, thicknes);
-            line(textureRegion, x2, 0, z2, x3, 0, z2, lableColor, thicknes);
+            final float angle     = (float) (Math.PI / 6.0);
+            final float x1        = (float) (x + width / 2 + start * Math.sin(angle));
+            final float z1        = (float) (z - height / 2 + start * Math.cos(angle));
+            final float x2        = (float) (x + width / 2 + end * Math.sin(angle));
+            final float z2        = (float) (z - height / 2 + end * Math.cos(angle));
+            final float x3        = x2 + width * 3 * zoom;
+            final float thickness = 4.0f * zoom;
+            line(textureRegion, x1, 0, z1, x2, 0, z2, labelColor, thickness);
+            line(textureRegion, x2, 0, z2, x3, 0, z2, labelColor, thickness);
             layout.setText(font, name);
             text(x2, y, (z2 - layout.height * 1.1f), font, nameColor, nameColor, name);
             layout.setText(font, value);

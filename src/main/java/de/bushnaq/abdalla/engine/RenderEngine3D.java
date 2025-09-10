@@ -63,6 +63,7 @@ import de.bushnaq.abdalla.engine.shader.mirror.Mirror;
 import de.bushnaq.abdalla.engine.shader.util.GL32CMacIssueHandler;
 import de.bushnaq.abdalla.engine.shader.util.ShaderCompatibilityHelper;
 import de.bushnaq.abdalla.engine.shader.water.Water;
+import de.bushnaq.abdalla.engine.util.ColorUtil;
 import de.bushnaq.abdalla.engine.util.ExtendedGLProfiler;
 import lombok.Getter;
 import lombok.Setter;
@@ -1140,31 +1141,36 @@ public class RenderEngine3D<T extends IGameEngine> {
                 focalDepth = getDepthOfFieldEffect().getFocalDepth();
                 for (PointLight light : pointLights.lights) {
                     float depth = light.position.dst(camera.position);
-                    if (!depthOfFieldEffect.isInFocus(depth)) {
-                        {
-                            final Matrix4 m = new Matrix4();
-                            m.setToTranslation(light.position.x, light.position.y, light.position.z);
-                            m.rotateTowardTarget(camera.position, camera.up);
-                            renderEngine25D.setTransformMatrix(m);
-                        }
-                        if (camera.frustum.pointInFrustum(light.position.x, light.position.y, light.position.z)) {
-                            //the further the light, the bigger the bokeh
-                            float size;
-                            if (depth > focalDepth) {
-                                size = 8 * ((depth - depthOfFieldEffect.getFarDofStart()) / (depthOfFieldEffect.getFarDofDist() - depthOfFieldEffect.getFarDofStart()));
-                            } else {
-//                                size = 8 * ((focalDepth - depth - depthOfFieldEffect.getNearDofStart()) / (depthOfFieldEffect.getNearDofDist() - depthOfFieldEffect.getNearDofStart()));
-                                break;
+                    if (depth < getFog().getFullDistance()) {
+                        if (!depthOfFieldEffect.isInFocus(depth)) {
+                            {
+                                final Matrix4 m = new Matrix4();
+                                m.setToTranslation(light.position.x, light.position.y, light.position.z);
+                                m.rotateTowardTarget(camera.position, camera.up);
+                                renderEngine25D.setTransformMatrix(m);
                             }
+                            if (camera.frustum.pointInFrustum(light.position.x, light.position.y, light.position.z)) {
+                                //the further the light, the bigger the bokeh
+                                float size;
+                                if (depth > focalDepth) {
+                                    size = 8 * ((depth - depthOfFieldEffect.getFarDofStart()) / (depthOfFieldEffect.getFarDofDist() - depthOfFieldEffect.getFarDofStart()));
+                                } else {
+//                                size = 8 * ((focalDepth - depth - depthOfFieldEffect.getNearDofStart()) / (depthOfFieldEffect.getNearDofDist() - depthOfFieldEffect.getNearDofStart()));
+                                    break;
+                                }
 //                            if (camera.frustum.pointInFrustum(light.position))
 //                                if (light.position.z < -1000)
 //                                    if (size < 0)
 //                                        System.out.println(" size=" + size + "dist=" + light.position.dst(camera.position));
-                            Color c = light.color;
-                            c.a = 0.5f;
-                            renderEngine25D.fillCircle(atlasRegion, 0, 0, size - 0.4f, 32, c);
+                                Color c = light.color;
+                                if (depth > getFog().getBeginDistance()) {
+                                    c = ColorUtil.mix(getFog().getColor(), c, (depth - getFog().getBeginDistance()) / (getFog().getFullDistance() - getFog().getBeginDistance()));
+                                }
+                                c.a = 0.5f;
+                                renderEngine25D.fillCircle(atlasRegion, 0, 0, size - 0.4f, 32, c);
 //                            c.a = .3f;
 //                            renderEngine25D.circle(atlasRegion, 0, 0, size, 0.8f, c, 32);
+                            }
                         }
                     }
                 }

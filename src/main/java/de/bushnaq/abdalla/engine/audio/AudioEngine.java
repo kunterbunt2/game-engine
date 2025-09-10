@@ -246,7 +246,6 @@ public class AudioEngine {
     }
 
     private void detectDisconnectedDevice() throws OpenAlException {
-        logger.info("----------------------------------------------------------------------------------");
         if (device == 0L) return;
         if (ALC10.alcIsExtensionPresent(device, "ALC_EXT_disconnect")) {
             int[] connected = new int[1];
@@ -257,7 +256,6 @@ public class AudioEngine {
                 initOpenAL();
             }
         }
-        logger.info("----------------------------------------------------------------------------------");
     }
 
     public void disableHrtf(final int index) throws OpenAlException {
@@ -348,7 +346,6 @@ public class AudioEngine {
     }
 
     private void followDefaultDevice() throws OpenAlException {
-        logger.info("----------------------------------------------------------------------------------");
         if (alcIsExtensionPresent(0L, "ALC_ENUMERATE_ALL_EXT")) {
             String systemDefault = alcGetString(0L, ALC11.ALC_DEFAULT_ALL_DEVICES_SPECIFIER);
 
@@ -359,7 +356,6 @@ public class AudioEngine {
                 initOpenAL();
             }
         }
-        logger.info("----------------------------------------------------------------------------------");
     }
 
     /**
@@ -556,7 +552,6 @@ public class AudioEngine {
             checkAlcError(result, "audio-engine", "Openal error #");
             device = 0L;
         }
-
     }
 
     private void updateCamera() throws OpenAlException {
