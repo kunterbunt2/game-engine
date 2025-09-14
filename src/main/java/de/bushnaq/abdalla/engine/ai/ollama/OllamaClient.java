@@ -123,7 +123,7 @@ public class OllamaClient {
      */
     public OllamaResponse generate(String model, String prompt, String systemPrompt) throws OllamaException {
         Map<String, Object> options = new HashMap<>();
-        options.put("temperature", 0.8);
+        options.put("temperature", 0.9);
         options.put("top_k", 40);
         options.put("top_p", 0.9);
         OllamaRequest request = new OllamaRequest(model, prompt);
