@@ -22,19 +22,22 @@ import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import net.mgsx.gltf.scene3d.animation.AnimationControllerHack;
 import net.mgsx.gltf.scene3d.model.ModelInstanceHack;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * @author kunterbunt
  */
 public class GameObject<T extends IGameEngine> {
 
-    public       btRigidBody             body;
-    public       BoundingBox             boundingBox            = new BoundingBox();
-    public final Vector3                 center                 = new Vector3();
-    public       AnimationControllerHack controller;
-    public       ModelInstanceHack       instance;
-    public       Object                  interactive;
-    public       ObjectRenderer<T>       objectRenderer         = null;//used to render 3D text
-    public       BoundingBox             transformedBoundingBox = new BoundingBox();
+    public       btRigidBody                   body;
+    public       BoundingBox                   boundingBox            = new BoundingBox();
+    public final Vector3                       center                 = new Vector3();
+    public       List<AnimationControllerHack> controllerList         = new ArrayList<>();
+    public       ModelInstanceHack             instance;
+    public       Object                        interactive;
+    public       ObjectRenderer<T>             objectRenderer         = null;//used to render 3D text
+    public       BoundingBox                   transformedBoundingBox = new BoundingBox();
 
     public GameObject(final ModelInstanceHack instance, final Object interactive) {
         this(instance, interactive, null);
