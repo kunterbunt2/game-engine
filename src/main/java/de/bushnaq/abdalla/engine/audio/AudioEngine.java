@@ -18,7 +18,7 @@ package de.bushnaq.abdalla.engine.audio;
 
 import com.badlogic.gdx.math.Vector3;
 import com.scottlogic.util.UnsortedList;
-import de.bushnaq.abdalla.engine.ai.coqui.CoquiTTS;
+import de.bushnaq.abdalla.engine.ai.TTSManager;
 import de.bushnaq.abdalla.engine.audio.radio.Radio;
 import de.bushnaq.abdalla.engine.audio.radio.TTSPlayer;
 import de.bushnaq.abdalla.engine.audio.synthesis.AbstractSynthesizerFactory;
@@ -52,7 +52,6 @@ public class AudioEngine {
     private static       ALCCapabilities                                                  alcCapabilities;
     private final        int                                                              bits;
     private              long                                                             context;
-    public               CoquiTTS                                                         coquiTTS;
     private              String                                                           currentDeviceName;
     private static       long                                                             device;//- the current device we use to output audio
     private final        Vector3                                                          direction               = new Vector3();//direction of the listener (what direction is he looking to)
@@ -75,6 +74,7 @@ public class AudioEngine {
     @Getter
     private final        int                                                              samples;
     private final        List<AudioProducer>                                              synths                  = new UnsortedList<>();
+    public               TTSManager                                                       ttsManager;
     private final        List<OpenAlSource>                                               unusedSources           = new ArrayList<>();
     private final        Vector3                                                          up                      = new Vector3();//what is up direction for the listener?
 
@@ -138,8 +138,9 @@ public class AudioEngine {
     public void create() throws OpenAlException {
         logger.info("----------------------------------------------------------------------------------");
         initOpenAL();
-        radio    = new Radio(this, "main-radio");
-        coquiTTS = new CoquiTTS();
+        radio      = new Radio(this, "main-radio");
+        ttsManager = new TTSManager();
+        ttsManager.setEngine(TTSManager.TTSEngine.COQUI);
         logger.info("----------------------------------------------------------------------------------");
     }
 

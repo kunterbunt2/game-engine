@@ -33,9 +33,14 @@ public class SinOscillator implements Oscilator {
 
     @Override
     public void dispose() {
-//		logger.info(String.format("minFrequency=%f oscFreq=%f maxFrequency=%f", minFrequency, oscFreq, maxFrequency));
     }
 
+    /**
+     * Generate the next sample of the oscillator sin waveform at time index i
+     *
+     * @param i time index (sample number)
+     * @return the generated sample value
+     */
     @Override
     public float gen(final long i) {
         final float oscFreqDetune      = (float) (lfoDepth / 10 * Math.sin((2 * Math.PI * lfoFreq / samplerate) * i));

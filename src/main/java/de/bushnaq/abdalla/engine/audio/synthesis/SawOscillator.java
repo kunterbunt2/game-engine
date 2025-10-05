@@ -27,16 +27,15 @@ public class SawOscillator implements Oscilator {
 
     @Override
     public void dispose() {
-        // TODO Auto-generated method stub
-
     }
 
 
-//	@Override
-//    protected void finalize() {
-    //		System.out.println(String.format("min=%f, max=%f", min, max));
-//	}
-
+    /**
+     * Generate the next sample of the oscillator saw waveform at time index i
+     *
+     * @param i time index (sample number)
+     * @return the generated sample value
+     */
     @Override
     public float gen(long i) {
         final float oscFreqDetune      = (float) (lfoDepth / 20 * Math.sin((2 * Math.PI * lfoFreq / samplerate) * i));
@@ -47,7 +46,7 @@ public class SawOscillator implements Oscilator {
         return value;
     }
 
-    //	@Override
+    @Override
     public float getFrequency() {
         return oscFreq;
     }
@@ -63,18 +62,18 @@ public class SawOscillator implements Oscilator {
      * @param lfoFreq  in Hz
      * @param lfoDepth in cent
      */
-//	@Override
+    @Override
     public void setLfo(final float lfoFreq, final float lfoDepth) {
         this.lfoFreq  = lfoFreq;
         this.lfoDepth = lfoDepth;
     }
 
-    //	@Override
+    @Override
     public void setOscillator(final float oscFreq) {
         this.oscFreq = oscFreq;
     }
 
-    //	@Override
+    @Override
     public void setSampleRate(final int samplerate) {
         this.samplerate = samplerate;
     }

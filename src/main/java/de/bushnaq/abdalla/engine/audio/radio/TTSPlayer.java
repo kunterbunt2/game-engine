@@ -17,7 +17,6 @@
 package de.bushnaq.abdalla.engine.audio.radio;
 
 import com.badlogic.gdx.files.FileHandle;
-import de.bushnaq.abdalla.engine.ai.coqui.CoquiTTS;
 import de.bushnaq.abdalla.engine.audio.AbstractAudioProducer;
 import de.bushnaq.abdalla.engine.audio.AudioEngine;
 import de.bushnaq.abdalla.engine.audio.OpenAlException;
@@ -128,7 +127,7 @@ public class TTSPlayer extends AbstractAudioProducer {
                 spokenRadioMessage = spokenMessageList.removeFirst();
             }
             for (int i = 0; i < spokenRadioMessage.getMessages().size(); i++) {
-                byte[] wavFileBytes = CoquiTTS.generateMinionSpeech(spokenRadioMessage.getTags().removeAllPostTags(spokenRadioMessage.getMessages().get(i)), spokenRadioMessage.getFrom().getId(), 1.2f, 1.05f, 1.1f);
+                byte[] wavFileBytes = audioEngine.ttsManager.generateMinionSpeech(spokenRadioMessage.getTags().removeAllPostTags(spokenRadioMessage.getMessages().get(i)), String.valueOf(spokenRadioMessage.getFrom().getId()), 1.2f, 1.05f, 1.1f);
                 byte[] bytes        = extractAudioDataFromWav(wavFileBytes);
                 synchronized (messagesLock) {
                     spakenRadioWaveList.add(new RadioWave(bytes, spokenRadioMessage, i));
