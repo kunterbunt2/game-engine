@@ -113,7 +113,7 @@ public class CubeRenderer extends ObjectRenderer<BasicGameEngine> implements Rad
                     PromptTags tags = new PromptTags();
                     tags.addPreTag("ship", "T-38");
                     tags.addPreTag("station", "P-81");
-                    String string = RadioMessage.createMessage(renderEngine.getGameEngine().getAudioEngine().radio.generateLlmAnswer(REQUESTING_APPROVAL_TO_DOCK, null, tags, true), tags);
+                    String string = RadioMessage.createMessage(renderEngine.getGameEngine().getAudioEngine().getRadio().generateLlmAnswer(REQUESTING_APPROVAL_TO_DOCK, null, tags, true), tags);
                     ttsPlayer.speak(new RadioMessage(0, this, null, "REQUESTING_APPROVAL_TO_UNDOCK", string, false, tags));
                 }
             }

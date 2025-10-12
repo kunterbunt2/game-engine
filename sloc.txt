@@ -5,9 +5,11 @@
 | com.scottlogic.util                                     | SortedList.java                  | src      |       91 |      226 |       68 |      519 |      904 |
 | com.scottlogic.util                                     | UnsortedList.java                | src      |       19 |       80 |       24 |      120 |      243 |
 +---------------------------------------------------------+----------------------------------+----------+----------+----------+----------+----------+----------+
-| de.bushnaq.abdalla.engine.ai.chatterbox                 | ChatterboxTTS.java               | src      |       11 |        0 |        3 |      105 |      119 |
+| de.bushnaq.abdalla.engine.ai.chatterbox                 | ChatterboxTTS.java               | src      |       11 |        0 |        3 |      107 |      121 |
+| de.bushnaq.abdalla.engine.ai.chatterbox                 | ChatterboxTTSProvider.java       | src      |        7 |        0 |        0 |       33 |       40 |
 +---------------------------------------------------------+----------------------------------+----------+----------+----------+----------+----------+----------+
 | de.bushnaq.abdalla.engine.ai.coqui                      | CoquiTTS.java                    | src      |       70 |        0 |       41 |      274 |      385 |
+| de.bushnaq.abdalla.engine.ai.coqui                      | CoquiTTSProvider.java            | src      |        7 |        0 |        0 |       33 |       40 |
 | de.bushnaq.abdalla.engine.ai.coqui                      | TtsHealthInfo.java               | src      |       12 |        0 |        3 |       47 |       62 |
 | de.bushnaq.abdalla.engine.ai.coqui                      | TtsLanguageInfo.java             | src      |       14 |        0 |        3 |       48 |       65 |
 | de.bushnaq.abdalla.engine.ai.coqui                      | TtsModelList.java                | src      |        7 |        0 |        2 |       21 |       30 |
@@ -23,12 +25,9 @@
 | de.bushnaq.abdalla.engine.ai.ollama                     | OllamaRequest.java               | src      |       20 |        3 |        1 |       70 |       94 |
 | de.bushnaq.abdalla.engine.ai.ollama                     | OllamaResponse.java              | src      |       30 |        3 |        1 |      105 |      139 |
 +---------------------------------------------------------+----------------------------------+----------+----------+----------+----------+----------+----------+
-| de.bushnaq.abdalla.engine.ai                            | ChatterboxTTSProvider.java       | src      |        6 |        0 |        0 |       29 |       35 |
-| de.bushnaq.abdalla.engine.ai                            | CoquiTTSProvider.java            | src      |        6 |        0 |        0 |       29 |       35 |
 | de.bushnaq.abdalla.engine.ai                            | PromptTags.java                  | src      |        9 |       24 |        0 |       41 |       74 |
-| de.bushnaq.abdalla.engine.ai                            | TTSManager.java                  | src      |       15 |        0 |        0 |       54 |       69 |
-| de.bushnaq.abdalla.engine.ai                            | TTSManagerTest.java              | src      |        6 |        0 |        1 |       43 |       50 |
-| de.bushnaq.abdalla.engine.ai                            | TTSProvider.java                 | src      |        5 |        0 |        0 |        8 |       13 |
+| de.bushnaq.abdalla.engine.ai                            | TTSManager.java                  | src      |       15 |        0 |        0 |       56 |       71 |
+| de.bushnaq.abdalla.engine.ai                            | TTSProvider.java                 | src      |        6 |        0 |        0 |        9 |       15 |
 +---------------------------------------------------------+----------------------------------+----------+----------+----------+----------+----------+----------+
 | de.bushnaq.abdalla.engine.audio.radio.util              | TTSBase.java                     | src      |       44 |        0 |       21 |      235 |      300 |
 +---------------------------------------------------------+----------------------------------+----------+----------+----------+----------+----------+----------+
@@ -39,6 +38,7 @@
 | de.bushnaq.abdalla.engine.audio.radio                   | RadioUtil.java                   | src      |        7 |        0 |       16 |       49 |       72 |
 | de.bushnaq.abdalla.engine.audio.radio                   | RadioWave.java                   | src      |        2 |        4 |        0 |        6 |       12 |
 | de.bushnaq.abdalla.engine.audio.radio                   | SimpleTTSTest.java               | src      |       21 |        0 |       28 |       73 |      122 |
+| de.bushnaq.abdalla.engine.audio.radio                   | TTSManagerTest.java              | src      |        6 |        0 |        1 |       47 |       54 |
 | de.bushnaq.abdalla.engine.audio.radio                   | TTSMultiSpeakerExample.java      | src      |       20 |        0 |        9 |       92 |      121 |
 | de.bushnaq.abdalla.engine.audio.radio                   | TTSPlayer.java                   | src      |       46 |       12 |       53 |      284 |      395 |
 | de.bushnaq.abdalla.engine.audio.radio                   | TTSPlayerFactory.java            | src      |        6 |        0 |       15 |       14 |       35 |
@@ -50,7 +50,7 @@
 | de.bushnaq.abdalla.engine.audio.synthesis.util          | BasicAudioEngine.java            | src      |        6 |        0 |       15 |       18 |       39 |
 | de.bushnaq.abdalla.engine.audio.synthesis.util          | BasicDesktopContext.java         | src      |       21 |        3 |       34 |       87 |      145 |
 | de.bushnaq.abdalla.engine.audio.synthesis.util          | BasicDesktopContextFactory.java  | src      |        6 |        3 |       15 |       15 |       39 |
-| de.bushnaq.abdalla.engine.audio.synthesis.util          | BasicGameEngine.java             | src      |       44 |        0 |       46 |      361 |      451 |
+| de.bushnaq.abdalla.engine.audio.synthesis.util          | BasicGameEngine.java             | src      |       43 |        0 |       46 |      357 |      446 |
 | de.bushnaq.abdalla.engine.audio.synthesis.util          | BasicRandomGenerator.java        | src      |        8 |        0 |       15 |       24 |       47 |
 | de.bushnaq.abdalla.engine.audio.synthesis.util          | BasicSubtitles.java              | src      |        6 |        0 |        0 |       12 |       18 |
 | de.bushnaq.abdalla.engine.audio.synthesis.util          | CircularCubeActor.java           | src      |        5 |        0 |       15 |        7 |       27 |
@@ -96,7 +96,7 @@
 | de.bushnaq.abdalla.engine.audio.synthesis               | SynthesizerFactory.java          | src      |        6 |        0 |       15 |       10 |       31 |
 +---------------------------------------------------------+----------------------------------+----------+----------+----------+----------+----------+----------+
 | de.bushnaq.abdalla.engine.audio                         | AbstractAudioProducer.java       | src      |       23 |       16 |       25 |      160 |      224 |
-| de.bushnaq.abdalla.engine.audio                         | AudioEngine.java                 | src      |       58 |       22 |       50 |      434 |      564 |
+| de.bushnaq.abdalla.engine.audio                         | AudioEngine.java                 | src      |       58 |       22 |       50 |      435 |      565 |
 | de.bushnaq.abdalla.engine.audio                         | AudioProducer.java               | src      |       32 |        5 |       16 |       33 |       86 |
 | de.bushnaq.abdalla.engine.audio                         | ByteBufferContainer.java         | src      |        4 |        0 |       20 |        7 |       31 |
 | de.bushnaq.abdalla.engine.audio                         | Filter.java                      | src      |       10 |        0 |       15 |       34 |       59 |
@@ -186,7 +186,7 @@
 | de.bushnaq.abdalla.engine                               | IApplicationProperties.java      | src      |       47 |        3 |       15 |       48 |      113 |
 | de.bushnaq.abdalla.engine                               | IContext.java                    | src      |        5 |        3 |       15 |        5 |       28 |
 | de.bushnaq.abdalla.engine                               | IContextFactory.java             | src      |        2 |        3 |       15 |        4 |       24 |
-| de.bushnaq.abdalla.engine                               | IGameEngine.java                 | src      |       11 |        0 |       15 |       16 |       42 |
+| de.bushnaq.abdalla.engine                               | IGameEngine.java                 | src      |       10 |        0 |       15 |       14 |       39 |
 | de.bushnaq.abdalla.engine                               | ISubtitles.java                  | src      |        4 |        0 |        0 |        7 |       11 |
 | de.bushnaq.abdalla.engine                               | Meter.java                       | src      |        8 |        0 |       17 |       71 |       96 |
 | de.bushnaq.abdalla.engine                               | MyGLErrorListener.java           | src      |        7 |        3 |       17 |       31 |       58 |
@@ -207,5 +207,5 @@
 | de.bushnaq.abdalla.engine                               | renderLightTest.java             | src      |       15 |        0 |       15 |       99 |      129 |
 | de.bushnaq.abdalla.engine                               | renderTest.java                  | src      |       14 |        0 |       45 |       99 |      158 |
 +---------------------------------------------------------+----------------------------------+----------+----------+----------+----------+----------+----------+
-| 23 package(s)                                           | 183 file(s)                      | java     |     2703 |      987 |     3887 |    14213 |    21790 |
+| 23 package(s)                                           | 183 file(s)                      | java     |     2704 |      987 |     3887 |    14225 |    21803 |
 +---------------------------------------------------------+----------------------------------+----------+----------+----------+----------+----------+----------+

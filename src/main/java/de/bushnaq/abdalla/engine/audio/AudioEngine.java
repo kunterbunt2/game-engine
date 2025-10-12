@@ -68,7 +68,8 @@ public class AudioEngine {
     private              int                                                              maxMonoSources          = 0;
     @Getter
     private              int                                                              numberOfSources         = 0;
-    public               Radio                                                            radio;
+    @Getter
+    private              Radio                                                            radio;
     @Getter
     private final        int                                                              samplerate;
     @Getter

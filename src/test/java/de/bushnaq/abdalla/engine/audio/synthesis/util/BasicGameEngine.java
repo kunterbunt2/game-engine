@@ -33,7 +33,6 @@ import de.bushnaq.abdalla.engine.ISubtitles;
 import de.bushnaq.abdalla.engine.RenderEngine3D;
 import de.bushnaq.abdalla.engine.audio.AudioEngine;
 import de.bushnaq.abdalla.engine.audio.OpenAlException;
-import de.bushnaq.abdalla.engine.audio.radio.Radio;
 import de.bushnaq.abdalla.engine.camera.MovingCamera;
 import lombok.Getter;
 import net.mgsx.gltf.scene3d.attributes.PBRCubemapAttribute;
@@ -121,7 +120,7 @@ public abstract class BasicGameEngine implements ApplicationListener, InputProce
             renderEngine.setShowGraphs(true);
             createEnvironment();
             getAudioEngine().create();
-            audioEngine.radio.loadResource(this.getClass());
+            audioEngine.getRadio().loadResource(this.getClass());
 //            audioEngine.radio.loadAudio();
         } catch (final Exception e) {
             logger.error(e.getMessage(), e);
@@ -235,10 +234,6 @@ public abstract class BasicGameEngine implements ApplicationListener, InputProce
     @Override
     public MovingCamera getCamera() {
         return camera;
-    }
-
-    public Radio getRadio() {
-        return audioEngine.radio;
     }
 
     public boolean isPaused() {
